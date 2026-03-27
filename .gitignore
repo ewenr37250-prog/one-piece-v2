@@ -1,0 +1,15 @@
+# Node modules
+node_modules/
+# Logs
+logs/
+*.log
+# Dependency directories
+jspm_packages/
+
+# Build output
+dist/
+
+# Official Node.js documentation
+
+# Editor directories and files
+.vscode/
