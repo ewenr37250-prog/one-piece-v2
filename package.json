@@ -2,7 +2,7 @@
   "name": "one-piece-v2",
   "version": "1.0.0",
   "description": "Jeu RP One Piece Multijoueur",
-  "main": "src/server.js",
+  "main": "server.js",
   "scripts": {
     "start": "node src/server.js"
   },
