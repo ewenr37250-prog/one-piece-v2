@@ -14,21 +14,15 @@ const io = new Server(server, {
 // Connexion MongoDB
 const mongoURI = process.env.MONGODB_URI || "mongodb://localhost:27017/onepiece";
 mongoose.connect(mongoURI)
-    .then(() => console.log("⚓ Connecté à la base de données de Grand Line"))
+    .then(() => console.log("⚓ Connecté à la base de données"))
     .catch(err => console.error("❌ Erreur de connexion:", err));
 
 app.use(express.static(path.join(__dirname, '../')));
 
-// Système Multijoueur Temps Réel
 io.on('connection', (socket) => {
-    console.log('🏴‍☠️ Un nouveau pirate a rejoint l\'équipage:', socket.id);
-
+    console.log('🏴‍☠️ Pirate connecté:', socket.id);
     socket.on('chat-message', (data) => {
-        io.emit('chat-message', data); // Envoie le message à TOUT LE MONDE en direct
-    });
-
-    socket.on('disconnect', () => {
-        console.log('👋 Un pirate a quitté le navire');
+        io.emit('chat-message', data);
     });
 });
 
