@@ -2,132 +2,105 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>One Piece Online - Battle</title>
+    <title>One Piece RP - Grand Line</title>
     <style>
-        /* Design Style One Piece */
-        body {
-            margin: 0;
-            background: #1a1a1a;
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
+        body { margin: 0; background: #0f172a; color: #e2e8f0; font-family: 'serif'; display: flex; height: 100vh; }
+        #char-sheet { width: 300px; background: #1e293b; border-right: 3px solid #f1c40f; padding: 20px; }
+        #main-rp { flex-grow: 1; display: flex; flex-direction: column; background: #0f172a; }
+        #log { flex-grow: 1; padding: 20px; overflow-y: auto; }
+        .rp-system { color: #f1c40f; border-left: 3px solid #f1c40f; padding-left: 10px; margin: 10px 0; font-weight: bold; }
+        
+        /* Panel Admin Caché */
+        #admin-panel { 
+            display: none; position: fixed; right: 20px; top: 20px; 
+            background: #450a0a; border: 2px solid red; padding: 15px; border-radius: 10px; z-index: 100;
         }
-
-        #game-container {
-            width: 80%;
-            max-width: 800px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 3px solid #f1c40f;
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 0 20px rgba(241, 196, 15, 0.5);
-        }
-
-        h1 {
-            color: #f1c40f;
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px #c0392b;
-        }
-
-        #status {
-            font-weight: bold;
-            color: #2ecc71;
-            margin-bottom: 10px;
-        }
-
-        #chat-box {
-            height: 200px;
-            overflow-y: auto;
-            background: #2c3e50;
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
-            text-align: left;
-        }
-
-        .msg { margin-bottom: 5px; border-bottom: 1px solid #34495e; padding-bottom: 2px; }
-        .system { color: #f1c40f; font-style: italic; }
-
-        input {
-            width: 70%;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-        }
-
-        button {
-            padding: 10px 20px;
-            background: #e67e22;
-            border: none;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        button:hover { background: #d35400; }
+        input, button { margin: 5px 0; padding: 8px; width: 100%; }
+        #btn-admin { position: fixed; bottom: 5px; left: 5px; opacity: 0.2; cursor: pointer; color: white; border:none; background:none; }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <h1>One Piece Online</h1>
-        <div id="status">📡 Recherche de compagnons...</div>
-        
-        <div id="chat-box" id="messages">
-            <div class="msg system">Bienvenue à bord, Pirate !</div>
-        </div>
+    <div id="char-sheet">
+        <h2 style="color: #f1c40f;">📜 FICHE</h2>
+        <div id="p-name" style="font-size: 1.5em; font-weight: bold;">-</div>
+        <hr>
+        <div style="color: #f1c40f;">PRIME ACTUELLE :</div>
+        <div id="p-bounty" style="font-size: 2em; color: #2ecc71;">0 ฿</div>
+    </div>
 
-        <div id="controls">
-            <input type="text" id="message-input" placeholder="Parle à l'équipage...">
-            <button onclick="sendMessage()">Envoyer</button>
+    <div id="main-rp">
+        <div id="log"></div>
+        <div style="padding: 20px; background: #1e293b;">
+            <input type="text" id="cmd" placeholder="Tapez votre action RP ici...">
         </div>
     </div>
+
+    <div id="admin-panel">
+        <h3 style="color: white; margin: 0;">🏛️ Conseil des 5 Doyens</h3>
+        <input type="text" id="target-name" placeholder="Nom du pirate">
+        <input type="number" id="new-bounty" placeholder="Nouvelle Prime (฿)">
+        <button onclick="updateBounty()" style="background: green; color: white;">Modifier Prime</button>
+        <hr>
+        <input type="text" id="announcement" placeholder="Annonce Mondiale">
+        <button onclick="sendGlobal()" style="background: gold;">Publier Journal</button>
+    </div>
+
+    <button id="btn-admin" onclick="checkAdmin()">.</button>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        const statusDiv = document.getElementById('status');
-        const chatBox = document.getElementById('chat-box');
-        const input = document.getElementById('message-input');
+        const myName = prompt("Votre nom RP ?") || "Pirate";
+        let myBounty = 0;
+        document.getElementById('p-name').innerText = myName;
 
-        // Quand on se connecte
-        socket.on('connect', () => {
-            statusDiv.innerText = "✅ Connecté au serveur de Grand Line !";
-            statusDiv.style.color = "#2ecc71";
-        });
-
-        // Quand on reçoit un message
-        socket.on('chat-message', (data) => {
-            const msgDiv = document.createElement('div');
-            msgDiv.classList.add('msg');
-            msgDiv.innerHTML = `<strong>Pirate :</strong> ${data}`;
-            chatBox.appendChild(msgDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        });
-
-        // Fonction pour envoyer
-        function sendMessage() {
-            const text = input.value;
-            if (text.trim() !== "") {
-                socket.emit('chat-message', text);
-                input.value = "";
-            }
+        // Gestion Admin
+        function checkAdmin() {
+            const code = prompt("Code d'accès du Gouvernement Mondial :");
+            if(code === "imu") document.getElementById('admin-panel').style.display = "block";
         }
 
-        // Envoyer avec la touche Entrée
-        input.addEventListener("keypress", (event) => {
-            if (event.key === "Enter") {
-                sendMessage();
+        function updateBounty() {
+            const target = document.getElementById('target-name').value;
+            const amount = document.getElementById('new-bounty').value;
+            socket.emit('admin-update-bounty', { target, amount });
+        }
+
+        function sendGlobal() {
+            const msg = document.getElementById('announcement').value;
+            socket.emit('admin-announcement', msg);
+        }
+
+        // Événements socket
+        socket.on('rp-message', (data) => {
+            const div = document.createElement('div');
+            div.innerHTML = `<strong>${data.user} :</strong> ${data.text}`;
+            document.getElementById('log').appendChild(div);
+        });
+
+        socket.on('bounty-updated', (data) => {
+            if(myName === data.target) {
+                myBounty = data.amount;
+                document.getElementById('p-bounty').innerText = myBounty + " ฿";
+            }
+            const info = document.createElement('div');
+            info.className = "rp-system";
+            info.innerText = `⚠️ AVIS DE RECHERCHE : La prime de ${data.target} est désormais de ${data.amount} ฿ !`;
+            document.getElementById('log').appendChild(info);
+        });
+
+        socket.on('global-alert', (text) => {
+            const alert = document.createElement('div');
+            alert.style.cssText = "background: #7f1d1d; color: white; padding: 10px; border: 2px solid #f1c40f; margin: 10px 0;";
+            alert.innerHTML = `📢 <strong>ÉDITION SPÉCIALE JOURNAL :</strong> ${text}`;
+            document.getElementById('log').prepend(alert);
+        });
+
+        document.getElementById('cmd').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                socket.emit('rp-message', { user: myName, text: document.getElementById('cmd').value });
+                document.getElementById('cmd').value = "";
             }
         });
     </script>
