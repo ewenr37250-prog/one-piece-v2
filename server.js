@@ -12,8 +12,8 @@ let worldEvent = null;
 const quests = [
   { id:1, title:'Traversée du Grand Line',  desc:'Rédigez 3 posts RP.',             faction:'all',    reward:500000,  done:[] },
   { id:2, title:'Chasse à la Prime',         desc:'Impliquez-vous dans un combat.',  faction:'pirate', reward:2000000, done:[] },
-  { id:3, title:'Ordre du Monde',            desc:'Rédigez un post d\'arrestation.', faction:'marine', reward:0, xpReward:30, done:[] },
-  { id:4, title:'Flamme de la Liberté',      desc:'Recrutez un allié narratif.',     faction:'revo',   reward:0, infReward:20, done:[] },
+  { id:3, title:'Ordre du Monde',             desc:'Rédigez un post d\'arrestation.', faction:'marine', reward:0, xpReward:30, done:[] },
+  { id:4, title:'Flamme de la Liberté',      desc:'Recrutez un allié narratif.',     faction:'revo',    reward:0, infReward:20, done:[] },
   { id:5, title:'Îles Inconnues',            desc:'Créez un nouvel arc RP.',         faction:'all',    reward:1000000, done:[] }
 ];
 
@@ -27,15 +27,17 @@ const FACTION_GRADES = {
 
 const WORLD_EVENTS = [
   { title:'⚔️ Bataille de Marineford', desc:'Conflit épique entre Pirates et Marine !',        goal:15, reward:5000000 },
-  { title:'🏝️ Île Mystérieuse',        desc:'Une île inconnue apparaît. Explorez en RP !',    goal:10, reward:3000000 },
+  { title:'🏝️ Île Mystérieuse',        desc:'Une île inconnue apparaît. Explorez en RP !',   goal:10, reward:3000000 },
   { title:'🏛️ La Reverie',             desc:'Sommet des rois. Intrigues et diplomatie !',      goal:8,  reward:4000000 },
-  { title:'🌊 Tempête du Grand Line',  desc:'Survie collective — collaborez !',                 goal:12, reward:2000000 },
+  { title:'🌊 Tempête du Grand Line',  desc:'Survie collective — collaborez !',                goal:12, reward:2000000 },
   { title:'🐉 Créature des Abysses',  desc:'Monstre légendaire ! Unissez-vous !',              goal:20, reward:8000000 },
-  { title:'⚓ Chasse aux Empereurs',  desc:'La Marine lance une opération majeure.',            goal:25, reward:10000000 }
+  { title:'⚓ Chasse aux Empereurs',  desc:'La Marine lance une opération majeure.',             goal:25, reward:10000000 }
 ];
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.get('*', (_, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+// --- CORRECTION DU CHEMIN ICI ---
+app.use(express.static(__dirname)); 
+app.get('*', (_, res) => res.sendFile(path.resolve(__dirname, 'index.html')));
+// --------------------------------
 
 io.on('connection', (socket) => {
   console.log('[+] Connexion:', socket.id);
