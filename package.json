@@ -1,17 +1,18 @@
 {
-  "name": "one-piece-v2",
-  "version": "1.0.0",
+  "name": "one-piece-rp",
+  "version": "2.0.0",
   "description": "Jeu RP One Piece Multijoueur",
   "main": "server.js",
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "mongoose": "^7.0.0",
     "socket.io": "^4.6.1",
-    "dotenv": "^16.0.3",
-    "jsonwebtoken": "^9.0.0",
-    "bcryptjs": "^2.4.3"
+    "dotenv": "^16.0.3"
   }
 }
