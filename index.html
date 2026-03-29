@@ -1,5 +1,135 @@
-<script src="/socket.io/socket.io.js"></script>
-<script>
-  const socket = io();
-  console.log("Connecté au navire !");
-</script>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Piece Online - Battle</title>
+    <style>
+        /* Design Style One Piece */
+        body {
+            margin: 0;
+            background: #1a1a1a;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 80%;
+            max-width: 800px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #f1c40f;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(241, 196, 15, 0.5);
+        }
+
+        h1 {
+            color: #f1c40f;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px #c0392b;
+        }
+
+        #status {
+            font-weight: bold;
+            color: #2ecc71;
+            margin-bottom: 10px;
+        }
+
+        #chat-box {
+            height: 200px;
+            overflow-y: auto;
+            background: #2c3e50;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .msg { margin-bottom: 5px; border-bottom: 1px solid #34495e; padding-bottom: 2px; }
+        .system { color: #f1c40f; font-style: italic; }
+
+        input {
+            width: 70%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #e67e22;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover { background: #d35400; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>One Piece Online</h1>
+        <div id="status">📡 Recherche de compagnons...</div>
+        
+        <div id="chat-box" id="messages">
+            <div class="msg system">Bienvenue à bord, Pirate !</div>
+        </div>
+
+        <div id="controls">
+            <input type="text" id="message-input" placeholder="Parle à l'équipage...">
+            <button onclick="sendMessage()">Envoyer</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const statusDiv = document.getElementById('status');
+        const chatBox = document.getElementById('chat-box');
+        const input = document.getElementById('message-input');
+
+        // Quand on se connecte
+        socket.on('connect', () => {
+            statusDiv.innerText = "✅ Connecté au serveur de Grand Line !";
+            statusDiv.style.color = "#2ecc71";
+        });
+
+        // Quand on reçoit un message
+        socket.on('chat-message', (data) => {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('msg');
+            msgDiv.innerHTML = `<strong>Pirate :</strong> ${data}`;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        // Fonction pour envoyer
+        function sendMessage() {
+            const text = input.value;
+            if (text.trim() !== "") {
+                socket.emit('chat-message', text);
+                input.value = "";
+            }
+        }
+
+        // Envoyer avec la touche Entrée
+        input.addEventListener("keypress", (event) => {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
