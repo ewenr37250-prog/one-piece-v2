@@ -1,37 +1,35 @@
 const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
 const path = require('path');
-
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
+const server = require('http').createServer(app);
+const io = require('socket.io')(server, {
     cors: { origin: "*" }
 });
 
-// 1. On dit au serveur que TOUS les fichiers sont à la racine (./)
-app.use(express.static(path.join(__dirname, '.')));
+// 1. Rend tous les fichiers du dossier actuel accessibles (images, css, js client)
+app.use(express.static(__dirname));
 
-// 2. On force l'ouverture de index.html quand on arrive sur le site
-app.get('/', (req, res) => {
+// 2. ROUTE PRINCIPALE : Envoie index.html peu importe l'adresse tapée
+app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 3. Système multijoueur de base
+// 3. LOGIQUE MULTIJOUEUR (SOCKET.IO)
 io.on('connection', (socket) => {
-    console.log('🏴‍☠️ Un pirate a rejoint la partie !');
-    
-    socket.on('chat-message', (data) => {
-        io.emit('chat-message', data);
+    console.log('🏴‍☠️ Un pirate a rejoint le navire ! ID:', socket.id);
+
+    socket.on('chat-message', (msg) => {
+        io.emit('chat-message', msg);
     });
 
     socket.on('disconnect', () => {
-        console.log('🏃 Un pirate a quitté le navire.');
+        console.log('🏃 Un pirate est tombé à l’eau.');
     });
 });
 
-// 4. Lancement du serveur sur le port de Render (ou 3000)
+// 4. ÉCOUTE DU PORT (Indispensable pour Render)
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`🚀 Serveur One Piece actif sur le port ${PORT}`);
+    console.log(`🚀 Serveur démarré sur le port ${PORT}`);
+    console.log(`📂 Dossier actuel : ${__dirname}`);
 });
