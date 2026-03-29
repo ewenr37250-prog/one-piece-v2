@@ -1,1 +1,5 @@
-<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>To-Do List</title>\n    <style>\n        body { font-family: Arial, sans-serif; }\n        #todo-form { margin-bottom: 20px; }\n        #todo-list { list-style-type: none; padding: 0; }\n        #todo-list li { margin: 5px 0; }\n    </style>\n</head>\n<body>\n    <h1>To-Do List Application</h1>\n    <form id="todo-form">\n        <input type="text" id="todo-input" placeholder="Add a new todo" required>\n        <button type="submit">Add Todo</button>\n    </form>\n    <ul id="todo-list"></ul>\n    <script>\n        const form = document.getElementById('todo-form');\n        const input = document.getElementById('todo-input');\n        const todoList = document.getElementById('todo-list');\n        \n        form.addEventListener('submit', function(event) {\n            event.preventDefault();\n            const todoText = input.value;\n            const li = document.createElement('li');\n            li.textContent = todoText;\n            todoList.appendChild(li);\n            input.value = '';\n        });\n    </script>\n</body>\n</html>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  console.log("Connecté au navire !");
+</script>
