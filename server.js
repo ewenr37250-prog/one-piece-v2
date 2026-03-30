@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const path = require('path');
 const http = require('http');
 const { Server } = require('socket.io');
 
@@ -8,94 +7,94 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
-// --- CONFIGURATION & CODES ---
-const CODES = {
-    master: 'TartifletteDeLaHess', 
-    super:  'RedaLeGoat'
-};
+const CODES = { master: "TartifletteDeLaHess", super: "RedaLeGoat" };
 
-// --- DATA STRUCTURES ---
 let players = {};
-let crews = { pirate: [], marine: [], revo: [] };
-let worldState = {
-    event: "L'horizon est calme...",
-    journal: "Édition n°1 : Le One Piece existe-t-il vraiment ?",
-    onePieceActive: false,
-    marketModifier: 1.0,
-    roadPoneglyphes: { 1: "Caché", 2: "Caché", 3: "Caché", 4: "Caché" }
+let world = {
+    journal: "L'ère des pirates V3 est lancée !",
+    market: { wood: 100, steel: 500, fluctuation: 1.0 },
+    onePiece: false
 };
-let msgHistory = [];
 
-const FACTION_GRADES = {
-    pirate: ['Mousse','Matelot','Second','Capitaine','Commodore','Amiral de flotte'],
-    marine: ['Recrue','Soldat','Sergent','Lieutenant','Vice-Amiral','Amiral Chef'],
-    revo:   ['Initié','Agent','Cadre','Commandant','Chef de corps','Chef suprême']
+const GRADES = {
+    pirate: ['Mousse','Matelot','Second','Capitaine','Commodore','Empereur'],
+    marine: ['Recrue','Soldat','Sergent','Colonel','Vice-Amiral','Amiral en Chef'],
+    revo:   ['Initié','Agent','Cadre','Commandant','Chef de corps','Chef Suprême']
 };
 
 app.use(express.static(__dirname));
 
-io.on('connection', (socket) => {
-    socket.emit('init', { worldState, players, history: msgHistory });
+// --- ALGORITHME DE PUISSANCE V3 ---
+function calculatePower(p) {
+    let base = (p.bounty / 5000) + (p.gradeIdx * 200);
+    let fruitBonus = p.fruit.active ? (p.skills.fruitMastery * p.fruit.coeff * 25) : 0;
+    let hakiBonus = (p.haki.obs * 50) + (p.haki.arm * 100) + (p.haki.kings * 500);
+    let skillBonus = (p.skills.force * 20) + (p.skills.intel * 10);
+    return Math.floor(base + fruitBonus + hakiBonus + skillBonus);
+}
 
+io.on('connection', (socket) => {
     socket.on('join', ({ name, faction }) => {
+        socket.join('global');
+        socket.join(faction);
+        
         if (!players[name]) {
             players[name] = {
-                name, faction, bounty: 1000, gradeXP: 0, gradeIdx: 0,
-                grade: FACTION_GRADES[faction] ? FACTION_GRADES[faction][0] : 'Mousse',
-                power: 10,
-                fruit: { name: "Aucun", level: 0, coeff: 1.0 },
+                name, faction, bounty: 1000, gradeIdx: 0, xp: 0,
+                grade: GRADES[faction][0],
+                fruit: { active: false, name: "Aucun", coeff: 1.0 },
                 haki: { obs: 0, arm: 0, kings: 0 },
-                skills: { force: 0, stealth: 0, fruitMastery: 0, intel: 0, canReadPoneglyph: false },
-                crew: null, inventory: [], logsFound: 0
+                skills: { force: 0, stealth: 0, fruitMastery: 0, intel: 0, canRead: false },
+                lastQuest: 0, power: 0
             };
         }
         socket.playerName = name;
-        updatePlayer(name);
+        update();
     });
 
-    socket.on('rp-message', ({ user, text, channel }) => {
-        const p = players[user];
-        if (!p) return;
+    // SYSTÈME DE CHAT (GLOBAL + PRIVÉ)
+    socket.on('send-msg', ({ text, type }) => {
+        const p = players[socket.playerName];
+        if(!p) return;
+        const msg = { user: p.name, text, faction: p.faction, type };
 
-        p.bounty += Math.floor(Math.random() * 200) + 100;
-        p.gradeXP += 5;
-        p.power = Math.floor((p.bounty / 10000) + (p.skills.fruitMastery * 10) + (p.gradeIdx * 50) + (p.haki.arm * 100));
+        if (type === 'global') {
+            io.to('global').emit('receive-msg', msg);
+        } else {
+            io.to(p.faction).emit('receive-msg', msg);
+        }
+    });
 
-        const msg = { user, text, faction: p.faction, channel: channel || 'public', power: p.power };
-        msgHistory.push(msg);
-        if (msgHistory.length > 50) msgHistory.shift();
-        
-        io.emit('rp-message', msg);
-        updatePlayer(user);
+    socket.on('quest', () => {
+        const p = players[socket.playerName];
+        if(!p || Date.now() - p.lastQuest < 45000) return socket.emit('err', "Attendez...");
+        p.xp += 60; p.bounty += 5000; p.lastQuest = Date.now();
+        if(p.xp >= 300 && p.gradeIdx < 5) { p.gradeIdx++; p.xp = 0; p.grade = GRADES[p.faction][p.gradeIdx]; }
+        update();
+    });
+
+    socket.on('upgrade-skill', (skill) => {
+        const p = players[socket.playerName];
+        if(p && p.xp >= 100) { 
+            p.xp -= 100; p.skills[skill]++; 
+            if(p.skills.intel >= 10) p.canRead = true;
+            update(); 
+        }
     });
 
     socket.on('admin-action', ({ code, action, data }) => {
-        const isMaster = (code === CODES.master);
-        const isSuper  = (code === CODES.super);
-        
-        if (!isMaster && !isSuper) return socket.emit('error', 'Code incorrect');
-
-        if (action === 'update-journal' && isMaster) {
-            worldState.journal = data;
-            io.emit('world-update', worldState);
-        }
-        if (action === 'toggle-onepiece' && isMaster) {
-            worldState.onePieceActive = !worldState.onePieceActive;
-            io.emit('world-update', worldState);
-        }
-        if (action === 'give-fruit') {
-            if (players[data.target]) {
-                players[data.target].fruit = { name: data.fruitName, level: 1, coeff: data.coeff };
-                updatePlayer(data.target);
-            }
-        }
+        if(code !== CODES.master && code !== CODES.super) return;
+        const t = players[data.target];
+        if (action === "give-fruit" && t) t.fruit = { active: true, name: data.name, coeff: parseFloat(data.coeff) };
+        if (action === "give-haki" && t) t.haki[data.type]++;
+        if (action === "set-journal") world.journal = data.text;
+        update();
     });
 
-    function updatePlayer(name) {
-        io.emit('leaderboard-update', players);
-        socket.emit('player-data', players[name]);
+    function update() {
+        if(players[socket.playerName]) players[socket.playerName].power = calculatePower(players[socket.playerName]);
+        io.emit('update-all', { players, world });
     }
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`⚓ Horizon V3 Online - Port ${PORT}`));
+server.listen(process.env.PORT || 3000, () => console.log("⚓ Serveur V3 Actif"));
