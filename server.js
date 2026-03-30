@@ -25,40 +25,73 @@ const FACTION_GRADES = {
   revo:   ['Initié','Agent','Cadre','Commandant','Chef de corps','Chef suprême']
 };
 
-// --- LA CORRECTION GEMINI POUR ÉVITER L'ERREUR ---
+// --- SERVIR LES FICHIERS ---
 app.use(express.static(__dirname)); 
 app.use(express.static(path.join(__dirname, 'public')));
 
 io.on('connection', (socket) => {
+  // On envoie l'historique et l'état du monde à la connexion
   socket.emit('init', { worldEvent, players, history: msgHistory });
 
   socket.on('join', ({ name, faction }) => {
     if (!name || name.length < 2) return;
-    socket.playerName = name;
+    
+    // Si le joueur n'existe pas, on le crée
     if (!players[name]) {
       players[name] = {
-        name, faction, bounty: 1000, gradeXP: 0, gradeIdx: 0,
-        grade: FACTION_GRADES[faction][0], skillPoints: 0,
+        name, 
+        faction: faction || 'pirate', 
+        bounty: 1000, 
+        gradeXP: 0, 
+        gradeIdx: 0,
+        grade: FACTION_GRADES[faction || 'pirate'][0], 
+        skillPoints: 0,
         skills: { force: 0, intel: 0, haki: 0, reading: 0 },
         connected: true
       };
     }
+    
+    socket.playerName = name;
     io.emit('leaderboard-update', players);
     socket.emit('player-data', players[name]);
+    
+    // Petit message système quand quelqu'un arrive
+    io.emit('rp-message', { 
+        user: 'SYSTÈME', 
+        text: `⚓ ${name} a pris la mer avec les ${faction}s !`, 
+        faction: 'system' 
+    });
   });
 
   socket.on('rp-message', ({ user, text }) => {
     if (!players[user] || !text) return;
+    
     const p = players[user];
+    
+    // Gain de prime et d'XP à chaque message
     p.bounty += Math.floor(Math.random() * 300) + 150;
     p.gradeXP += 10;
     
-    const msg = { user, text, faction: p.faction, time: new Date() };
+    // Système de montée en grade automatique simple
+    if(p.gradeXP >= 100 && p.gradeIdx < 5) {
+        p.gradeIdx++;
+        p.gradeXP = 0;
+        p.grade = FACTION_GRADES[p.faction][p.gradeIdx];
+        socket.emit('player-data', p); // Update du joueur
+    }
+    
+    const msg = { 
+        user, 
+        text, 
+        faction: p.faction, 
+        time: new Date() 
+    };
+    
     msgHistory.push(msg);
     if (msgHistory.length > 100) msgHistory.shift();
+    
     io.emit('rp-message', msg);
     io.emit('leaderboard-update', players);
-    socket.emit('player-data', p);
   });
 
   socket.on('admin-auth', (code, cb) => {
@@ -69,8 +102,15 @@ io.on('connection', (socket) => {
   socket.on('admin-action', ({ type, value, target, code }) => {
     const lvl = getLevel(code);
     if (!lvl) return;
-    if (type === 'event') { worldEvent = value; io.emit('world-event-update', value); }
-    if (type === 'kick' && target) { delete players[target]; io.emit('leaderboard-update', players); }
+    
+    if (type === 'event') { 
+        worldEvent = value; 
+        io.emit('world-event-update', value); 
+    }
+    if (type === 'kick' && target) { 
+        delete players[target]; 
+        io.emit('leaderboard-update', players); 
+    }
   });
 });
 
