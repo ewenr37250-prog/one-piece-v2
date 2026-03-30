@@ -10,11 +10,12 @@ const io = new Server(server);
 
 const DB_FILE = './database.json';
 const MASTER_CODE = "TartifletteDeLaHess"; 
+const SUPER_MODO_CODE = "Tartiflette";
 const ADMIN_CODE = "RedaLeGoat";
 
 let players = {};
 let currentVersion = 'v3';
-let newspaper = { title: "Édition Spéciale", content: "Bienvenue sur Grand Line...", author: "Morgan" };
+let worldEvent = "Calme plat sur Grand Line";
 
 if (fs.existsSync(DB_FILE)) {
     try { players = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')); } catch (e) { players = {}; }
@@ -24,7 +25,7 @@ const saveDB = () => fs.writeFileSync(DB_FILE, JSON.stringify(players, null, 2))
 app.use(express.static(__dirname));
 
 io.on('connection', (socket) => {
-    socket.emit('init', { currentVersion, newspaper });
+    socket.emit('init', { currentVersion, worldEvent });
 
     socket.on('join', ({ name, faction }) => {
         socket.playerName = name;
@@ -40,37 +41,19 @@ io.on('connection', (socket) => {
 
     socket.on('rp-message', ({ user, text }) => {
         if (!players[user]) return;
-        const p = players[user];
         io.emit('rp-message', { user, text });
-
-        const oldXP = p.gradeXP;
-        p.gradeXP += 10;
-        if (Math.floor(p.gradeXP / 500) > Math.floor(oldXP / 500)) {
-            p.skillPoints += 1;
-            socket.emit('system-message', "✨ +1 Point de Compétence (SP) !");
-        }
+        players[user].gradeXP += 10;
+        if (players[user].gradeXP % 500 === 0) players[user].skillPoints++;
         saveDB();
-        socket.emit('player-data', p);
+        socket.emit('player-data', players[user]);
     });
 
-    socket.on('upgrade-skill', (skillKey) => {
-        const p = players[socket.playerName];
-        const costs = { force:1, intel:1, haki:3, reading:10 };
-        const max = { force:10, intel:10, haki:5, reading:1 };
-        
-        if (p && p.skillPoints >= costs[skillKey] && p.skills[skillKey] < max[skillKey]) {
-            p.skillPoints -= costs[skillKey];
-            p.skills[skillKey]++;
-            saveDB();
-            socket.emit('player-data', p);
-        }
-    });
-
-    socket.on('write-journal', (data) => {
-        if (data.code === MASTER_CODE || data.code === ADMIN_CODE) {
-            newspaper = { title: data.title, content: data.content, author: socket.playerName };
-            io.emit('system-message', "🗞️ Nouvelle édition du Journal !");
-            io.emit('journal-update', newspaper);
+    // GESTION DES ÉVÉNEMENTS (Super Modo & Master)
+    socket.on('set-world-event', ({ eventType, customText, code }) => {
+        if (code === MASTER_CODE || code === SUPER_MODO_CODE) {
+            worldEvent = customText || eventType;
+            io.emit('world-event-update', worldEvent);
+            io.emit('system-message', `📢 ALERTE MONDIALE : ${worldEvent}`);
         }
     });
 
@@ -83,13 +66,13 @@ io.on('connection', (socket) => {
 
     socket.on('admin-auth', (code, cb) => {
         if (code === MASTER_CODE) cb({ level: 'master' });
+        else if (code === SUPER_MODO_CODE) cb({ level: 'supermodo' });
         else if (code === ADMIN_CODE) cb({ level: 'admin' });
         else cb(false);
     });
 });
 
-// UN SEUL LISTEN ICI
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`✅ Serveur lancé sur : http://localhost:${PORT}`);
+    console.log(`✅ Serveur One Piece V3 prêt sur le port ${PORT}`);
 });
