@@ -9,35 +9,22 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 const DB_FILE = './database.json';
-const MASTER_CODE = "TartifletteDeLaHess"; // Ton code secret
+const MASTER_CODE = "TartifletteDeLaHess"; 
 const ADMIN_CODE = "RedaLeGoat";
 
 let players = {};
 let currentVersion = 'v3';
+let newspaper = { title: "Édition Spéciale", content: "Bienvenue sur Grand Line...", author: "Morgan" };
 
-// Chargement de la base de données
 if (fs.existsSync(DB_FILE)) {
-    try {
-        players = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
-    } catch (e) {
-        players = {};
-    }
+    try { players = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')); } catch (e) { players = {}; }
 }
-
 const saveDB = () => fs.writeFileSync(DB_FILE, JSON.stringify(players, null, 2));
-
-const SKILLS_CONFIG = {
-    force: { label: "Force", max: 10, cost: 1 },
-    intel: { label: "Intelligence", max: 10, cost: 1 },
-    haki: { label: "Haki", max: 5, cost: 3 },
-    reading: { label: "Lecture Antique", max: 1, cost: 10 }
-};
 
 app.use(express.static(__dirname));
 
 io.on('connection', (socket) => {
-    // Envoi de la version actuelle au nouveau connecté
-    socket.emit('init', { currentVersion });
+    socket.emit('init', { currentVersion, newspaper });
 
     socket.on('join', ({ name, faction }) => {
         socket.playerName = name;
@@ -52,40 +39,38 @@ io.on('connection', (socket) => {
     });
 
     socket.on('rp-message', ({ user, text }) => {
+        if (!players[user]) return;
         const p = players[user];
-        if (!p) return;
+        io.emit('rp-message', { user, text });
 
-        io.emit('rp-message', { user, text, ts: Date.now() });
-
-        // Calcul XP et gain de Points de Compétence (SP)
         const oldXP = p.gradeXP;
-        p.gradeXP += 10; 
-        
-        // On donne 1 SP tous les 500 XP
+        p.gradeXP += 10;
         if (Math.floor(p.gradeXP / 500) > Math.floor(oldXP / 500)) {
             p.skillPoints += 1;
-            socket.emit('system-message', "✨ +1 Point de Compétence (SP) obtenu !");
+            socket.emit('system-message', "✨ +1 Point de Compétence (SP) !");
         }
-
-        // Système de Grade automatique
-        const thresholds = [0, 100, 500, 1500, 4000, 10000];
-        if (p.gradeXP >= thresholds[p.gradeIdx + 1] && p.gradeIdx < 5) {
-            p.gradeIdx++;
-            io.emit('system-message', `🎊 ${user} monte en grade !`);
-        }
-        
         saveDB();
         socket.emit('player-data', p);
     });
 
     socket.on('upgrade-skill', (skillKey) => {
         const p = players[socket.playerName];
-        const cfg = SKILLS_CONFIG[skillKey];
-        if (p && p.skillPoints >= cfg.cost && p.skills[skillKey] < cfg.max) {
-            p.skillPoints -= cfg.cost;
+        const costs = { force:1, intel:1, haki:3, reading:10 };
+        const max = { force:10, intel:10, haki:5, reading:1 };
+        
+        if (p && p.skillPoints >= costs[skillKey] && p.skills[skillKey] < max[skillKey]) {
+            p.skillPoints -= costs[skillKey];
             p.skills[skillKey]++;
             saveDB();
             socket.emit('player-data', p);
+        }
+    });
+
+    socket.on('write-journal', (data) => {
+        if (data.code === MASTER_CODE || data.code === ADMIN_CODE) {
+            newspaper = { title: data.title, content: data.content, author: socket.playerName };
+            io.emit('system-message', "🗞️ Nouvelle édition du Journal !");
+            io.emit('journal-update', newspaper);
         }
     });
 
@@ -103,7 +88,8 @@ io.on('connection', (socket) => {
     });
 });
 
+// UN SEUL LISTEN ICI
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));
-
-server.listen(3000);
+server.listen(PORT, () => {
+    console.log(`✅ Serveur lancé sur : http://localhost:${PORT}`);
+});
