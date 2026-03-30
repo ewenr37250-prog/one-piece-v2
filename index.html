@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grand Line — Horizon V3</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#050709;--bg2:#020405;--bg3:#080c10;
+  --gold:#c5a059;--gold-l:#e0c07a;--gold-d:#8b6914;
+  --glass:rgba(255,255,255,.02);--border:rgba(197,160,89,.12);--border-s:rgba(197,160,89,.3);
+  --text:#d1cedb;--muted:#4a4860;
+  --pirate:#ff4757;--marine:#2e86de;--revo:#2ed573;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Crimson Text',serif}
+
+/* --- UI GÉNÉRALE --- */
+.app-container{display:flex;height:100vh;width:100vw;background:radial-gradient(circle at 50% 50%, #0a0d12 0%, #050709 100%)}
+.sidebar{width:280px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100}
+.main-content{flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden}
+
+/* --- LOGIN OVERLAY --- */
+#login-overlay{position:fixed;inset:0;background:var(--bg);z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .8s ease}
+.login-box{width:340px;text-align:center;padding:40px;background:var(--bg2);border:1px solid var(--border);position:relative}
+.login-box::before{content:'';position:absolute;inset:-5px;border:1px solid var(--gold);opacity:.2;pointer-events:none}
+.logo-title{font-family:'Cinzel Decorative',cursive;color:var(--gold);font-size:2rem;letter-spacing:6px;margin-bottom:30px}
+
+/* --- INPUTS STYLE --- */
+input,select,button{font-family:'Cinzel',serif;outline:none;transition:.3s}
+.custom-input{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--border);color:white;padding:12px;margin-bottom:15px;font-size:14px}
+.custom-input:focus{border-color:var(--gold);background:rgba(197,160,89,.05)}
+.btn-gold{width:100%;background:transparent;border:1px solid var(--gold);color:var(--gold);padding:12px;cursor:pointer;letter-spacing:2px;font-weight:bold}
+.btn-gold:hover{background:var(--gold);color:var(--bg)}
+
+/* --- CHAT AREA --- */
+#chat-display{flex:1;overflow-y:auto;padding:30px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin;scrollbar-color:var(--gold) transparent}
+.msg-item{padding:10px 15px;background:var(--glass);border-left:2px solid var(--border);animation:fadeIn .4s ease forwards}
+.msg-user{font-family:'Cinzel',serif;font-weight:bold;font-size:13px;margin-bottom:4px;letter-spacing:1px}
+.msg-text{font-size:17px;line-height:1.4;color:#eee}
+
+/* --- WANTED POSTER --- */
+#wanted-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+.wanted-card{width:380px;background:#decba4;padding:25px;border:12px solid #1a120b;color:#1a120b;text-align:center;box-shadow:0 0 50px rgba(0,0,0,.8)}
+.wanted-img{width:100%;height:280px;background-size:cover;background-position:center;border:5px solid #1a120b;margin:15px 0;filter:sepia(0.3) contrast(1.1)}
+.wanted-name{font-family:'Cinzel Decorative';font-size:32px;font-weight:900;text-transform:uppercase;margin:10px 0;border-bottom:3px solid #1a120b}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="logo-title">HORIZON</div>
+    <input type="text" id="in-name" class="custom-input" placeholder="NOM DU PERSONNAGE" maxlength="15">
+    <select id="in-fact" class="custom-input">
+      <option value="pirate">PIRATE</option>
+      <option value="marine">MARINE</option>
+      <option value="revo">RÉVOLUTIONNAIRE</option>
+    </select>
+    <button class="btn-gold" onclick="joinGame()">PRENDRE LA MER</button>
+  </div>
+</div>
+
+<div id="wanted-overlay" onclick="this.style.display='none'">
+    <div class="wanted-card">
+        <h1 style="font-family:'Cinzel';font-size:50px;margin:0">WANTED</h1>
+        <div id="w-img" class="wanted-img"></div>
+        <div id="w-name" class="wanted-name">LOADING...</div>
+        <div id="w-bounty" style="font-family:'Cinzel';font-size:28px;font-weight:bold">0 ฿</div>
+    </div>
+</div>
+
+<div class="app-container">
+  <aside class="sidebar">
+    <div style="padding:30px;text-align:center;border-bottom:1px solid var(--border)">
+      <h2 style="font-family:'Cinzel Decorative';color:var(--gold);letter-spacing:4px">V3</h2>
+    </div>
+    <nav style="flex:1">
+      <div style="padding:20px;font-family:'Cinzel';font-size:12px;color:var(--muted);letter-spacing:2px">NAVIGATION</div>
+      <div style="padding:15px 25px;color:var(--gold);background:var(--glass);border-left:3px solid var(--gold);cursor:pointer">BUREAU RP</div>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div id="event-bar" style="padding:15px;background:var(--bg3);border-bottom:1px solid var(--border);text-align:center;font-family:'Cinzel';color:var(--gold);font-style:italic">
+      -- CHARGEMENT DE L'HORIZON --
+    </div>
+    <div id="chat-display"></div>
+    <div style="padding:25px;background:var(--bg2);border-top:1px solid var(--border)">
+      <input type="text" id="rp-input" class="custom-input" placeholder="Écrivez votre action..." style="margin-bottom:0" onkeypress="if(event.key==='Enter')sendMessage()">
+    </div>
+  </main>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+let myData = { name: '' };
+
+function joinGame() {
+  const name = document.getElementById('in-name').value.trim();
+  const faction = document.getElementById('in-fact').value;
+  if(name.length < 2) return alert("Nom trop court");
+  
+  myData.name = name;
+  socket.emit('join', { name, faction });
+  document.getElementById('login-overlay').style.opacity = '0';
+  setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 800);
+}
+
+socket.on('init', data => {
+  document.getElementById('event-bar').innerText = data.worldEvent;
+  if(data.history) {
+    data.history.forEach(m => addMessage(m));
+  }
+});
+
+socket.on('rp-message', msg => addMessage(msg));
+
+socket.on('world-event-update', ev => {
+  document.getElementById('event-bar').innerText = ev;
+});
+
+socket.on('show-poster', d => {
+  document.getElementById('w-name').innerText = d.targetName;
+  document.getElementById('w-bounty').innerText = d.bounty.toLocaleString() + " ฿";
+  document.getElementById('w-img').style.backgroundImage = `url(${d.imageUrl})`;
+  document.getElementById('wanted-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('wanted-overlay').style.display = 'none', 10000);
+});
+
+function sendMessage() {
+  const input = document.getElementById('rp-input');
+  if(!input.value.trim()) return;
+  socket.emit('rp-message', { user: myData.name, text: input.value });
+  input.value = '';
+}
+
+function addMessage(m) {
+  const display = document.getElementById('chat-display');
+  const div = document.createElement('div');
+  div.className = 'msg-item';
+  div.innerHTML = `
+    <div class="msg-user" style="color:var(--${m.faction})">${m.user.toUpperCase()}</div>
+    <div class="msg-text">${m.text}</div>
+  `;
+  display.appendChild(div);
+  display.scrollTop = display.scrollHeight;
+}
+</script>
+</body>
+</html>
