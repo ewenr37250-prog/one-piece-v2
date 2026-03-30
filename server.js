@@ -1,124 +1,98 @@
 require('dotenv').config();
 const express = require('express');
 const fs = require('fs');
-const path = require('path');
+const http = require('http');
+const { Server } = require('socket.io');
+
 const app = express();
-const server = require('http').createServer(app);
-const io = require('socket.io')(server);
+const server = http.createServer(app);
+const io = new Server(server);
 
 const DB_FILE = './database.json';
-const ADMIN_CODE = process.env.ADMIN_CODE || 'RedaLeGoat';
-const MASTER_CODE = "TartifletteDeLaHess";
+const MASTER_CODE = "TartifletteDeLaHess"; // Ton code secret
+const ADMIN_CODE = "RedaLeGoat";
 
-// --- PERSISTANCE ---
 let players = {};
+let currentVersion = 'v3';
+
+// Chargement de la base de données
 if (fs.existsSync(DB_FILE)) {
-    try { players = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')); } 
-    catch (e) { players = {}; }
+    try {
+        players = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+    } catch (e) {
+        players = {};
+    }
 }
+
 const saveDB = () => fs.writeFileSync(DB_FILE, JSON.stringify(players, null, 2));
 
-// --- DATA CONFIG ---
-const FACTIONS = {
-    pirate: { label: 'Pirates', color: '#e74c3c', grades: ['Mousse','Matelot','Second','Capitaine','Commodore','Amiral de flotte'] },
-    marine: { label: 'Marine', color: '#3498db', grades: ['Recrue','Soldat','Sergent','Lieutenant','Capitaine','Amiral'] },
-    revo:   { label: 'Révolutionnaires', color: '#2ecc71', grades: ['Partisan','Agent','Officier','Commandant','Général'] }
+const SKILLS_CONFIG = {
+    force: { label: "Force", max: 10, cost: 1 },
+    intel: { label: "Intelligence", max: 10, cost: 1 },
+    haki: { label: "Haki", max: 5, cost: 3 },
+    reading: { label: "Lecture Antique", max: 1, cost: 10 }
 };
 
-const quests = [
-    { id:1, title:'Traversée du Grand Line', goal:5, minChars:40, faction:'all', reward:100000 },
-    { id:2, title:'Chasse à l\'homme', goal:10, minChars:30, faction:'marine', reward:250000 },
-    { id:3, title:'Pillage de navire', goal:10, minChars:30, faction:'pirate', reward:300000 }
-];
-
-let marketPrices = { 'Sabre de qualité': 50000, 'Boussole Log Pose': 15000, 'Rhum de Baratie': 2000, 'Fruit Inconnu': 5000000 };
-let newspaper = { title: "Édition Spéciale", content: "Bienvenue sur les mers...", author: "Morgan", price: 100 };
-const history = [];
-
 app.use(express.static(__dirname));
-app.get('*', (req, res) => res.sendFile(path.resolve(__dirname, 'index.html')));
 
 io.on('connection', (socket) => {
-    socket.emit('init', { players, quests, marketPrices, history });
+    // Envoi de la version actuelle au nouveau connecté
+    socket.emit('init', { currentVersion });
 
     socket.on('join', ({ name, faction }) => {
         socket.playerName = name;
         if (!players[name]) {
             players[name] = {
-                name, faction, bounty: 500, gradeXP: 0, gradeIdx: 0,
-                inventory: [], questProgress: {},
-                skills: { force: 1, intel: 1, haki: 0, reading: 0 },
-                fruit: null
+                name, faction, bounty: 1000, gradeXP: 0, gradeIdx: 0, skillPoints: 0,
+                skills: { force: 0, intel: 0, haki: 0, reading: 0 }
             };
             saveDB();
         }
         socket.emit('player-data', players[name]);
-        io.emit('player-list', players);
     });
 
-    socket.on('rp-message', ({ user, text, channel }) => {
-        if (!players[user]) return;
+    socket.on('rp-message', ({ user, text }) => {
         const p = players[user];
-        const msg = { user, text, channel: channel || 'rp', ts: Date.now() };
+        if (!p) return;
+
+        io.emit('rp-message', { user, text, ts: Date.now() });
+
+        // Calcul XP et gain de Points de Compétence (SP)
+        const oldXP = p.gradeXP;
+        p.gradeXP += 10; 
         
-        history.push(msg);
-        if(history.length > 50) history.shift();
-        io.emit('rp-message', msg);
+        // On donne 1 SP tous les 500 XP
+        if (Math.floor(p.gradeXP / 500) > Math.floor(oldXP / 500)) {
+            p.skillPoints += 1;
+            socket.emit('system-message', "✨ +1 Point de Compétence (SP) obtenu !");
+        }
 
-        // Anti-Fraude Quêtes
-        quests.forEach(q => {
-            if (q.faction === 'all' || q.faction === p.faction) {
-                if (!p.questProgress[q.id]) p.questProgress[q.id] = 0;
-                if (p.questProgress[q.id] < q.goal && text.length >= q.minChars) {
-                    p.questProgress[q.id]++;
-                    socket.emit('quest-progress', { id: q.id, cur: p.questProgress[q.id] });
-                    if (p.questProgress[q.id] === q.goal) {
-                        p.bounty += q.reward;
-                        io.emit('system-message', `🏆 ${user} a fini la quête : ${q.title} !`);
-                    }
-                }
-            }
-        });
-
-        p.gradeXP += 5;
-        // Auto-Grade
-        const thresholds = [0, 100, 400, 1000, 2500, 5000];
-        if (p.gradeXP >= thresholds[p.gradeIdx + 1] && p.gradeIdx < FACTIONS[p.faction].grades.length - 1) {
+        // Système de Grade automatique
+        const thresholds = [0, 100, 500, 1500, 4000, 10000];
+        if (p.gradeXP >= thresholds[p.gradeIdx + 1] && p.gradeIdx < 5) {
             p.gradeIdx++;
-            io.emit('system-message', `🎊 ${user} est promu au rang de ${FACTIONS[p.faction].grades[p.gradeIdx]} !`);
+            io.emit('system-message', `🎊 ${user} monte en grade !`);
         }
         
         saveDB();
         socket.emit('player-data', p);
     });
 
-    // MARCHÉ & JOURNAL
-    socket.on('buy-item', (itemName) => {
+    socket.on('upgrade-skill', (skillKey) => {
         const p = players[socket.playerName];
-        if (p && p.bounty >= marketPrices[itemName]) {
-            p.bounty -= marketPrices[itemName];
-            p.inventory.push(itemName);
-            marketPrices[itemName] = Math.round(marketPrices[itemName] * 1.05); // Fluctuation
-            io.emit('market-update', marketPrices);
-            socket.emit('player-data', p);
+        const cfg = SKILLS_CONFIG[skillKey];
+        if (p && p.skillPoints >= cfg.cost && p.skills[skillKey] < cfg.max) {
+            p.skillPoints -= cfg.cost;
+            p.skills[skillKey]++;
             saveDB();
+            socket.emit('player-data', p);
         }
     });
 
-    socket.on('buy-journal', () => {
-        const p = players[socket.playerName];
-        if (p && p.bounty >= newspaper.price) {
-            p.bounty -= newspaper.price;
-            socket.emit('journal-content', newspaper);
-            socket.emit('player-data', p);
-            saveDB();
-        }
-    });
-
-    socket.on('write-journal', (data) => {
-        if (data.code === MASTER_CODE || data.code === ADMIN_CODE) {
-            newspaper = { ...data, author: socket.playerName };
-            io.emit('system-message', "🗞️ Nouvelle édition du Mizu Mizu Journal disponible !");
+    socket.on('set-version', ({ version, code }) => {
+        if (code === MASTER_CODE) {
+            currentVersion = version;
+            io.emit('update-version', version);
         }
     });
 
@@ -128,5 +102,8 @@ io.on('connection', (socket) => {
         else cb(false);
     });
 });
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));
 
 server.listen(3000);
