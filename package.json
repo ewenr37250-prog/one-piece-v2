@@ -1,6 +1,7 @@
 {
-  "name": "horizon-rp-v3",
+  "name": "one-piece-v3",
   "version": "1.0.0",
+  "description": "RP One Piece Horizon",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
