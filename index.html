@@ -14,17 +14,25 @@
   --pirate:#ff4757;--marine:#2e86de;--revo:#2ed573;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Crimson Text',serif}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Crimson Text',serif;transition: background 0.8s ease;}
 
 /* --- UI GÉNÉRALE --- */
-.app-container{display:flex;height:100vh;width:100vw;background:radial-gradient(circle at 50% 50%, #0a0d12 0%, #050709 100%)}
+.app-container{display:flex;height:100vh;width:100vw;background:radial-gradient(circle at 50% 50%, rgba(10,13,18,0.5) 0%, rgba(5,7,9,1) 100%)}
 .sidebar{width:280px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100}
 .main-content{flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden}
+
+/* --- SYSTEME RADIO & BOT --- */
+.radio-selector { display: flex; gap: 2px; padding: 10px 25px; background: rgba(0,0,0,0.4); border-bottom: 1px solid var(--border); }
+.radio-btn { flex: 1; padding: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 10px; letter-spacing: 1px; }
+.radio-btn.active { color: var(--gold); border-color: var(--gold); background: rgba(197,160,89,0.1); box-shadow: 0 0 10px rgba(197,160,89,0.2); }
+
+.bot-box { padding: 15px 25px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
+.bot-avatar { width: 35px; height: 35px; border: 1px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; background: var(--bg); }
+#bot-message { font-style: italic; color: var(--gold-l); font-size: 14px; flex: 1; }
 
 /* --- LOGIN OVERLAY --- */
 #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .8s ease}
 .login-box{width:340px;text-align:center;padding:40px;background:var(--bg2);border:1px solid var(--border);position:relative}
-.login-box::before{content:'';position:absolute;inset:-5px;border:1px solid var(--gold);opacity:.2;pointer-events:none}
 .logo-title{font-family:'Cinzel Decorative',cursive;color:var(--gold);font-size:2rem;letter-spacing:6px;margin-bottom:30px}
 
 /* --- INPUTS STYLE --- */
@@ -88,6 +96,18 @@ input,select,button{font-family:'Cinzel',serif;outline:none;transition:.3s}
     <div id="event-bar" style="padding:15px;background:var(--bg3);border-bottom:1px solid var(--border);text-align:center;font-family:'Cinzel';color:var(--gold);font-style:italic">
       -- CHARGEMENT DE L'HORIZON --
     </div>
+
+    <div class="radio-selector">
+        <button onclick="switchChannel('public')" id="btn-public" class="radio-btn active">RADIO PIRATE</button>
+        <button onclick="switchChannel('marine')" id="btn-marine" class="radio-btn">FREQ. MARINE</button>
+        <button onclick="switchChannel('rev')" id="btn-rev" class="radio-btn">SIGNAL RÉVO</button>
+    </div>
+
+    <div class="bot-box">
+        <div class="bot-avatar">🕊️</div>
+        <p id="bot-message">"Ici le News Coo... Le journal de l'économie est arrivé !"</p>
+    </div>
+
     <div id="chat-display"></div>
     <div style="padding:25px;background:var(--bg2);border-top:1px solid var(--border)">
       <input type="text" id="rp-input" class="custom-input" placeholder="Écrivez votre action..." style="margin-bottom:0" onkeypress="if(event.key==='Enter')sendMessage()">
@@ -134,8 +154,10 @@ socket.on('show-poster', d => {
 
 function sendMessage() {
   const input = document.getElementById('rp-input');
-  if(!input.value.trim()) return;
-  socket.emit('rp-message', { user: myData.name, text: input.value });
+  const text = input.value.trim();
+  if(!text) return;
+  socket.emit('rp-message', { user: myData.name, text: text });
+  botReaction(text); // Appel du bot
   input.value = '';
 }
 
@@ -149,6 +171,36 @@ function addMessage(m) {
   `;
   display.appendChild(div);
   display.scrollTop = display.scrollHeight;
+}
+
+/* --- LOGIQUE BOT & CANAUX --- */
+function switchChannel(channel) {
+    document.querySelectorAll('.radio-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('btn-' + channel).classList.add('active');
+    
+    const botMsg = document.getElementById('bot-message');
+    const body = document.body;
+
+    if(channel === 'marine') {
+        body.style.background = "#050b1a";
+        botMsg.innerText = '"Ici le QG. Un navire non identifié est signalé au secteur 4."';
+    } else if(channel === 'rev') {
+        body.style.background = "#051a05";
+        botMsg.innerText = '"Signal crypté... L\'armée de l\'ombre se prépare."';
+    } else {
+        body.style.background = "#050709";
+        botMsg.innerText = '"Le News Coo survole les mers... On parle d\'une prime de 100 millions !"';
+    }
+}
+
+function botReaction(text) {
+    const t = text.toLowerCase();
+    const botMsg = document.getElementById('bot-message');
+    if(t.includes("prime") || t.includes("wanted")) {
+        botMsg.innerText = '"Une nouvelle affiche ? Laissez-moi vérifier mes sacs !"';
+    } else if(t.includes("ile") || t.includes("mer")) {
+        botMsg.innerText = '"Le courant est fort par ici, surveillez votre log pose."';
+    }
 }
 </script>
 </body>
