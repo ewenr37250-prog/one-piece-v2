@@ -1,124 +1,104 @@
 require('dotenv').config();
 const express = require('express');
-const path    = require('path');
-const http    = require('http');
+const path = require('path');
+const http = require('http');
 const { Server } = require('socket.io');
 
-const app    = express();
+const app = express();
 const server = http.createServer(app);
-const io     = new Server(server, { cors: { origin: '*' } });
+const io = new Server(server, { cors: { origin: '*' } });
 
+// --- CONFIGURATION & CODES ---
 const CODES = {
-  master: process.env.CODE_MASTER || 'TartifletteDeLaHess',
-  super:  process.env.CODE_SUPER  || 'Tartiflette',
-  admin:  process.env.CODE_ADMIN  || 'RedaLeGoat'
+    master: 'TartifletteDeLaHess', // Ton code Master débloque tout
+    admin: 'RedaLeGoat'
 };
 
-let players    = {};
-let worldEvent = "⛵ L'horizon est dégagé... les mers vous attendent.";
-let msgHistory = []; 
+// --- DATA STRUCTURES ---
+let players = {};
+let crews = { pirate: [], marine: [], revo: [] };
+let worldState = {
+    event: "L'horizon est calme...",
+    journal: "Édition n°1 : Le One Piece existe-t-il vraiment ?",
+    onePieceActive: false,
+    marketModifier: 1.0,
+    roadPoneglyphes: { 1: "Caché", 2: "Caché", 3: "Caché", 4: "Caché" }
+};
+let msgHistory = [];
 
-const SKILL_COSTS = { force: 1, intel: 1, haki: 3, reading: 10 };
 const FACTION_GRADES = {
-  pirate: ['Mousse','Matelot','Second','Capitaine','Commodore','Amiral de flotte'],
-  marine: ['Recrue','Soldat','Sergent','Lieutenant','Vice-Amiral','Amiral Chef'],
-  revo:   ['Initié','Agent','Cadre','Commandant','Chef de corps','Chef suprême']
+    pirate: ['Mousse','Matelot','Second','Capitaine','Commodore','Amiral de flotte'],
+    marine: ['Recrue','Soldat','Sergent','Lieutenant','Vice-Amiral','Amiral Chef'],
+    revo:   ['Initié','Agent','Cadre','Commandant','Chef de corps','Chef suprême']
 };
 
-// --- SERVIR LES FICHIERS ---
-app.use(express.static(__dirname)); 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 
 io.on('connection', (socket) => {
-  // On envoie l'historique et l'état du monde à la connexion
-  socket.emit('init', { worldEvent, players, history: msgHistory });
+    socket.emit('init', { worldState, players, history: msgHistory });
 
-  socket.on('join', ({ name, faction }) => {
-    if (!name || name.length < 2) return;
-    
-    // Si le joueur n'existe pas, on le crée
-    if (!players[name]) {
-      players[name] = {
-        name, 
-        faction: faction || 'pirate', 
-        bounty: 1000, 
-        gradeXP: 0, 
-        gradeIdx: 0,
-        grade: FACTION_GRADES[faction || 'pirate'][0], 
-        skillPoints: 0,
-        skills: { force: 0, intel: 0, haki: 0, reading: 0 },
-        connected: true
-      };
-    }
-    
-    socket.playerName = name;
-    io.emit('leaderboard-update', players);
-    socket.emit('player-data', players[name]);
-    
-    // Petit message système quand quelqu'un arrive
-    io.emit('rp-message', { 
-        user: 'SYSTÈME', 
-        text: `⚓ ${name} a pris la mer avec les ${faction}s !`, 
-        faction: 'system' 
+    socket.on('join', ({ name, faction }) => {
+        if (!players[name]) {
+            players[name] = {
+                name, faction, bounty: 1000, gradeXP: 0, gradeIdx: 0,
+                grade: FACTION_GRADES[faction][0],
+                power: 10,
+                fruit: { name: "Aucun", level: 0, coeff: 1.0 },
+                haki: { obs: 0, arm: 0, kings: 0 },
+                skills: { force: 0, stealth: 0, fruitMastery: 0, intel: 0, canReadPoneglyph: false },
+                crew: null, inventory: [], logsFound: 0
+            };
+        }
+        socket.playerName = name;
+        updatePlayer(name);
     });
-  });
 
-  socket.on('rp-message', ({ user, text }) => {
-    if (!players[user] || !text) return;
-    
-    const p = players[user];
-    
-    // Gain de prime et d'XP à chaque message
-    p.bounty += Math.floor(Math.random() * 300) + 150;
-    p.gradeXP += 10;
-    
-    // Système de montée en grade automatique simple
-    if(p.gradeXP >= 100 && p.gradeIdx < 5) {
-        p.gradeIdx++;
-        p.gradeXP = 0;
-        p.grade = FACTION_GRADES[p.faction][p.gradeIdx];
-        socket.emit('player-data', p); // Update du joueur
-    }
-    
-    const msg = { 
-        user, 
-        text, 
-        faction: p.faction, 
-        time: new Date() 
-    };
-    
-    msgHistory.push(msg);
-    if (msgHistory.length > 100) msgHistory.shift();
-    
-    io.emit('rp-message', msg);
-    io.emit('leaderboard-update', players);
-  });
+    socket.on('rp-message', ({ user, text, channel }) => {
+        const p = players[user];
+        if (!p) return;
 
-  socket.on('admin-auth', (code, cb) => {
-    const lvl = getLevel(code);
-    cb(lvl ? { level: lvl } : false);
-  });
+        // Gain auto
+        p.bounty += Math.floor(Math.random() * 200) + 100;
+        p.gradeXP += 5;
+        
+        // Calcul de puissance auto (Algo)
+        p.power = Math.floor((p.bounty / 10000) + (p.skills.fruitMastery * 10) + (p.gradeIdx * 50) + (p.haki.arm * 100));
 
-  socket.on('admin-action', ({ type, value, target, code }) => {
-    const lvl = getLevel(code);
-    if (!lvl) return;
-    
-    if (type === 'event') { 
-        worldEvent = value; 
-        io.emit('world-event-update', value); 
+        const msg = { user, text, faction: p.faction, channel: channel || 'public', power: p.power };
+        msgHistory.push(msg);
+        if (msgHistory.length > 50) msgHistory.shift();
+        io.emit('rp-message', msg);
+        updatePlayer(user);
+    });
+
+    // --- SYSTEME ADMIN "TARTIFLETTE" ---
+    socket.on('admin-action', ({ code, action, data }) => {
+        if (code !== CODES.master) return socket.emit('error', 'Code incorrect');
+
+        if (action === 'update-journal') {
+            worldState.journal = data;
+            io.emit('world-update', worldState);
+        }
+        if (action === 'toggle-onepiece') {
+            worldState.onePieceActive = !worldState.onePieceActive;
+            io.emit('world-update', worldState);
+        }
+        if (action === 'give-fruit') {
+            if (players[data.target]) {
+                players[data.target].fruit = { name: data.fruitName, level: 1, coeff: data.coeff };
+                updatePlayer(data.target);
+            }
+        }
+    });
+
+    function updatePlayer(name) {
+        io.emit('leaderboard-update', players);
+        socket.emit('player-data', players[name]);
     }
-    if (type === 'kick' && target) { 
-        delete players[target]; 
-        io.emit('leaderboard-update', players); 
-    }
-  });
 });
 
-function getLevel(code) {
-  if (code === CODES.master) return 'master';
-  if (code === CODES.super)  return 'supermodo';
-  if (code === CODES.admin)  return 'admin';
-  return null;
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`⚓ Horizon V3 Online - Port ${PORT}`));
 }
 
 const PORT = process.env.PORT || 3000;
