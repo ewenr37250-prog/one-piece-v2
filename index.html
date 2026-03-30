@@ -2,143 +2,89 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Grand Line RP - Administration</title>
+    <title>Grand Line RP V3 - Master Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Text&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #f1c40f; --gold-d: #b8860b; --navy: #0a1118; --parch: #f5e6c8; }
         body { margin: 0; background: var(--navy); color: var(--parch); font-family: 'Crimson Text', serif; display: flex; height: 100vh; overflow: hidden; }
+        body.v1 { filter: sepia(1); } body.v2 { --navy: #001f3f; }
         .sidebar { width: 300px; background: rgba(5,10,15,0.98); border-right: 2px solid var(--gold-d); display: flex; flex-direction: column; }
         .nav { display: grid; grid-template-columns: 1fr; background: var(--gold-d); gap: 1px; }
-        .nav-btn { background: #050a0f; border: none; color: white; padding: 15px; cursor: pointer; font-family: 'Cinzel'; }
+        .nav-btn { background: #050a0f; border: none; color: white; padding: 12px; cursor: pointer; font-family: 'Cinzel'; font-size: 11px; }
         .nav-btn.active { background: var(--gold-d); color: black; font-weight: bold; }
         .main { flex: 1; display: flex; flex-direction: column; }
-        .page { display: none; flex: 1; padding: 30px; overflow-y: auto; }
+        .page { display: none; flex: 1; padding: 20px; overflow-y: auto; }
         .page.active { display: block; }
-        .card { background: rgba(0,0,0,0.6); border: 1px solid var(--gold-d); padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        .btn { background: var(--gold); border: none; padding: 10px 20px; font-family: 'Cinzel'; font-weight: bold; cursor: pointer; border-radius: 5px; width: 100%; margin-top: 10px; }
-        #event-banner { background: #c0392b; color: white; padding: 10px; text-align: center; font-family: 'Cinzel'; font-weight: bold; display: none; }
-        input, select, textarea { background: #000; border: 1px solid var(--gold-d); color: #fff; padding: 12px; border-radius: 5px; width: 100%; margin-bottom: 10px; }
+        .card { background: rgba(255,255,255,0.05); border: 1px solid var(--gold-d); padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+        .btn { background: var(--gold); border: none; padding: 10px; font-family: 'Cinzel'; font-weight: bold; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 5px; }
+        #event-banner { background: #c0392b; color: white; padding: 8px; text-align: center; font-family: 'Cinzel'; font-weight: bold; }
+        input, select, textarea { background: #000; border: 1px solid var(--gold-d); color: #fff; padding: 10px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
+        #chat { flex: 1; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 5px; margin-bottom: 10px; }
     </style>
 </head>
-<body>
+<body class="v3">
+
+<div id="overlay" style="position:fixed; inset:0; background:var(--navy); z-index:1000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:15px;">
+    <h1 style="font-family:Cinzel; color:var(--gold);">GRAND LINE V3</h1>
+    <input id="in-name" placeholder="Nom..." style="max-width:250px;">
+    <select id="in-fact" style="max-width:250px;"><option value="pirate">Pirate</option><option value="marine">Marine</option></select>
+    <button class="btn" onclick="join()" style="max-width:250px;">ENTRER</button>
+</div>
 
 <div class="sidebar">
-    <div style="padding:30px; text-align:center;"><h2 style="color:var(--gold); font-family:Cinzel;">GP ADMIN</h2></div>
+    <div style="padding:20px; text-align:center; color:var(--gold); font-family:Cinzel;"><h3>MENU</h3></div>
+    <div id="stats-box" style="padding:15px; font-size:14px; border-bottom:1px solid var(--gold-d);"></div>
     <div class="nav">
-        <button class="nav-btn active" onclick="tab('p-rp', event)">CHAT RP</button>
-        <button class="nav-btn" onclick="tab('p-adm', event)">ADMINISTRATION</button>
+        <button class="nav-btn active" onclick="tab('p-rp', event)">RP</button>
+        <button class="nav-btn" onclick="tab('p-skills', event)">COMPÉTENCES</button>
+        <button class="nav-btn" onclick="tab('p-market', event)">MARCHÉ</button>
+        <button class="nav-btn" onclick="tab('p-news', event)">JOURNAL</button>
+        <button class="nav-btn" onclick="tab('p-adm', event)">ADMIN</button>
     </div>
 </div>
 
 <div class="main">
-    <div id="event-banner"></div>
-    
-    <div id="p-rp" class="page active">
-        <div id="chat" style="height: 80vh; overflow-y: auto; margin-bottom: 20px;"></div>
-        <div style="display:flex; gap:10px;">
-            <input id="rp-input" placeholder="Votre action...">
-            <button class="btn" style="width:150px; margin:0;" onclick="send()">ENVOYER</button>
-        </div>
+    <div id="event-banner">Chargement...</div>
+    <div id="p-rp" class="page active" style="display:flex; flex-direction:column;">
+        <div id="chat"></div>
+        <div style="display:flex; gap:5px;"><input id="rp-in" placeholder="Action..."><button class="btn" onclick="send()" style="width:100px; margin:0;">ENVOYER</button></div>
     </div>
-
+    <div id="p-skills" class="page"><h2>Arbre de Compétences</h2><div id="skill-list"></div></div>
+    <div id="p-market" class="page"><h2>Marché Mondial</h2><div id="market-list"></div></div>
+    <div id="p-news" class="page"><div id="news-view" class="card" style="background: #f5e6c8; color: #2c1e11; padding:30px;"></div></div>
     <div id="p-adm" class="page">
-        <div id="adm-login">
-            <h3>Connexion au Panel Administration</h3>
-            <input type="password" id="adm-pass" placeholder="Entrez votre code secret...">
-            <button class="btn" onclick="login()">S'AUTHENTIFIER</button>
-        </div>
-
+        <div id="adm-login"><input type="password" id="adm-pass" placeholder="Code..."><button class="btn" onclick="login()">LOGIN</button></div>
         <div id="adm-panel" style="display:none;">
-            <h2 id="adm-rank-title" style="color:var(--gold); font-family:Cinzel;">Panel</h2>
-
-            <div id="zone-master" class="card" style="display:none; border-color: #e74c3c;">
-                <h3 style="color:#e74c3c;">⚙️ CONTRÔLE DU MONDE (MASTER)</h3>
-                <label>Version du site :</label>
-                <select onchange="socket.emit('set-version', {version: this.value, code: document.getElementById('adm-pass').value})">
-                    <option value="v3">Version 3 (Actuelle)</option>
-                    <option value="v2">Version 2</option>
-                    <option value="v1">Version 1</option>
-                </select>
-            </div>
-
-            <div id="zone-events" class="card" style="display:none;">
-                <h3>🌍 GESTION DES ÉVÉNEMENTS MONDIAUX</h3>
-                <label>Type d'événement :</label>
-                <select id="event-type">
-                    <option value="Tempête de neige">❄️ Tempête de neige</option>
-                    <option value="Buster Call en cours !">🔥 BUSTER CALL</option>
-                    <option value="Fête au village">🎉 Célébration</option>
-                    <option value="Apparition d'un Monstre Marin">🐉 Monstre Marin</option>
-                </select>
-                <input id="event-custom" placeholder="Ou texte personnalisé...">
-                <button class="btn" onclick="triggerEvent()">DÉCLENCHER L'ÉVÉNEMENT</button>
-            </div>
-
-            <div class="card">
-                <h3>🗞️ JOURNAL / ANNONCES</h3>
-                <textarea id="njc" placeholder="Message important pour la communauté..."></textarea>
-                <button class="btn" onclick="alert('Journal mis à jour !')">PUBLIER</button>
-            </div>
+            <div id="m-ctrl" class="card" style="display:none;"><h3>Master : Version</h3><select onchange="adm('version', this.value)"><option value="v3">V3</option><option value="v2">V2</option><option value="v1">V1</option></select></div>
+            <div id="s-ctrl" class="card" style="display:none;"><h3>SuperModo : Événement</h3><input id="ev-in" placeholder="Ex: Buster Call !"><button class="btn" onclick="adm('event', document.getElementById('ev-in').value)">LANCER</button></div>
+            <div class="card"><h3>Journal</h3><input id="jt" placeholder="Titre"><textarea id="jc" placeholder="Contenu"></textarea><button class="btn" onclick="adm('journal', document.getElementById('jt').value, document.getElementById('jc').value)">PUBLIER</button></div>
         </div>
     </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-    const socket = io();
-    let myCode = "";
-
-    socket.on('init', d => { if(d.worldEvent) updateBanner(d.worldEvent); });
+    const socket = io(); let myData = {}, currentCode = "";
+    function join() { socket.emit('join', { name: document.getElementById('in-name').value, faction: document.getElementById('in-fact').value }); document.getElementById('overlay').style.display='none'; }
+    socket.on('init', d => { document.body.className = d.currentVersion; document.getElementById('event-banner').innerText = d.worldEvent; renderMarket(d.marketPrices); renderNews(d.newspaper); });
     socket.on('update-version', v => document.body.className = v);
-    socket.on('world-event-update', txt => updateBanner(txt));
-    socket.on('system-message', t => alert(t));
-    socket.on('rp-message', m => {
-        document.getElementById('chat').innerHTML += `<div><b>${m.user}:</b> ${m.text}</div>`;
-    });
+    socket.on('world-event-update', t => document.getElementById('event-banner').innerText = t);
+    socket.on('player-data', d => { myData = d; renderUI(); });
+    socket.on('rp-message', m => { document.getElementById('chat').innerHTML += `<div><b>${m.user}:</b> ${m.text}</div>`; document.getElementById('chat').scrollTop = 9999; });
+    socket.on('market-update', p => renderMarket(p));
+    socket.on('journal-update', n => renderNews(n));
 
-    function updateBanner(txt) {
-        const b = document.getElementById('event-banner');
-        b.innerText = txt;
-        b.style.display = 'block';
+    function renderUI() {
+        document.getElementById('stats-box').innerHTML = `<b>${myData.name}</b><br>💰 ${myData.bounty.toLocaleString()} ฿<br>✨ ${myData.skillPoints} SP`;
+        const sk = [{id:'force',n:'Force',c:1},{id:'intel',n:'Intel',c:1},{id:'haki',n:'Haki',c:3},{id:'reading',n:'Lecture',c:10}];
+        document.getElementById('skill-list').innerHTML = sk.map(s => `<div class="card"><b>${s.n}</b> (Niv. ${myData.skills[s.id]})<button class="btn" onclick="socket.emit('upgrade-skill','${s.id}')" ${myData.skillPoints<s.c?'disabled':''}>Up (${s.c} SP)</button></div>`).join('');
     }
-
-    function login() {
-        const pw = document.getElementById('adm-pass').value;
-        socket.emit('admin-auth', pw, r => {
-            if(r) {
-                myCode = pw;
-                document.getElementById('adm-login').style.display = 'none';
-                document.getElementById('adm-panel').style.display = 'block';
-                document.getElementById('adm-rank-title').innerText = "ACCÈS : " + r.level.toUpperCase();
-                
-                if(r.level === 'master') {
-                    document.getElementById('zone-master').style.display = 'block';
-                    document.getElementById('zone-events').style.display = 'block';
-                } else if(r.level === 'supermodo') {
-                    document.getElementById('zone-events').style.display = 'block';
-                }
-            } else alert("Code invalide !");
-        });
-    }
-
-    function triggerEvent() {
-        const type = document.getElementById('event-type').value;
-        const custom = document.getElementById('event-custom').value;
-        socket.emit('set-world-event', { eventType: type, customText: custom, code: myCode });
-    }
-
-    function tab(id, e) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        e.target.classList.add('active');
-    }
-
-    function send() {
-        const i = document.getElementById('rp-input');
-        socket.emit('rp-message', { user: "Admin", text: i.value });
-        i.value = '';
-    }
+    function renderMarket(p) { document.getElementById('market-list').innerHTML = Object.entries(p).map(([n,pr]) => `<div class="card">${n} (${pr} ฿) <button class="btn" onclick="socket.emit('buy-item','${n}')">Acheter</button></div>`).join(''); }
+    function renderNews(n) { document.getElementById('news-view').innerHTML = `<h1>${n.title}</h1><hr><p>${n.content}</p>`; }
+    function send() { socket.emit('rp-message', { user: myData.name, text: document.getElementById('rp-in').value }); document.getElementById('rp-in').value=''; }
+    function tab(id, e) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+    function login() { socket.emit('admin-auth', document.getElementById('adm-pass').value, r => { if(r){ currentCode=document.getElementById('adm-pass').value; document.getElementById('adm-login').style.display='none'; document.getElementById('adm-panel').style.display='block'; if(r.level==='master'){document.getElementById('m-ctrl').style.display='block';document.getElementById('s-ctrl').style.display='block';} if(r.level==='supermodo')document.getElementById('s-ctrl').style.display='block'; } }); }
+    function adm(type, val, extra) { socket.emit('admin-action', { type, value: val, extra, code: currentCode }); }
 </script>
 </body>
 </html>
