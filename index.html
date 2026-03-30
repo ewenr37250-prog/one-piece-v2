@@ -1,207 +1,170 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Grand Line — Horizon V3</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
-<style>
-:root{
-  --bg:#050709;--bg2:#020405;--bg3:#080c10;
-  --gold:#c5a059;--gold-l:#e0c07a;--gold-d:#8b6914;
-  --glass:rgba(255,255,255,.02);--border:rgba(197,160,89,.12);--border-s:rgba(197,160,89,.3);
-  --text:#d1cedb;--muted:#4a4860;
-  --pirate:#ff4757;--marine:#2e86de;--revo:#2ed573;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Crimson Text',serif;transition: background 0.8s ease;}
+    <meta charset="UTF-8">
+    <title>Grand Line — Horizon V3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Crimson+Text&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #c5a059; --bg: #050709; --marine: #2e86de; --pirate: #ff4757; --revo: #2ed573; }
+        body { background: var(--bg); color: white; font-family: 'Crimson Text', serif; margin: 0; overflow: hidden; }
+        
+        .app-container { display: flex; height: 100vh; }
+        .sidebar { width: 300px; background: #020405; border-right: 1px solid rgba(197,160,89,0.2); display: flex; flex-direction: column; }
+        .main { flex: 1; display: flex; flex-direction: column; }
 
-/* --- UI GÉNÉRALE --- */
-.app-container{display:flex;height:100vh;width:100vw;background:radial-gradient(circle at 50% 50%, rgba(10,13,18,0.5) 0%, rgba(5,7,9,1) 100%)}
-.sidebar{width:280px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100}
-.main-content{flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden}
+        /* MIZU MIZU JOURNAL */
+        #mizu-journal { background: #f4e4bc; color: #2b1d0e; padding: 15px; border-bottom: 4px double #8b4513; font-family: 'Cinzel'; position: relative; }
+        .journal-tag { position: absolute; top: 5px; right: 10px; font-size: 0.7em; opacity: 0.7; }
 
-/* --- SYSTEME RADIO & BOT --- */
-.radio-selector { display: flex; gap: 2px; padding: 10px 25px; background: rgba(0,0,0,0.4); border-bottom: 1px solid var(--border); }
-.radio-btn { flex: 1; padding: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 10px; letter-spacing: 1px; }
-.radio-btn.active { color: var(--gold); border-color: var(--gold); background: rgba(197,160,89,0.1); box-shadow: 0 0 10px rgba(197,160,89,0.2); }
+        /* RADIO CHANNELS */
+        .radio-nav { display: flex; background: #000; padding: 5px; gap: 5px; }
+        .radio-nav button { flex: 1; padding: 8px; font-family: 'Cinzel'; font-size: 10px; cursor: pointer; border: 1px solid #333; background: #111; color: #666; }
+        .radio-nav button.active { border-color: var(--gold); color: var(--gold); background: #222; }
 
-.bot-box { padding: 15px 25px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
-.bot-avatar { width: 35px; height: 35px; border: 1px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; background: var(--bg); }
-#bot-message { font-style: italic; color: var(--gold-l); font-size: 14px; flex: 1; }
+        /* CHAT */
+        #chat-display { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px; border-left: 3px solid var(--gold); background: rgba(255,255,255,0.02); animation: slideIn 0.3s ease; }
+        .msg-header { font-family: 'Cinzel'; font-size: 0.8em; margin-bottom: 5px; display: flex; justify-content: space-between; }
+        .power-tag { color: var(--gold); font-size: 0.9em; }
 
-/* --- LOGIN OVERLAY --- */
-#login-overlay{position:fixed;inset:0;background:var(--bg);z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .8s ease}
-.login-box{width:340px;text-align:center;padding:40px;background:var(--bg2);border:1px solid var(--border);position:relative}
-.logo-title{font-family:'Cinzel Decorative',cursive;color:var(--gold);font-size:2rem;letter-spacing:6px;margin-bottom:30px}
+        /* SKILL TREE OVERLAY */
+        #skill-tree { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; display: none; padding: 50px; text-align: center; }
+        .skill-node { display: inline-block; width: 150px; padding: 20px; border: 1px solid var(--gold); margin: 10px; cursor: pointer; }
+        .skill-node:hover { background: var(--gold); color: black; }
 
-/* --- INPUTS STYLE --- */
-input,select,button{font-family:'Cinzel',serif;outline:none;transition:.3s}
-.custom-input{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--border);color:white;padding:12px;margin-bottom:15px;font-size:14px}
-.custom-input:focus{border-color:var(--gold);background:rgba(197,160,89,.05)}
-.btn-gold{width:100%;background:transparent;border:1px solid var(--gold);color:var(--gold);padding:12px;cursor:pointer;letter-spacing:2px;font-weight:bold}
-.btn-gold:hover{background:var(--gold);color:var(--bg)}
+        /* ADMIN PANEL */
+        #admin-panel { position: fixed; bottom: 80px; left: 20px; background: red; padding: 10px; display: none; z-index: 1000; }
 
-/* --- CHAT AREA --- */
-#chat-display{flex:1;overflow-y:auto;padding:30px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin;scrollbar-color:var(--gold) transparent}
-.msg-item{padding:10px 15px;background:var(--glass);border-left:2px solid var(--border);animation:fadeIn .4s ease forwards}
-.msg-user{font-family:'Cinzel',serif;font-weight:bold;font-size:13px;margin-bottom:4px;letter-spacing:1px}
-.msg-text{font-size:17px;line-height:1.4;color:#eee}
-
-/* --- WANTED POSTER --- */
-#wanted-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
-.wanted-card{width:380px;background:#decba4;padding:25px;border:12px solid #1a120b;color:#1a120b;text-align:center;box-shadow:0 0 50px rgba(0,0,0,.8)}
-.wanted-img{width:100%;height:280px;background-size:cover;background-position:center;border:5px solid #1a120b;margin:15px 0;filter:sepia(0.3) contrast(1.1)}
-.wanted-name{font-family:'Cinzel Decorative';font-size:32px;font-weight:900;text-transform:uppercase;margin:10px 0;border-bottom:3px solid #1a120b}
-
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-</style>
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
 </head>
 <body>
 
-<div id="login-overlay">
-  <div class="login-box">
-    <div class="logo-title">HORIZON</div>
-    <input type="text" id="in-name" class="custom-input" placeholder="NOM DU PERSONNAGE" maxlength="15">
-    <select id="in-fact" class="custom-input">
-      <option value="pirate">PIRATE</option>
-      <option value="marine">MARINE</option>
-      <option value="revo">RÉVOLUTIONNAIRE</option>
-    </select>
-    <button class="btn-gold" onclick="joinGame()">PRENDRE LA MER</button>
-  </div>
-</div>
-
-<div id="wanted-overlay" onclick="this.style.display='none'">
-    <div class="wanted-card">
-        <h1 style="font-family:'Cinzel';font-size:50px;margin:0">WANTED</h1>
-        <div id="w-img" class="wanted-img"></div>
-        <div id="w-name" class="wanted-name">LOADING...</div>
-        <div id="w-bounty" style="font-family:'Cinzel';font-size:28px;font-weight:bold">0 ฿</div>
+<div id="login-overlay" style="position:fixed; inset:0; background:var(--bg); z-index:4000; display:flex; align-items:center; justify-content:center;">
+    <div style="text-align:center; width:300px;">
+        <h1 style="font-family:'Cinzel'; color:var(--gold);">HORIZON V3</h1>
+        <input type="text" id="in-name" placeholder="NOM DU PIRATE" style="width:100%; padding:10px; margin:10px 0;">
+        <select id="in-fact" style="width:100%; padding:10px;">
+            <option value="pirate">PIRATE</option>
+            <option value="marine">MARINE</option>
+            <option value="revo">RÉVOLUTIONNAIRE</option>
+        </select><br><br>
+        <button onclick="joinGame()" style="width:100%; padding:15px; background:var(--gold); border:none; cursor:pointer;">PRENDRE LA MER</button>
     </div>
 </div>
 
 <div class="app-container">
-  <aside class="sidebar">
-    <div style="padding:30px;text-align:center;border-bottom:1px solid var(--border)">
-      <h2 style="font-family:'Cinzel Decorative';color:var(--gold);letter-spacing:4px">V3</h2>
-    </div>
-    <nav style="flex:1">
-      <div style="padding:20px;font-family:'Cinzel';font-size:12px;color:var(--muted);letter-spacing:2px">NAVIGATION</div>
-      <div style="padding:15px 25px;color:var(--gold);background:var(--glass);border-left:3px solid var(--gold);cursor:pointer">BUREAU RP</div>
-    </nav>
-  </aside>
+    <aside class="sidebar">
+        <div style="padding:20px; border-bottom:1px solid rgba(197,160,89,0.2);">
+            <h2 id="my-name" style="font-family:'Cinzel'; color:var(--gold); margin:0;">---</h2>
+            <div id="my-grade" style="font-size:0.8em; opacity:0.6;">Mousse</div>
+            <div id="my-bounty" style="color:var(--gold); font-weight:bold; font-size:1.2em; margin-top:5px;">1,000 ฿</div>
+        </div>
+        <div style="padding:20px;">
+            <p style="font-family:'Cinzel'; font-size:0.7em;">STATISTIQUES DE PUISSANCE</p>
+            <div id="my-power" style="font-size:2em; color:var(--gold);">10</div>
+            <button onclick="document.getElementById('skill-tree').style.display='block'" style="margin-top:20px; width:100%; padding:10px; background:transparent; border:1px solid var(--gold); color:var(--gold); cursor:pointer;">ARBRE DE COMPÉTENCES</button>
+        </div>
+    </aside>
 
-  <main class="main-content">
-    <div id="event-bar" style="padding:15px;background:var(--bg3);border-bottom:1px solid var(--border);text-align:center;font-family:'Cinzel';color:var(--gold);font-style:italic">
-      -- CHARGEMENT DE L'HORIZON --
-    </div>
+    <main class="main">
+        <div id="mizu-journal">
+            <span class="journal-tag">Mizu Mizu Journal Co.</span>
+            <div id="journal-text">Chargement des dernières nouvelles de Grand Line...</div>
+        </div>
 
-    <div class="radio-selector">
-        <button onclick="switchChannel('public')" id="btn-public" class="radio-btn active">RADIO PIRATE</button>
-        <button onclick="switchChannel('marine')" id="btn-marine" class="radio-btn">FREQ. MARINE</button>
-        <button onclick="switchChannel('rev')" id="btn-rev" class="radio-btn">SIGNAL RÉVO</button>
-    </div>
+        <nav class="radio-nav">
+            <button id="rad-public" class="active" onclick="setChannel('public')">🚩 RADIO PIRATE</button>
+            <button id="rad-marine" onclick="setChannel('marine')">⚓ MARINE OFFICIELLE</button>
+            <button id="rad-revo" onclick="setChannel('revo')">🐉 SIGNAL CRYPTÉ</button>
+        </nav>
 
-    <div class="bot-box">
-        <div class="bot-avatar">🕊️</div>
-        <p id="bot-message">"Ici le News Coo... Le journal de l'économie est arrivé !"</p>
-    </div>
+        <div id="chat-display"></div>
 
-    <div id="chat-display"></div>
-    <div style="padding:25px;background:var(--bg2);border-top:1px solid var(--border)">
-      <input type="text" id="rp-input" class="custom-input" placeholder="Écrivez votre action..." style="margin-bottom:0" onkeypress="if(event.key==='Enter')sendMessage()">
-    </div>
-  </main>
+        <div style="padding:20px; background:#080c10; border-top:1px solid rgba(197,160,89,0.1);">
+            <input type="text" id="rp-input" placeholder="Action RP... (Tapez /admin pour le panel)" style="width:100%; background:transparent; border:none; color:white; font-size:1.2em; outline:none;" onkeypress="if(event.key==='Enter')sendMsg()">
+        </div>
+    </main>
+</div>
+
+<div id="skill-tree">
+    <h1 style="font-family:'Cinzel'; color:var(--gold);">ARBRE DES COMPÉTENCES</h1>
+    <div class="skill-node" onclick="buySkill('intel')">INTELLIGENCE<br><small>Requis pour Poneglyphes</small></div>
+    <div class="skill-node" onclick="buySkill('force')">FORCE PHYSIQUE<br><small>Boost puissance brute</small></div>
+    <div class="skill-node" onclick="buySkill('fruit')">MAÎTRISE FRUIT<br><small>Multiplicateur fruit</small></div>
+    <br><br>
+    <button onclick="this.parentElement.style.display='none'">FERMER</button>
+</div>
+
+<div id="admin-panel">
+    <h3>PANEL TARTIFLETTE</h3>
+    <input type="text" id="admin-input" placeholder="Texte Journal / Action">
+    <button onclick="adminExecute('update-journal')">Publier Journal</button>
+    <button onclick="adminExecute('toggle-onepiece')">On/Off One Piece</button>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-const socket = io();
-let myData = { name: '' };
+    const socket = io();
+    let myData = {};
+    let currentChannel = 'public';
 
-function joinGame() {
-  const name = document.getElementById('in-name').value.trim();
-  const faction = document.getElementById('in-fact').value;
-  if(name.length < 2) return alert("Nom trop court");
-  
-  myData.name = name;
-  socket.emit('join', { name, faction });
-  document.getElementById('login-overlay').style.opacity = '0';
-  setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 800);
-}
-
-socket.on('init', data => {
-  document.getElementById('event-bar').innerText = data.worldEvent;
-  if(data.history) {
-    data.history.forEach(m => addMessage(m));
-  }
-});
-
-socket.on('rp-message', msg => addMessage(msg));
-
-socket.on('world-event-update', ev => {
-  document.getElementById('event-bar').innerText = ev;
-});
-
-socket.on('show-poster', d => {
-  document.getElementById('w-name').innerText = d.targetName;
-  document.getElementById('w-bounty').innerText = d.bounty.toLocaleString() + " ฿";
-  document.getElementById('w-img').style.backgroundImage = `url(${d.imageUrl})`;
-  document.getElementById('wanted-overlay').style.display = 'flex';
-  setTimeout(() => document.getElementById('wanted-overlay').style.display = 'none', 10000);
-});
-
-function sendMessage() {
-  const input = document.getElementById('rp-input');
-  const text = input.value.trim();
-  if(!text) return;
-  socket.emit('rp-message', { user: myData.name, text: text });
-  botReaction(text); // Appel du bot
-  input.value = '';
-}
-
-function addMessage(m) {
-  const display = document.getElementById('chat-display');
-  const div = document.createElement('div');
-  div.className = 'msg-item';
-  div.innerHTML = `
-    <div class="msg-user" style="color:var(--${m.faction})">${m.user.toUpperCase()}</div>
-    <div class="msg-text">${m.text}</div>
-  `;
-  display.appendChild(div);
-  display.scrollTop = display.scrollHeight;
-}
-
-/* --- LOGIQUE BOT & CANAUX --- */
-function switchChannel(channel) {
-    document.querySelectorAll('.radio-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById('btn-' + channel).classList.add('active');
-    
-    const botMsg = document.getElementById('bot-message');
-    const body = document.body;
-
-    if(channel === 'marine') {
-        body.style.background = "#050b1a";
-        botMsg.innerText = '"Ici le QG. Un navire non identifié est signalé au secteur 4."';
-    } else if(channel === 'rev') {
-        body.style.background = "#051a05";
-        botMsg.innerText = '"Signal crypté... L\'armée de l\'ombre se prépare."';
-    } else {
-        body.style.background = "#050709";
-        botMsg.innerText = '"Le News Coo survole les mers... On parle d\'une prime de 100 millions !"';
+    function joinGame() {
+        const name = document.getElementById('in-name').value;
+        const faction = document.getElementById('in-fact').value;
+        if(name.length < 2) return;
+        socket.emit('join', { name, faction });
+        document.getElementById('login-overlay').style.display = 'none';
     }
-}
 
-function botReaction(text) {
-    const t = text.toLowerCase();
-    const botMsg = document.getElementById('bot-message');
-    if(t.includes("prime") || t.includes("wanted")) {
-        botMsg.innerText = '"Une nouvelle affiche ? Laissez-moi vérifier mes sacs !"';
-    } else if(t.includes("ile") || t.includes("mer")) {
-        botMsg.innerText = '"Le courant est fort par ici, surveillez votre log pose."';
+    function setChannel(c) {
+        currentChannel = c;
+        document.querySelectorAll('.radio-nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById('rad-'+c).classList.add('active');
     }
-}
+
+    function sendMsg() {
+        const input = document.getElementById('rp-input');
+        if(input.value === '/admin') {
+            const code = prompt("Code secret ?");
+            if(code === 'TartifletteDeLaHess') document.getElementById('admin-panel').style.display='block';
+            input.value = ''; return;
+        }
+        socket.emit('rp-message', { user: myData.name, text: input.value, channel: currentChannel });
+        input.value = '';
+    }
+
+    socket.on('player-data', data => {
+        myData = data;
+        document.getElementById('my-name').innerText = data.name;
+        document.getElementById('my-grade').innerText = data.grade;
+        document.getElementById('my-bounty').innerText = data.bounty.toLocaleString() + " ฿";
+        document.getElementById('my-power').innerText = data.power;
+    });
+
+    socket.on('world-update', state => {
+        document.getElementById('journal-text').innerText = state.journal;
+    });
+
+    socket.on('rp-message', m => {
+        const display = document.getElementById('chat-display');
+        const div = document.createElement('div');
+        div.className = 'msg';
+        div.innerHTML = `
+            <div class="msg-header">
+                <span style="color:var(--${m.faction})">${m.user} [${m.channel.toUpperCase()}]</span>
+                <span class="power-tag">⚡ ${m.power}</span>
+            </div>
+            <div>${m.text}</div>
+        `;
+        display.appendChild(div);
+        display.scrollTop = display.scrollHeight;
+    });
+
+    function adminExecute(action) {
+        const val = document.getElementById('admin-input').value;
+        socket.emit('admin-action', { code: 'TartifletteDeLaHess', action: action, data: val });
+    }
 </script>
 </body>
 </html>
