@@ -2,138 +2,105 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Grand Line - Horizon V3</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <title>Grand Line — Horizon V3.2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Text:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #050709; --gold: #c5a059; --glass: rgba(255, 255, 255, 0.02);
-            --border: rgba(197, 160, 89, 0.12); --text: #d1cedb;
+            --border: rgba(197, 160, 89, 0.15); --text: #d1cedb;
             --pirate: #ff4757; --marine: #2e86de; --revo: #2ed573;
         }
 
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Crimson Text', serif; display: flex; height: 100vh; overflow: hidden; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Crimson Text', serif; display: flex; height: 100vh; overflow: hidden; transition: filter 0.5s; }
         
-        /* Sidebar */
-        .sidebar { width: 260px; background: #020405; border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; }
-        .nav-btn { background: none; border: none; color: #555; padding: 22px; text-align: left; font-family: 'Cinzel'; font-size: 10px; letter-spacing: 3px; cursor: pointer; transition: 0.4s; }
-        .nav-btn.active { color: var(--gold); background: rgba(197,160,89,0.04); border-left: 2px solid var(--gold); }
+        /* Animation Haki */
+        @keyframes hakiShake {
+            0% { transform: translate(2px, 2px); filter: grayscale(1) contrast(3); }
+            25% { transform: translate(-2px, -3px); }
+            50% { transform: translate(3px, 0px); }
+            100% { transform: translate(0,0); filter: grayscale(0); }
+        }
+        .haki-active { animation: hakiShake 0.15s infinite; }
 
-        .main { flex: 1; display: flex; flex-direction: column; position: relative; background: radial-gradient(circle at top right, #0a0f14, #050709); }
-        #event-bar { background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); color: var(--gold); padding: 14px; text-align: center; font-family: 'Cinzel'; font-style: italic; border-bottom: 1px solid var(--border); font-size: 0.85em; letter-spacing: 1px; }
+        .sidebar { width: 260px; background: #020405; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .nav-btn { background: none; border: none; color: #555; padding: 20px; text-align: left; font-family: 'Cinzel'; font-size: 10px; letter-spacing: 2px; cursor: pointer; }
+        .nav-btn.active { color: var(--gold); border-left: 3px solid var(--gold); background: var(--glass); }
 
-        .page { display: none; flex: 1; padding: 40px; overflow-y: auto; animation: fadeIn 0.6s ease; }
+        .main { flex: 1; display: flex; flex-direction: column; position: relative; }
+        #event-bar { background: rgba(0,0,0,0.5); color: var(--gold); padding: 15px; text-align: center; font-family: 'Cinzel'; border-bottom: 1px solid var(--border); font-style: italic; }
+
+        .page { display: none; flex: 1; padding: 40px; overflow-y: auto; }
         .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Wanted Poster Overlay */
+        /* Wanted Poster */
         #poster-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .poster { width: 340px; background: #decba4; padding: 25px; border: 10px solid #1a120b; color: #1a120b; text-align: center; font-family: 'Cinzel'; box-shadow: 0 0 60px rgba(0,0,0,0.7); transform: scale(0.9); animation: posterPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        @keyframes posterPop { to { transform: scale(1); } }
-        .poster-img { width: 100%; height: 240px; background: #222; margin: 15px 0; border: 4px solid #1a120b; background-size: cover; background-position: center; filter: sepia(0.4) contrast(1.1); }
+        .poster { width: 320px; background: #decba4; padding: 20px; border: 10px solid #1a120b; color: #1a120b; text-align: center; font-family: 'Cinzel'; }
+        .poster-img { width: 100%; height: 230px; background-size: cover; border: 4px solid #1a120b; margin: 15px 0; filter: sepia(0.5); }
 
-        /* Leaderboard & Tabs */
-        .filter-tabs { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
-        .tab { background: transparent; border: none; color: #555; padding: 8px 20px; cursor: pointer; font-family: 'Cinzel'; font-size: 11px; transition: 0.3s; }
-        .tab.active { color: var(--gold); }
-        .rank-card { background: var(--glass); border: 1px solid var(--border); padding: 18px 25px; margin-bottom: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(4px); }
-
-        /* Elements standards */
-        .btn { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 12px; font-family: 'Cinzel'; border-radius: 4px; cursor: pointer; transition: 0.3s; font-size: 0.8em; letter-spacing: 1px; }
-        .btn:hover:not(:disabled) { background: var(--gold); color: #000; box-shadow: 0 0 15px rgba(197,160,89,0.2); }
-        .btn:disabled { opacity: 0.1; cursor: not-allowed; }
-
-        #chat { flex: 1; overflow-y: auto; padding-right: 10px; }
-        .msg { margin-bottom: 18px; border-left: 1px solid var(--border); padding-left: 20px; animation: msgIn 0.3s ease; }
-        @keyframes msgIn { from { opacity: 0; margin-left: -10px; } to { opacity: 1; margin-left: 0; } }
-        .msg b { font-family: 'Cinzel'; font-size: 0.75em; letter-spacing: 2px; display: block; margin-bottom: 4px; }
-        .msg.pirate b { color: var(--pirate); } .msg.marine b { color: var(--marine); } .msg.revo b { color: var(--revo); }
-
-        input, select { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: #fff; padding: 14px; border-radius: 8px; outline: none; width: 100%; box-sizing: border-box; margin-bottom: 15px; font-family: 'Crimson Text'; }
-        input:focus { border-color: var(--gold); }
+        .rank-card { background: var(--glass); border: 1px solid var(--border); padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px; }
+        .msg { margin-bottom: 15px; border-left: 2px solid var(--border); padding-left: 15px; }
+        input { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 5px; width: 100%; box-sizing: border-box; }
+        .btn { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 10px 20px; font-family: 'Cinzel'; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div id="poster-overlay" onclick="this.style.display='none'">
     <div class="poster">
-        <h1 style="font-size: 2.8em; margin:0; letter-spacing: 8px; border-bottom: 2px solid #1a120b;">WANTED</h1>
+        <h1 style="font-size: 2.5em; margin:0;">WANTED</h1>
         <div id="p-img" class="poster-img"></div>
-        <h2 id="p-name" style="font-size: 2.2em; margin:0;">NOM</h2>
-        <p style="font-size: 0.9em; font-weight: bold; margin: 8px 0; letter-spacing: 2px;">DEAD OR ALIVE</p>
-        <div id="p-bounty" style="font-size: 1.8em; border-top: 3px double #1a120b; margin-top: 10px; padding-top: 5px;">0 ฿</div>
+        <h2 id="p-name">--</h2>
+        <div id="p-bounty" style="font-size: 1.5em; border-top: 2px solid #1a120b; padding-top: 10px;">0 ฿</div>
     </div>
 </div>
 
-<div id="overlay" style="position:fixed; inset:0; background:var(--bg); z-index:100; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:25px;">
-    <h1 style="font-family:Cinzel; color:var(--gold); font-size: 2.5em; letter-spacing: 12px; margin:0;">GRAND LINE</h1>
-    <div style="width: 50px; height: 1px; background: var(--gold); opacity: 0.3;"></div>
-    <div style="width: 320px;">
-        <input id="in-name" placeholder="VOTRE NOM">
-        <select id="in-fact">
-            <option value="pirate">Pirate</option>
-            <option value="marine">Marine</option>
-            <option value="revo">Révolutionnaire</option>
-        </select>
-        <button class="btn" onclick="join()" style="width:100%; padding:16px;">REJOINDRE L'HORIZON</button>
-    </div>
+<div id="login-overlay" style="position:fixed; inset:0; background:var(--bg); z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+    <h1 style="font-family:Cinzel; color:var(--gold); letter-spacing:10px;">GRAND LINE</h1>
+    <input id="in-name" placeholder="VOTRE NOM" style="width:300px; margin-bottom:10px;">
+    <select id="in-fact" style="width:300px; padding:10px; background:#000; color:white; border:1px solid var(--border);">
+        <option value="pirate">Pirate</option>
+        <option value="marine">Marine</option>
+        <option value="revo">Révolutionnaire</option>
+    </select>
+    <button class="btn" onclick="join()" style="width:300px; margin-top:20px;">S'EMBARQUER</button>
 </div>
 
 <div class="sidebar">
-    <div style="padding:50px 20px; text-align:center;">
-        <h2 style="font-family:Cinzel; color:var(--gold); margin:0; font-size: 1.1em; letter-spacing: 2px;">V3 HORIZON</h2>
-        <div id="p-stats" style="margin-top:20px; font-size:0.85em; opacity:0.4; font-style: italic;"></div>
+    <div style="padding:40px 20px; text-align:center;">
+        <h2 style="font-family:Cinzel; color:var(--gold); font-size:1.2em;">HORIZON V3.2</h2>
+        <div id="p-stats" style="font-size:0.8em; opacity:0.5; margin-top:10px;"></div>
     </div>
     <button class="nav-btn active" onclick="tab('p-rp', event)">COMMUNICATION</button>
     <button class="nav-btn" onclick="tab('p-rank', event)">CLASSEMENT</button>
-    <button class="nav-btn" onclick="tab('p-skills', event)">CAPACITÉS</button>
     <button class="nav-btn" onclick="tab('p-adm', event)">CONTRÔLE</button>
 </div>
 
 <div class="main">
     <div id="event-bar">--</div>
-    
-    <div id="p-rp" class="page active" style="display:flex; flex-direction:column; padding: 0 40px;">
+    <div id="p-rp" class="page active">
         <div id="chat"></div>
-        <div style="display:flex; gap:15px; padding:30px 0;">
-            <input id="rp-in" style="flex:1; margin-bottom:0;" placeholder="Décrivez votre action...">
-            <button class="btn" style="padding:0 40px;" onclick="send()">ENVOYER</button>
-        </div>
+        <input id="rp-in" placeholder="Action RP..." onkeypress="if(event.key==='Enter')send()">
     </div>
-
+    
     <div id="p-rank" class="page">
-        <h2 style="font-family:Cinzel; color:var(--gold); margin-bottom:30px;">HIÉRARCHIE DES MERS</h2>
-        <div class="filter-tabs">
-            <button class="tab active" onclick="renderRank('global', event)">GLOBAL</button>
-            <button class="tab" onclick="renderRank('pirate', event)">PIRATES</button>
-            <button class="tab" onclick="renderRank('marine', event)">MARINE</button>
-            <button class="tab" onclick="renderRank('revo', event)">REVO</button>
-        </div>
+        <h2 style="font-family:Cinzel; color:var(--gold);">LES PLUS RECHERCHÉS</h2>
         <div id="rank-list"></div>
     </div>
 
-    <div id="p-skills" class="page">
-        <h2 style="font-family:Cinzel; color:var(--gold); margin-bottom:40px;">ARBRE DE COMPÉTENCES</h2>
-        <div class="filter-tabs" id="p-sp" style="color:var(--gold); font-size: 0.9em; border:none;"></div>
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:25px;" id="tree"></div>
-    </div>
-
-    <div id="p-adm" class="page" style="max-width: 500px;">
-        <div id="adm-login" class="rank-card" style="flex-direction:column; align-items:flex-start;">
-            <h3 style="font-family:Cinzel; margin-bottom:20px;">AUTHENTIFICATION</h3>
-            <input type="password" id="adm-pass" placeholder="CODE D'ACCÈS">
-            <button class="btn" style="width:100%;" onclick="login()">VALIDER</button>
+    <div id="p-adm" class="page">
+        <div id="adm-auth">
+            <input type="password" id="adm-pass" placeholder="CODE SECRET">
+            <button class="btn" onclick="auth()">VALIDER</button>
         </div>
-        <div id="adm-panel" style="display:none;">
-            <h3 id="adm-title" style="color:var(--gold); font-family:Cinzel;">INTERFACE ADMIN</h3>
-            <div class="rank-card" style="flex-direction:column; gap:10px;">
-                <h4 style="color:var(--gold); margin:0;">STUDIO WANTED</h4>
-                <input id="std-target" placeholder="Nom du Joueur">
-                <input id="std-img" placeholder="URL Image (Portrait)">
-                <button class="btn" style="width:100%;" onclick="sendPoster()">DIFFUSER L'AFFICHE</button>
-            </div>
-            <div id="s-only" style="display:none; margin-top:20px;">
-                <input id="ev-in" placeholder="Nouvelle dépêche mondiale...">
-                <button class="btn" style="width:100%;" onclick="adm('event', document.getElementById('ev-in').value)">METTRE À JOUR</button>
+        <div id="adm-ctrl" style="display:none;">
+            <h3 id="adm-lvl" style="color:var(--gold);">ADMIN</h3>
+            <div class="rank-card" style="flex-direction:column;">
+                <h4>DIFFUSER WANTED</h4>
+                <input id="std-target" placeholder="Nom du joueur">
+                <input id="std-img" placeholder="URL Image">
+                <button class="btn" onclick="sendPoster()">PUBLIER</button>
+                <button class="btn" style="border-color:#8a2be2; color:#8a2be2;" onclick="useHaki()">HAKI DES ROIS</button>
             </div>
         </div>
     </div>
@@ -141,21 +108,38 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-    const socket = io(); let myData = {}, allPlayers = {}, currentCode = "";
+    const socket = io();
+    let myData = {}, admCode = "";
 
     function join() {
         const n = document.getElementById('in-name').value;
         const f = document.getElementById('in-fact').value;
-        if(n) { socket.emit('join', { name: n, faction: f }); document.getElementById('overlay').style.display='none'; }
+        if(n) {
+            socket.emit('join', {name:n, faction:f});
+            document.getElementById('login-overlay').style.display='none';
+        }
     }
 
-    socket.on('init', d => { document.getElementById('event-bar').innerText = d.worldEvent; allPlayers = d.players; renderRank(); });
-    socket.on('world-event-update', t => document.getElementById('event-bar').innerText = t);
-    socket.on('player-data', d => { myData = d; renderUI(); });
-    socket.on('leaderboard-update', p => { allPlayers = p; renderRank(); });
+    socket.on('init', d => {
+        document.getElementById('event-bar').innerText = d.worldEvent;
+        renderRank(d.players);
+    });
+
+    socket.on('player-data', d => {
+        myData = d;
+        document.getElementById('p-stats').innerText = `${d.bounty.toLocaleString()} ฿ — ${d.grade}`;
+    });
+
     socket.on('rp-message', m => {
-        document.getElementById('chat').innerHTML += `<div class="msg ${m.faction}"><b>${m.user.toUpperCase()}</b>${m.text}</div>`;
-        document.getElementById('chat').scrollTop = 99999;
+        const chat = document.getElementById('chat');
+        chat.innerHTML += `<div class="msg"><b><span style="color:var(--${m.faction})">${m.user.toUpperCase()}</span></b><br>${m.text}</div>`;
+        chat.scrollTop = chat.scrollHeight;
+    });
+
+    socket.on('haki-vibe', d => {
+        document.body.classList.add('haki-active');
+        document.getElementById('chat').innerHTML += `<div style="text-align:center; color:#8a2be2; font-family:Cinzel; padding:20px;">— ONDE DE CHOC DE ${d.user} —</div>`;
+        setTimeout(() => document.body.classList.remove('haki-active'), 1500);
     });
 
     socket.on('show-poster', d => {
@@ -163,63 +147,56 @@
         document.getElementById('p-bounty').innerText = d.bounty.toLocaleString() + " ฿";
         document.getElementById('p-img').style.backgroundImage = `url(${d.imageUrl})`;
         document.getElementById('poster-overlay').style.display = 'flex';
-        setTimeout(() => document.getElementById('poster-overlay').style.display = 'none', 8000);
+        setTimeout(() => document.getElementById('poster-overlay').style.display='none', 8000);
     });
 
-    function renderUI() {
-        document.getElementById('p-stats').innerHTML = `${myData.bounty.toLocaleString()} ฿ — ${myData.skillPoints} SP DISPONIBLES`;
-        document.getElementById('p-sp').innerText = `POINTS DE COMPÉTENCE : ${myData.skillPoints}`;
-        const sk = [{id:'force', n:'PUISSANCE', c:1}, {id:'intel', n:'SAGESSE', c:1}, {id:'haki', n:'HAKI', c:3}, {id:'reading', n:'ARCHIVES', c:10}];
-        document.getElementById('tree').innerHTML = sk.map(s => `
-            <div class="rank-card" style="flex-direction:column; text-align:center;">
-                <h4 style="font-family:Cinzel; margin:0; color:var(--gold);">${s.n}</h4>
-                <div style="font-size:1.8em; margin:15px 0; color:#fff;">${myData.skills[s.id]}</div>
-                <button class="btn" onclick="socket.emit('upgrade-skill', '${s.id}')" ${myData.skillPoints < s.c ? 'disabled' : ''}>AMÉLIORER (${s.c} SP)</button>
-            </div>
-        `).join('');
-    }
-
-    function renderRank(filter = 'global', e) {
-        if(e) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); e.target.classList.add('active'); }
-        let sorted = Object.values(allPlayers).sort((a,b) => b.bounty - a.bounty);
-        if(filter !== 'global') sorted = sorted.filter(p => p.faction === filter);
-        document.getElementById('rank-list').innerHTML = sorted.map((p, i) => `
+    function renderRank(players) {
+        const list = document.getElementById('rank-list');
+        const sorted = Object.values(players).sort((a,b) => b.bounty - a.bounty);
+        list.innerHTML = sorted.map((p, i) => `
             <div class="rank-card">
-                <span><span style="opacity:0.3; margin-right:10px;">#${i+1}</span> <b style="color:var(--${p.faction}); letter-spacing:1px;">${p.name.toUpperCase()}</b></span>
-                <span style="font-family:Cinzel; color:var(--gold);">${p.bounty.toLocaleString()} ฿</span>
+                <span>#${i+1} <b style="color:var(--${p.faction})">${p.name}</b></span>
+                <span style="color:var(--gold)">${p.bounty.toLocaleString()} ฿</span>
             </div>
         `).join('');
     }
 
-    function login() {
+    function auth() {
         const pw = document.getElementById('adm-pass').value;
         socket.emit('admin-auth', pw, r => {
             if(r) {
-                currentCode = pw; document.getElementById('adm-login').style.display='none'; document.getElementById('adm-panel').style.display='block';
-                document.getElementById('adm-title').innerText = "ACCÈS : " + r.level.toUpperCase();
-                if(r.level !== 'admin') document.getElementById('s-only').style.display='block';
+                admCode = pw;
+                document.getElementById('adm-auth').style.display='none';
+                document.getElementById('adm-ctrl').style.display='block';
+                document.getElementById('adm-lvl').innerText = "RANG : " + r.level.toUpperCase();
             }
         });
     }
 
     function sendPoster() {
-        const target = document.getElementById('std-target').value;
-        const img = document.getElementById('std-img').value;
-        if(target && img) socket.emit('send-poster', { targetName: target, imageUrl: img, code: currentCode });
+        const t = document.getElementById('std-target').value;
+        const i = document.getElementById('std-img').value;
+        socket.emit('send-poster', {targetName:t, imageUrl:i, code:admCode});
+    }
+
+    function useHaki() {
+        socket.emit('use-haki', {user: myData.name, code: admCode});
     }
 
     function send() {
         const i = document.getElementById('rp-in');
-        if(i.value) { socket.emit('rp-message', { user: myData.name, text: i.value }); i.value = ''; }
+        if(i.value) {
+            socket.emit('rp-message', {user: myData.name, text: i.value});
+            i.value = '';
+        }
     }
 
     function tab(id, e) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active'); e.target.classList.add('active');
+        document.getElementById(id).classList.add('active');
+        e.target.classList.add('active');
     }
-
-    function adm(type, val) { socket.emit('admin-action', { type, value: val, code: currentCode }); }
 </script>
 </body>
 </html>
