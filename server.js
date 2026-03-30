@@ -1,97 +1,98 @@
 require('dotenv').config();
 const express = require('express');
-const fs = require('fs');
-const http = require('http');
+const path    = require('path');
+const http    = require('http');
 const { Server } = require('socket.io');
 
-const app = express();
+const app    = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io     = new Server(server);
 
-const DB_FILE = './database.json';
-const CODES = { master: "TartifletteDeLaHess", super: "Tartiflette", admin: "RedaLeGoat" };
+// Configuration des accès (Utilise les variables d'environnement ou les défauts)
+const CODES = {
+  master: process.env.CODE_MASTER || 'TartifletteDeLaHess',
+  super:  process.env.CODE_SUPER  || 'Tartiflette',
+  admin:  process.env.CODE_ADMIN  || 'RedaLeGoat'
+};
 
-let players = {};
-let currentVersion = 'v3';
-let worldEvent = "L'horizon est dégagé...";
+app.use(express.static(path.join(__dirname, 'public')));
 
-if (fs.existsSync(DB_FILE)) {
-    try { players = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')); } catch (e) { players = {}; }
-}
-const saveDB = () => fs.writeFileSync(DB_FILE, JSON.stringify(players, null, 2));
-
-app.use(express.static(__dirname));
+let players    = {};
+let worldEvent = "⛵ L'horizon est dégagé... les mers vous attendent.";
 
 io.on('connection', (socket) => {
-    socket.emit('init', { currentVersion, worldEvent, players });
+  socket.emit('init', { worldEvent, players });
 
-    socket.on('join', ({ name, faction }) => {
-        socket.playerName = name;
-        if (!players[name]) {
-            players[name] = {
-                name, faction: faction || 'pirate', bounty: 1000, 
-                gradeXP: 0, skillPoints: 0, skills: { force: 0, intel: 0, haki: 0, reading: 0 }
-            };
-            saveDB();
-        }
+  socket.on('join', ({ name, faction }) => {
+    socket.playerName = name;
+    if (!players[name]) {
+      players[name] = { 
+        name, faction, bounty: 1000, gradeXP: 0, skillPoints: 0, 
+        skills: { force: 0, intel: 0, haki: 0, reading: 0 },
+        grade: "Mousse" 
+      };
+    }
+    io.emit('leaderboard-update', players);
+    socket.emit('player-data', players[name]);
+  });
+
+  socket.on('rp-message', ({ user, text }) => {
+    if (!players[user]) return;
+    // Progression de la prime
+    players[user].bounty += Math.floor(Math.random() * 200) + 100;
+    players[user].gradeXP += 10;
+    
+    io.emit('rp-message', { user, text, faction: players[user].faction });
+    io.emit('leaderboard-update', players);
+    socket.emit('player-data', players[user]);
+  });
+
+  // --- MATIÈRE BRUTE : HAKI DES ROIS ---
+  socket.on('use-haki', ({ user, code }) => {
+    const lvl = getLevel(code);
+    if (lvl === 'master' || lvl === 'supermodo' || (players[user] && players[user].skills.haki >= 5)) {
+      io.emit('haki-vibe', { user });
+    }
+  });
+
+  socket.on('admin-action', ({ type, value, target, code }) => {
+    const lvl = getLevel(code);
+    if (!lvl) return;
+
+    if (type === 'event' && (lvl === 'master' || lvl === 'supermodo')) {
+      worldEvent = value;
+      io.emit('world-event-update', value);
+    }
+    
+    if (type === 'kick' && lvl === 'master') {
+        io.emit('system-msg', `🚫 ${target} a été banni des mers.`);
+        delete players[target];
         io.emit('leaderboard-update', players);
-        socket.emit('player-data', players[name]);
-    });
+    }
+  });
 
-    socket.on('rp-message', ({ user, text }) => {
-        if (!players[user]) return;
-        // Gain de prime dynamique : entre 150 et 400 par message pour le sentiment de progression
-        players[user].bounty += Math.floor(Math.random() * 250) + 150;
-        players[user].gradeXP += 10;
-        if (players[user].gradeXP % 500 === 0) players[user].skillPoints++;
-        
-        saveDB();
-        io.emit('rp-message', { user, text, faction: players[user].faction });
-        io.emit('leaderboard-update', players);
-        socket.emit('player-data', players[user]);
-    });
+  socket.on('send-poster', ({ targetName, imageUrl, code }) => {
+    const lvl = getLevel(code);
+    if (lvl === 'master' || lvl === 'supermodo') {
+      const p = players[targetName];
+      if (p) {
+        io.emit('show-poster', { targetName, imageUrl, bounty: p.bounty, faction: p.faction });
+      }
+    }
+  });
 
-    socket.on('upgrade-skill', (skill) => {
-        const p = players[socket.playerName];
-        const costs = { force: 1, intel: 1, haki: 3, reading: 10 };
-        if (p && p.skillPoints >= costs[skill]) {
-            p.skillPoints -= costs[skill];
-            p.skills[skill]++;
-            saveDB();
-            socket.emit('player-data', p);
-        }
-    });
-
-    socket.on('send-poster', ({ targetName, imageUrl, code }) => {
-        if (code === CODES.master || code === CODES.super) {
-            if (players[targetName]) {
-                io.emit('show-poster', { 
-                    targetName, imageUrl, 
-                    bounty: players[targetName].bounty,
-                    faction: players[targetName].faction 
-                });
-            }
-        }
-    });
-
-    socket.on('admin-action', ({ type, value, code }) => {
-        if (code === CODES.master && type === 'version') {
-            currentVersion = value;
-            io.emit('update-version', value);
-        }
-        if ((code === CODES.master || code === CODES.super) && type === 'event') {
-            worldEvent = value;
-            io.emit('world-event-update', value);
-        }
-    });
-
-    socket.on('admin-auth', (code, cb) => {
-        if (code === CODES.master) cb({ level: 'master' });
-        else if (code === CODES.super) cb({ level: 'supermodo' });
-        else if (code === CODES.admin) cb({ level: 'admin' });
-        else cb(false);
-    });
+  socket.on('admin-auth', (code, cb) => {
+    const lvl = getLevel(code);
+    cb(lvl ? { level: lvl } : false);
+  });
 });
 
+function getLevel(code) {
+  if (code === CODES.master) return 'master';
+  if (code === CODES.super)  return 'supermodo';
+  if (code === CODES.admin)  return 'admin';
+  return null;
+}
+
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`⚓ Système Horizon V3 lancé sur le port ${PORT}`));
+server.listen(PORT, () => console.log(`🚢 Horizon V3.2 prêt sur le port ${PORT}`));
