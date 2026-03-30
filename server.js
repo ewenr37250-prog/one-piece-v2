@@ -10,8 +10,8 @@ const io = new Server(server, { cors: { origin: '*' } });
 
 // --- CONFIGURATION & CODES ---
 const CODES = {
-    master: 'TartifletteDeLaHess', // Ton code Master débloque tout
-    admin: 'RedaLeGoat'
+    master: 'TartifletteDeLaHess', 
+    super:  'RedaLeGoat'
 };
 
 // --- DATA STRUCTURES ---
@@ -41,7 +41,7 @@ io.on('connection', (socket) => {
         if (!players[name]) {
             players[name] = {
                 name, faction, bounty: 1000, gradeXP: 0, gradeIdx: 0,
-                grade: FACTION_GRADES[faction][0],
+                grade: FACTION_GRADES[faction] ? FACTION_GRADES[faction][0] : 'Mousse',
                 power: 10,
                 fruit: { name: "Aucun", level: 0, coeff: 1.0 },
                 haki: { obs: 0, arm: 0, kings: 0 },
@@ -57,29 +57,29 @@ io.on('connection', (socket) => {
         const p = players[user];
         if (!p) return;
 
-        // Gain auto
         p.bounty += Math.floor(Math.random() * 200) + 100;
         p.gradeXP += 5;
-        
-        // Calcul de puissance auto (Algo)
         p.power = Math.floor((p.bounty / 10000) + (p.skills.fruitMastery * 10) + (p.gradeIdx * 50) + (p.haki.arm * 100));
 
         const msg = { user, text, faction: p.faction, channel: channel || 'public', power: p.power };
         msgHistory.push(msg);
         if (msgHistory.length > 50) msgHistory.shift();
+        
         io.emit('rp-message', msg);
         updatePlayer(user);
     });
 
-    // --- SYSTEME ADMIN "TARTIFLETTE" ---
     socket.on('admin-action', ({ code, action, data }) => {
-        if (code !== CODES.master) return socket.emit('error', 'Code incorrect');
+        const isMaster = (code === CODES.master);
+        const isSuper  = (code === CODES.super);
+        
+        if (!isMaster && !isSuper) return socket.emit('error', 'Code incorrect');
 
-        if (action === 'update-journal') {
+        if (action === 'update-journal' && isMaster) {
             worldState.journal = data;
             io.emit('world-update', worldState);
         }
-        if (action === 'toggle-onepiece') {
+        if (action === 'toggle-onepiece' && isMaster) {
             worldState.onePieceActive = !worldState.onePieceActive;
             io.emit('world-update', worldState);
         }
@@ -99,7 +99,3 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`⚓ Horizon V3 Online - Port ${PORT}`));
-}
-
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`⚓ Horizon V3 lancé sur le port ${PORT}`));
