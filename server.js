@@ -13,7 +13,7 @@ const CODES = { master: "TartifletteDeLaHess", super: "Tartiflette", admin: "Red
 
 let players = {};
 let currentVersion = 'v3';
-let worldEvent = "La brume se lève sur l'horizon...";
+let worldEvent = "L'horizon est dégagé...";
 
 if (fs.existsSync(DB_FILE)) {
     try { players = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')); } catch (e) { players = {}; }
@@ -23,28 +23,31 @@ const saveDB = () => fs.writeFileSync(DB_FILE, JSON.stringify(players, null, 2))
 app.use(express.static(__dirname));
 
 io.on('connection', (socket) => {
-    socket.emit('init', { currentVersion, worldEvent });
+    socket.emit('init', { currentVersion, worldEvent, players });
 
-    socket.on('join', ({ name }) => {
+    socket.on('join', ({ name, faction }) => {
         socket.playerName = name;
         if (!players[name]) {
             players[name] = {
-                name, bounty: 1000, gradeXP: 0, skillPoints: 0,
-                skills: { force: 0, intel: 0, haki: 0, reading: 0 }
+                name, faction: faction || 'pirate', bounty: 1000, 
+                gradeXP: 0, skillPoints: 0, skills: { force: 0, intel: 0, haki: 0, reading: 0 }
             };
             saveDB();
         }
+        io.emit('leaderboard-update', players);
         socket.emit('player-data', players[name]);
     });
 
     socket.on('rp-message', ({ user, text }) => {
         if (!players[user]) return;
-        io.emit('rp-message', { user, text });
+        // Gain de prime dynamique : entre 150 et 400 par message pour le sentiment de progression
+        players[user].bounty += Math.floor(Math.random() * 250) + 150;
         players[user].gradeXP += 10;
-        if (players[user].gradeXP % 500 === 0) {
-            players[user].skillPoints++;
-        }
+        if (players[user].gradeXP % 500 === 0) players[user].skillPoints++;
+        
         saveDB();
+        io.emit('rp-message', { user, text, faction: players[user].faction });
+        io.emit('leaderboard-update', players);
         socket.emit('player-data', players[user]);
     });
 
@@ -56,6 +59,18 @@ io.on('connection', (socket) => {
             p.skills[skill]++;
             saveDB();
             socket.emit('player-data', p);
+        }
+    });
+
+    socket.on('send-poster', ({ targetName, imageUrl, code }) => {
+        if (code === CODES.master || code === CODES.super) {
+            if (players[targetName]) {
+                io.emit('show-poster', { 
+                    targetName, imageUrl, 
+                    bounty: players[targetName].bounty,
+                    faction: players[targetName].faction 
+                });
+            }
         }
     });
 
@@ -79,4 +94,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`⚓ Navire en route sur le port ${PORT}`));
+server.listen(PORT, () => console.log(`⚓ Système Horizon V3 lancé sur le port ${PORT}`));
