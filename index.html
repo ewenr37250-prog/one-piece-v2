@@ -3,76 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grand Line - L'Aventure commence</title>
+    <title>Grand Line Online - V1.4</title>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #1a1a1a; color: white; text-align: center; }
-        .login-container { margin-top: 100px; background: #2c3e50; padding: 20px; border-radius: 10px; display: inline-block; }
-        input, select, button { margin: 10px; padding: 10px; border-radius: 5px; border: none; }
-        .secret-area { display: none; border: 1px solid #e74c3c; padding: 10px; margin-top: 10px; }
-        #error-msg { color: #ff4757; font-weight: bold; }
+        :root { --gold: #f1c40f; --marine: #2980b9; --pirate: #e74c3c; --admin: #8e44ad; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: white; margin: 0; padding: 0; }
+        
+        /* Conteneurs principaux */
+        .screen { display: none; padding: 20px; text-align: center; }
+        .active { display: block; }
+
+        /* Style Connexion */
+        .login-box { background: #1e1e1e; padding: 30px; border-radius: 15px; border: 2px solid var(--gold); display: inline-block; margin-top: 50px; }
+        input, select, button { padding: 12px; margin: 10px; border-radius: 5px; border: none; width: 250px; font-size: 16px; }
+        button { cursor: pointer; font-weight: bold; transition: 0.3s; background: var(--gold); color: black; }
+        button:hover { transform: scale(1.05); }
+
+        /* Interface de Jeu (HUD) */
+        .hud { display: flex; justify-content: space-around; background: #222; padding: 15px; border-bottom: 3px solid var(--gold); position: sticky; top: 0; }
+        .stat-card { background: #333; padding: 10px; border-radius: 8px; min-width: 120px; }
+        .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 40px; }
+        .btn-action { height: 100px; font-size: 20px; background: #444; color: white; border: 2px solid white; }
+
+        /* Panel Admin / Modo */
+        #admin-panel { background: #2c3e50; border: 2px solid var(--admin); margin: 20px; padding: 20px; border-radius: 10px; }
+        .badge { padding: 5px 10px; border-radius: 5px; font-size: 12px; text-transform: uppercase; }
+
+        /* Notifications */
+        #event-banner { background: var(--pirate); padding: 10px; display: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="login-container">
-        <h1>🏴‍☠️ Grand Line Online</h1>
-        
-        <input type="text" id="username" placeholder="Nom du Pirate..." required>
-        <br>
-        
-        <select id="faction-select" onchange="toggleSecretField(this.value)">
-            <option value="pirate">Pirate</option>
-            <option value="marine">Marine</option>
-            <option value="secret">Archives de Marie-Joie...</option>
-        </select>
+    <div id="event-banner">📢 MESSAGE DU GOUVERNEMENT MONDIAL EN COURS...</div>
 
-        <div id="secret-container" class="secret-area">
-            <label>Autorisation requise :</label><br>
-            <input type="password" id="secret-code" placeholder="Code d'autorité">
+    <section id="screen-login" class="screen active">
+        <div class="login-box">
+            <h1>🏴‍☠️ GRAND LINE</h1>
+            <input type="text" id="username" placeholder="Nom de votre légende...">
+            <br>
+            <select id="faction-select" onchange="checkSecret(this.value)">
+                <option value="Pirate">Pirate</option>
+                <option value="Marine">Marine</option>
+                <option value="Révolutionnaire">Révolutionnaire</option>
+                <option value="secret">Archives de Marie-Joie...</option>
+            </select>
+            <div id="secret-input" style="display:none;">
+                <input type="password" id="secret-code" placeholder="Code d'Autorité">
+            </div>
+            <br>
+            <button onclick="requestJoin()">PRENDRE LA MER</button>
+            <p id="login-error" style="color:red;"></p>
+        </div>
+    </section>
+
+    <section id="screen-game" class="screen">
+        <div class="hud">
+            <div class="stat-card">👤 <span id="hud-name">?</span><br><small id="hud-role" class="badge"></small></div>
+            <div class="stat-card">💰 Berrys<br><b id="hud-berrys">0</b> ฿</div>
+            <div class="stat-card">🔥 Prime<br><b id="hud-bounty">0</b> ฿</div>
+            <div class="stat-card">📍 Lieu<br><span id="hud-island">Fuchsia</span></div>
         </div>
 
-        <br>
-        <button onclick="joinGame()">Prendre la Mer</button>
-        <p id="error-msg"></p>
-    </div>
+        <div class="action-grid">
+            <button class="btn-action" onclick="gameAction('train')">🏋️ S'ENTRAÎNER</button>
+            <button class="btn-action" onclick="gameAction('pillage')">🏴‍☠️ PILLER</button>
+            <button class="btn-action" onclick="gameAction('flag')">🚩 CRÉER DRAPEAU</button>
+            <button class="btn-action" onclick="gameAction('sail')">⛵ NAVIGUER</button>
+        </div>
+
+        <div id="admin-panel" style="display:none;">
+            <h2 id="admin-title">🛠️ ADMINISTRATION</h2>
+            <div id="modo-tools">
+                <button onclick="adminCmd('mute')" style="background:orange">Mute Joueur</button>
+                <button onclick="adminCmd('jail')" style="background:red">Envoyer à Impel Down</button>
+            </div>
+            <div id="admin-tools" style="display:none;">
+                <hr>
+                <h3>👑 POUVOIRS SUPRÊMES</h3>
+                <button onclick="adminCmd('event-pillage')" style="background:var(--admin)">Lancer Heure du Pillage (x2)</button>
+                <button onclick="adminCmd('spawn-fruit')" style="background:var(--admin)">Spawn Fruit du Démon</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="screen-jail" class="screen">
+        <h1 style="color:red;">🔒 IMPEL DOWN 🔒</h1>
+        <p>Vous avez été capturé par les Grands Corsaires.</p>
+        <img src="https://i.imgur.com/your-jail-image.png" alt="Prison" style="width:300px;">
+        <p>Le granit marin annule vos pouvoirs. Attendez votre libération...</p>
+    </section>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
+        let myData = null;
 
-        // Affiche ou cache le champ de code secret
-        function toggleSecretField(val) {
-            const container = document.getElementById('secret-container');
-            container.style.display = (val === 'secret') ? 'block' : 'none';
+        function checkSecret(val) {
+            document.getElementById('secret-input').style.display = (val === 'secret') ? 'block' : 'none';
         }
 
-        function joinGame() {
-            const user = document.getElementById('username').value;
-            const faction = document.getElementById('faction-select').value;
-            const code = document.getElementById('secret-code').value;
+        function requestJoin() {
+            const data = {
+                username: document.getElementById('username').value,
+                faction: document.getElementById('faction-select').value,
+                secretCode: document.getElementById('secret-code').value
+            };
+            socket.emit('join-game', data);
+        }
 
-            if (!user) {
-                alert("Veuillez choisir un nom !");
-                return;
+        socket.on('login-error', (msg) => { alert(msg); });
+
+        socket.on('login-success', (user) => {
+            myData = user;
+            showScreen('screen-game');
+            updateHUD(user);
+            
+            // Affichage des outils de modération selon le grade
+            if (user.level >= 1) { 
+                document.getElementById('admin-panel').style.display = 'block';
+                document.getElementById('admin-title').innerText = "🛠️ PANEL : " + user.role;
             }
-
-            // Envoi des données au server.js
-            socket.emit('join-game', {
-                username: user,
-                faction: faction,
-                secretCode: code
-            });
-        }
-
-        // Écoute les erreurs (Nom interdit, code faux, etc.)
-        socket.on('login-error', (msg) => {
-            document.getElementById('error-msg').innerText = msg;
+            if (user.level === 2) { 
+                document.getElementById('admin-tools').style.display = 'block';
+            }
         });
 
-        // Succès de connexion
-        socket.on('login-success', (data) => {
-            alert(`Bienvenue ${data.role} ${data.username} !`);
-            // Ici tu pourras rediriger vers la page de jeu ou le panel modo
+        function updateHUD(user) {
+            document.getElementById('hud-name').innerText = user.username;
+            document.getElementById('hud-role').innerText = user.role;
+            document.getElementById('hud-berrys').innerText = user.berrys.toLocaleString();
+            document.getElementById('hud-bounty').innerText = user.bounty.toLocaleString();
+            document.getElementById('hud-island').innerText = user.island;
+        }
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function gameAction(type) {
+            socket.emit('player-action', { type: type });
+        }
+
+        function adminCmd(cmd) {
+            const target = prompt("Nom de la cible (si applicable) :");
+            socket.emit('admin-command', { cmd: cmd, target: target });
+        }
+
+        socket.on('event-start', (msg) => {
+            const banner = document.getElementById('event-banner');
+            banner.innerText = "📢 " + msg;
+            banner.style.display = 'block';
         });
     </script>
 </body>
