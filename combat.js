@@ -1,9 +1,15 @@
-function computePower(p) {
-  if (!p) return 0;
-  const base = Math.log10(Math.max(p.bounty, 1000)) * 50;
-  const force = (p.skills?.force || 0) * 10;
-  const haki = (p.haki?.observation || 0) + (p.haki?.armement || 0);
-  return Math.floor(base + force + (haki * 20));
-}
+module.exports = {
+    // Calcul du gain lors d'un pillage
+    calculatePillage: (puissance, multiplier = 1) => {
+        const baseGain = Math.floor(Math.random() * 100) + 50;
+        return Math.floor((baseGain + (puissance * 2)) * multiplier);
+    },
 
-module.exports = { computePower };
+    // Gain d'entraînement
+    calculateTrain: (hakiActuel) => {
+        return {
+            gainPuissance: Math.floor(Math.random() * 5) + 1,
+            gainHaki: Math.random() > 0.9 ? 1 : 0 // 10% de chance d'up le Haki
+        };
+    }
+};
