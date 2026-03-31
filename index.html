@@ -2,54 +2,78 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>GRAND LINE V1.2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grand Line - L'Aventure commence</title>
     <style>
-        body { background: #1a1a1a; color: white; font-family: sans-serif; text-align: center; padding-top: 50px; }
-        .card { border: 2px solid #ffd700; display: inline-block; padding: 20px; border-radius: 15px; background: #222; }
-        .valeur { color: #ffd700; font-size: 24px; font-weight: bold; }
-        .error-msg { color: #ff4444; font-size: 0.8rem; margin-top: 10px; }
+        body { font-family: 'Arial', sans-serif; background: #1a1a1a; color: white; text-align: center; }
+        .login-container { margin-top: 100px; background: #2c3e50; padding: 20px; border-radius: 10px; display: inline-block; }
+        input, select, button { margin: 10px; padding: 10px; border-radius: 5px; border: none; }
+        .secret-area { display: none; border: 1px solid #e74c3c; padding: 10px; margin-top: 10px; }
+        #error-msg { color: #ff4757; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>🏴‍☠️ GRAND LINE V1.2</h1>
-        <p>Nom: <span id="p-name">-</span></p>
-        <p>Prime: <span id="p-bounty" class="valeur">0</span> ฿</p>
-        <p>Puissance: <span id="p-power" class="valeur">0</span> ⚡</p>
-        <div id="status">Connexion...</div>
+    <div class="login-container">
+        <h1>🏴‍☠️ Grand Line Online</h1>
+        
+        <input type="text" id="username" placeholder="Nom du Pirate..." required>
+        <br>
+        
+        <select id="faction-select" onchange="toggleSecretField(this.value)">
+            <option value="pirate">Pirate</option>
+            <option value="marine">Marine</option>
+            <option value="secret">Archives de Marie-Joie...</option>
+        </select>
+
+        <div id="secret-container" class="secret-area">
+            <label>Autorisation requise :</label><br>
+            <input type="password" id="secret-code" placeholder="Code d'autorité">
+        </div>
+
+        <br>
+        <button onclick="joinGame()">Prendre la Mer</button>
+        <p id="error-msg"></p>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-
     <script>
-        // Test si Socket.io est bien chargé
-        if (typeof io === 'undefined') {
-            document.getElementById('status').innerHTML = "<b style='color:red'>ERREUR: Socket.io introuvable</b>";
-        } else {
-            const socket = io();
+        const socket = io();
 
-            const myName = "Pirate_" + Math.floor(Math.random() * 1000);
+        // Affiche ou cache le champ de code secret
+        function toggleSecretField(val) {
+            const container = document.getElementById('secret-container');
+            container.style.display = (val === 'secret') ? 'block' : 'none';
+        }
 
-            socket.on('connect', () => {
-                document.getElementById('status').innerText = "✅ Connecté au serveur !";
-                socket.emit('join', { name: myName, faction: "Pirate" });
-            });
+        function joinGame() {
+            const user = document.getElementById('username').value;
+            const faction = document.getElementById('faction-select').value;
+            const code = document.getElementById('secret-code').value;
 
-            socket.on('update-all', (data) => {
-                console.log("Données reçues:", data);
-                if (data.player) {
-                    document.getElementById('p-name').innerText = data.player.name;
-                    document.getElementById('p-bounty').innerText = data.player.bounty;
-                    document.getElementById('p-power').innerText = data.power;
-                    document.getElementById('status').innerText = "⚓ En mer";
-                }
-            });
+            if (!user) {
+                alert("Veuillez choisir un nom !");
+                return;
+            }
 
-            socket.on('connect_error', (err) => {
-                document.getElementById('status').innerText = "❌ Erreur connexion: " + err.message;
+            // Envoi des données au server.js
+            socket.emit('join-game', {
+                username: user,
+                faction: faction,
+                secretCode: code
             });
         }
+
+        // Écoute les erreurs (Nom interdit, code faux, etc.)
+        socket.on('login-error', (msg) => {
+            document.getElementById('error-msg').innerText = msg;
+        });
+
+        // Succès de connexion
+        socket.on('login-success', (data) => {
+            alert(`Bienvenue ${data.role} ${data.username} !`);
+            // Ici tu pourras rediriger vers la page de jeu ou le panel modo
+        });
     </script>
 </body>
 </html>
