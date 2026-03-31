@@ -1,60 +1,54 @@
+require('dotenv').config();
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 
-const PlayerSchema = new mongoose.Schema({
-  name: { type: String, required: true, unique: true },
-  faction: { type: String, enum: ['pirate', 'marine', 'revo'], required: true },
-  berries: { type: Number, default: 1000 },
-  bounty: { type: Number, default: 0 },
-  grade: { type: String, default: 'Mousse' },
-  xp: { type: Number, default: 0 },
-  fruit: {
-    id: String,
-    name: { type: String, default: 'Aucun' },
-    power: { type: Number, default: 1.0 }
-  },
-  haki: {
-    observation: { type: Number, default: 0 },
-    armement: { type: Number, default: 0 },
-    rois: { type: Number, default: 0 }
-  },
-  skills: {
-    force: { type: Number, default: 0 },
-    maitrise: { type: Number, default: 0 },
-    intelligence: { type: Number, default: 0 }
-  },
-  inventory: Array,
-  lastQuest: { type: Date, default: 0 }
+// Import des modèles et services
+const { Player } = require('./models');
+const { computePower } = require('./services/combat');
+const { seedDatabase } = require('./services/init');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+// Connexion à la base de données
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => {
+        console.log("⚓ Navigation stable : MongoDB Connecté");
+        seedDatabase(); // Rplit la DB si elle est vide
+    })
+    .catch(err => console.error("❌ Erreur moteur DB :", err));
+
+app.use(express.static('public'));
+
+io.on('connection', (socket) => {
+    // Rejoindre le jeu
+    socket.on('join', async ({ name, faction }) => {
+        let player = await Player.findOne({ name });
+        if (!player) {
+            player = new Player({ name, faction, bounty: 1000 });
+            await player.save();
+        }
+        socket.playerName = name;
+        sync(socket);
+    });
+
+    // Chat global
+    socket.on('send-msg', (data) => {
+        io.emit('receive-msg', { user: socket.playerName || "Inconnu", text: data.text });
+    });
+
+    // Synchronisation des stats
+    async function sync(s) {
+        const p = await Player.findOne({ name: s.playerName });
+        if (p) {
+            const power = computePower(p);
+            s.emit('update-all', { player: p, power });
+        }
+    }
 });
 
-const MarketItemSchema = new mongoose.Schema({
-  itemId: String,
-  name: String,
-  type: String,
-  basePrice: Number,
-  currentPrice: Number,
-  power: Number,
-  stock: { type: Number, default: -1 },
-  unique: { type: Boolean, default: false },
-  available: { type: Boolean, default: true },
-  lastPriceUpdate: Date
-});
-
-const QuestSchema = new mongoose.Schema({
-  title: String,
-  rewardBerries: Number,
-  rewardBounty: Number,
-  active: { type: Boolean, default: true }
-});
-
-const PonyglyphSchema = new mongoose.Schema({
-  location: String,
-  content: String,
-  active: { type: Boolean, default: false }
-});
-
-module.exports = {
-  Player: mongoose.model('Player', PlayerSchema),
-  MarketItem: mongoose.model('MarketItem', MarketItemSchema),
-  Quest: mongoose.model('Quest', QuestSchema),
-  Ponyglyph: mongoose.model('Ponyglyph', PonyglyphSchema)
-};
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`🚀 Serveur Horizon V4 lancé sur le port ${PORT}`));
