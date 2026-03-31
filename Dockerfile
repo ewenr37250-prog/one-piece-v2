@@ -1,20 +1,18 @@
-# Utilise une image Node.js stable
-FROM node:18
+# Utilisation d'une image Node légère
+FROM node:18-alpine
 
-# Crée le dossier de l'app
+# Dossier de travail dans le conteneur
 WORKDIR /usr/src/app
 
-# Copie les fichiers de dépendances
+# Installation des dépendances
 COPY package*.json ./
+RUN npm install --production
 
-# Installe les outils
-RUN npm install
-
-# Copie tout le reste du code (server.js, index.html)
+# Copie du reste du code
 COPY . .
 
-# Expose le port 3000
+# Exposition du port
 EXPOSE 3000
 
-# Lance le serveur
-CMD [ "node", "server.js" ]
+# Lancement du serveur
+CMD ["node", "src/server.js"]
