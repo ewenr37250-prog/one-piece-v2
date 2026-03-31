@@ -4,7 +4,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 
-// Import des modules (doivent être au même niveau que server.js)
+// Import des modules (situés à la racine)
 const { Player } = require('./models');
 const { computePower } = require('./combat');
 
@@ -19,7 +19,8 @@ mongoose.connect(process.env.MONGODB_URI)
   })
   .catch(err => console.error("❌ Erreur DB:", err));
 
-app.use(express.static('public'));
+// CETTE LIGNE DIT AU SERVEUR DE CHERCHER INDEX.HTML À LA RACINE
+app.use(express.static(__dirname));
 
 io.on('connection', (socket) => {
   socket.on('join', async ({ name, faction }) => {
@@ -49,10 +50,14 @@ io.on('connection', (socket) => {
 });
 
 async function update(socket) {
-  const p = await Player.findOne({ name: socket.playerName });
-  if (p) {
-    const power = computePower(p);
-    socket.emit('update-all', { player: p, power });
+  try {
+    const p = await Player.findOne({ name: socket.playerName });
+    if (p) {
+      const power = computePower(p);
+      socket.emit('update-all', { player: p, power });
+    }
+  } catch (e) {
+    console.error("Erreur update:", e);
   }
 }
 
