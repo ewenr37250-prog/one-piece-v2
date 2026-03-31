@@ -1,11 +1,10 @@
 {
-  "name": "grand-line-horizon-v4",
+  "name": "grand-line-horizon",
   "version": "4.0.0",
   "description": "One Piece RPG - V4 Horizon",
-  "main": "src/server.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "dotenv": "^16.3.1",
