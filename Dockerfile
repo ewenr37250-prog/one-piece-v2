@@ -18,3 +18,11 @@ EXPOSE 3000
 # Lancement du serveur (CORRECTION DU CHEMIN ICI)
 # On retire "src/" car tes fichiers sont à la racine
 CMD ["node", "server.js"]
+
+FROM node:18-alpine
+WORKDIR /usr/src/app
+COPY package*.json ./
+RUN npm install --production
+COPY . .
+EXPOSE 3000
+CMD ["node", "server.js"]
