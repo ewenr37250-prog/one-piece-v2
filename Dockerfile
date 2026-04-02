@@ -1,3 +1,7 @@
-PORT=3000
-MONGODB_URI=mongodb+srv://USER:PASS@cluster.mongodb.net/onepiece?retryWrites=true&w=majority
-ADMIN_CODE=OP2026
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --production
+COPY . .
+EXPOSE 3000
+CMD ["node", "server.js"]
