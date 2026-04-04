@@ -9,28 +9,30 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { Server } = require('socket.io');
 
+// Vérifie bien que tes fichiers s'appellent models.js et combat.js sur GitHub
 const { Player, CombatLog, Message } = require('./models');
 const combat = require('./combat');
 
-const PORT = process.env.PORT || 3000;
-const MONGO_URI = process.env.MONGODB_URI; // On récupère l'URI
+const PORT = process.env.PORT || 10000; // Render utilise souvent 10000
+const MONGO_URI = process.env.MONGODB_URI;
 const ADMIN_CODE = process.env.ADMIN_CODE || 'OP2026';
 const ACTION_CD = 3000;
 
 const onlineMap = new Map();
-const nameToSock = new Map();
 const cdMap = new Map();
 const chatCache = [];
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
+const io = new Server(server, { 
+    cors: { origin: '*' } 
+});
 
-// --- SÉCURITÉ CONNEXION DB ---
+// --- CONNEXION DATABASE ---
 let dbReady = false;
 async function connectDB() {
     if (!MONGO_URI) {
-        console.error('[DB] ❌ Erreur : MONGODB_URI n\'est pas définie dans Render !');
+        console.error('[DB] ❌ MONGODB_URI manquante dans les variables Render !');
         return;
     }
     try {
@@ -38,13 +40,14 @@ async function connectDB() {
         dbReady = true;
         console.log('[DB] ✅ MongoDB connecté');
     } catch (e) {
-        console.error('[DB] ❌ Erreur de connexion :', e.message);
-        setTimeout(connectDB, 5000); // Réessaie sans crash
+        console.error('[DB] ❌ Erreur :', e.message);
+        setTimeout(connectDB, 5000);
     }
 }
 connectDB();
 
-app.use(express.static(path.join(__dirname, 'public')));
+// --- CORRECTION ICI : On pointe sur la racine car index.html n'est pas dans /public ---
+app.use(express.static(__dirname)); 
 
 // --- SYSTÈME DE MESSAGES ---
 const sysMsg = (text) => {
@@ -109,24 +112,16 @@ io.on('connection', (socket) => {
         p.faction = (p.faction === 'marine') ? 'revolutionnaire' : 'pirate';
         p.refreshGrade(); await p.save();
         _connectPlayer(socket, p, p.sessionToken);
-        sysMsg(`⚖️ **TRAHISON :** ${p.name} a rejoint les ${p.faction}s !`);
+        sysMsg(`⚖️ TRAHISON : ${p.name} a rejoint les ${p.faction}s !`);
     });
 
     socket.on('chat:send', async ({ text, channel }) => {
         const p = await Player.findOne({ name: socket.playerName });
         if (!p || p.isMuted) return;
-        if (p.isTraitor && channel !== 'global') return;
         const msg = { author: p.name, faction: p.faction, text, channel: channel || 'global', createdAt: new Date() };
-        
-        [...io.sockets.sockets.values()].filter(s => {
-            if (s.playerIsTraitor && msg.channel !== 'global') return false;
-            if (msg.channel === 'global') return true;
-            if (s.playerFaction === 'secret') return true;
-            return s.playerFaction === msg.channel;
-        }).forEach(s => s.emit('chat:message', msg));
+        io.emit('chat:message', msg);
     });
 
-    // --- ACTIONS V3 RÉINTÉGRÉES ---
     socket.on('action:train', async () => {
         if (isOnCd(socket.playerName)) return;
         setCd(socket.playerName);
@@ -146,7 +141,7 @@ io.on('connection', (socket) => {
         p.berries += 2000; p.bounty += 1000; p.wantedLevel = Math.min(3, p.wantedLevel + 1);
         const arrested = await combat.checkArrest(p);
         await p.save();
-        if (arrested) sysMsg(`🚨 **${p.name}** a été arrêté par la Marine !`);
+        if (arrested) sysMsg(`🚨 ${p.name} a été arrêté par la Marine !`);
         socket.emit('player:update', combat.sanitize(p));
         broadcastLeaderboard();
     });
@@ -158,14 +153,9 @@ io.on('connection', (socket) => {
 });
 
 async function _connectPlayer(socket, player, token) {
-    if (player.isTraitor && player.traitorUntil && new Date() > player.traitorUntil) {
-        player.isTraitor = false; player.traitorUntil = null; 
-        player.refreshGrade(); await player.save();
-    }
     socket.playerName = player.name;
     socket.playerFaction = player.faction;
-    socket.playerIsTraitor = player.isTraitor;
-    onlineMap.set(socket.id, { name: player.name, faction: player.faction, isTraitor: player.isTraitor });
+    onlineMap.set(socket.id, { name: player.name, faction: player.faction });
     socket.emit('auth:success', { token, player: combat.sanitize(player) });
     broadcastLeaderboard();
 }
