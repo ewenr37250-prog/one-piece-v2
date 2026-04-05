@@ -49,6 +49,10 @@ connectDB();
 // --- CORRECTION ICI : On pointe sur la racine car index.html n'est pas dans /public ---
 app.use(express.static(__dirname)); 
 
+// --- FORCE L'AFFICHAGE DE INDEX.HTML ---
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 // --- SYSTÈME DE MESSAGES ---
 const sysMsg = (text) => {
     const m = { author: 'SYSTÈME', faction: 'system', text, channel: 'global', isSystem: true, createdAt: new Date() };
