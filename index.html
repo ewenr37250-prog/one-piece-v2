@@ -2,22 +2,118 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>One Piece RP V3</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Piece RP - V3</title>
     <style>
-        body { background: #1a1a1a; color: white; font-family: sans-serif; text-align: center; padding-top: 50px; }
-        .box { border: 2px solid #f1c40f; padding: 20px; display: inline-block; border-radius: 10px; }
+        :root { --gold: #f1c40f; --dark: #1a1a1a; --marine: #2980b9; --pirate: #c0392b; --revo: #27ae60; }
+        body { background-color: var(--dark); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; }
+        #auth-screen { margin-top: 100px; border: 2px solid var(--gold); padding: 30px; border-radius: 15px; background: #222; box-shadow: 0 0 20px rgba(241, 196, 15, 0.2); }
+        h1 { color: var(--gold); text-transform: uppercase; letter-spacing: 3px; }
+        input, select, button { display: block; width: 100%; margin: 10px 0; padding: 10px; border-radius: 5px; border: none; }
+        button { background: var(--gold); color: black; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #d4ac0d; transform: scale(1.02); }
+        .hidden { display: none; }
+        #game-ui { width: 90%; max-width: 1000px; padding: 20px; }
+        .stats-bar { display: flex; justify-content: space-around; background: #333; padding: 15px; border-radius: 10px; border-bottom: 3px solid var(--gold); }
+        .btn-action { background: #444; color: white; margin: 5px; width: auto; display: inline-block; padding: 10px 20px; }
+        #chat-box { height: 200px; background: #000; overflow-y: scroll; padding: 10px; margin-top: 20px; border: 1px solid #444; border-radius: 5px; font-family: monospace; }
+        .msg-system { color: #aaa; font-style: italic; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h1>🏴‍☠️ ONE PIECE RP V3 🏴‍☠️</h1>
-        <p>Le serveur est en ligne !</p>
-        <p>Si tu vois ce message, c'est que le JSON a enfin disparu.</p>
+
+    <div id="auth-screen">
+        <h1>🏴‍☠️ One Piece V3</h1>
+        <input type="text" id="username" placeholder="Nom du pirate/marin...">
+        <input type="password" id="password" placeholder="Mot de passe...">
+        <select id="faction-select">
+            <option value="pirate">Pirate</option>
+            <option value="marine">Marine</option>
+            <option value="revolutionnaire">Révolutionnaire</option>
+        </select>
+        <button onclick="login()">Se connecter</button>
+        <button onclick="register()" style="background: #555; color: white;">Créer un compte</button>
     </div>
+
+    <div id="game-ui" class="hidden">
+        <div class="stats-bar">
+            <div>👤 <span id="p-name">-</span> (<span id="p-faction">-</span>)</div>
+            <div>🎖️ <span id="p-grade">-</span></div>
+            <div>💰 Berries: <span id="p-berries">0</span></div>
+            <div>🔥 Prime: <span id="p-bounty">0</span></div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button class="btn-action" onclick="action('train')">🏋️ S'entraîner (+XP)</button>
+            <button class="btn-action" onclick="action('pillage')">🏴‍☠️ Piller / Patrouiller</button>
+        </div>
+
+        <div id="chat-box"></div>
+        <input type="text" id="chat-input" placeholder="Appuyez sur Entrée pour parler..." onkeydown="if(event.key==='Enter') sendChat()">
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        console.log("Connecté au Grand Line !");
+        let myPlayer = null;
+
+        // --- AUTH ---
+        function login() {
+            const name = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            socket.emit('auth:login', { name, password: pass });
+        }
+
+        function register() {
+            const name = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const faction = document.getElementById('faction-select').value;
+            socket.emit('auth:register', { name, password: pass, faction });
+        }
+
+        socket.on('auth:success', ({ token, player }) => {
+            myPlayer = player;
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('game-ui').classList.remove('hidden');
+            updateUI(player);
+        });
+
+        socket.on('auth:error', (msg) => alert(msg));
+
+        // --- ACTIONS ---
+        function action(type) {
+            socket.emit(`action:${type}`);
+        }
+
+        socket.on('player:update', (player) => {
+            myPlayer = player;
+            updateUI(player);
+        });
+
+        function updateUI(p) {
+            document.getElementById('p-name').innerText = p.name;
+            document.getElementById('p-faction').innerText = p.faction.toUpperCase();
+            document.getElementById('p-grade').innerText = p.grade;
+            document.getElementById('p-berries').innerText = p.berries.toLocaleString();
+            document.getElementById('p-bounty').innerText = p.bounty.toLocaleString();
+        }
+
+        // --- CHAT ---
+        function sendChat() {
+            const input = document.getElementById('chat-input');
+            if (!input.value.trim()) return;
+            socket.emit('chat:send', { text: input.value, channel: 'global' });
+            input.value = '';
+        }
+
+        socket.on('chat:message', (msg) => {
+            const box = document.getElementById('chat-box');
+            const div = document.createElement('div');
+            div.innerHTML = `<span style="color:var(--gold)">[${msg.author}]</span>: ${msg.text}`;
+            if (msg.isSystem) div.className = 'msg-system';
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        });
     </script>
 </body>
 </html>
