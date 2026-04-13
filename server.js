@@ -9,11 +9,17 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { Server } = require('socket.io');
 
-// Vérifie bien que tes fichiers s'appellent models.js et combat.js sur GitHub
+// Import de tes modèles et de la logique de combat
 const { Player, CombatLog, Message } = require('./models');
 const combat = require('./combat');
 
-const PORT = process.env.PORT || 10000; // Render utilise souvent 10000
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { 
+    cors: { origin: '*' } 
+});
+
+const PORT = process.env.PORT || 10000;
 const MONGO_URI = process.env.MONGODB_URI;
 const ADMIN_CODE = process.env.ADMIN_CODE || 'OP2026';
 const ACTION_CD = 3000;
@@ -22,17 +28,11 @@ const onlineMap = new Map();
 const cdMap = new Map();
 const chatCache = [];
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, { 
-    cors: { origin: '*' } 
-});
-
 // --- CONNEXION DATABASE ---
 let dbReady = false;
 async function connectDB() {
     if (!MONGO_URI) {
-        console.error('[DB] ❌ MONGODB_URI manquante dans les variables Render !');
+        console.error('[DB] ❌ MONGODB_URI manquante !');
         return;
     }
     try {
@@ -46,13 +46,21 @@ async function connectDB() {
 }
 connectDB();
 
-// --- CORRECTION ICI : On pointe sur la racine car index.html n'est pas dans /public ---
+// --- GESTION DES FICHIERS (LA CORRECTION EST ICI) ---
+
+// 1. On autorise l'accès aux fichiers (css, js, images) qui sont à la racine
 app.use(express.static(__dirname)); 
 
-// --- FORCE L'AFFICHAGE DE INDEX.HTML ---
+// 2. ROUTE PRINCIPALE : On force l'envoi de l'index.html quoi qu'il arrive
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'), (err) => {
+        if (err) {
+            // Si le fichier est absent, on affiche une erreur claire au lieu du JSON
+            res.status(404).send("<h1>Erreur : Fichier index.html introuvable sur GitHub !</h1>");
+        }
+    });
 });
+
 // --- SYSTÈME DE MESSAGES ---
 const sysMsg = (text) => {
     const m = { author: 'SYSTÈME', faction: 'system', text, channel: 'global', isSystem: true, createdAt: new Date() };
@@ -164,4 +172,6 @@ async function _connectPlayer(socket, player, token) {
     broadcastLeaderboard();
 }
 
-server.listen(PORT, () => console.log(`⚓ V2 LANCEE SUR PORT ${PORT}`));
+server.listen(PORT, () => {
+    console.log(`⚓ SERVEUR ONE PIECE LIVE SUR PORT ${PORT}`);
+});
