@@ -3,253 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>One Piece RP - V3</title>
+    <title>One Piece RP - Grand Line</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Special+Elite&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --gold: #f1c40f; --dark: #121212; --card: #1e1e1e;
-            --marine: #2980b9; --pirate: #c0392b; --revo: #27ae60; 
+        :root {
+            --wood: #3d2b1f;
+            --paper: #d2b48c;
+            --gold: #c9a84c;
+            --marine: #1e3a5f;
+            --pirate: #7f1d1d;
+            --revo: #14532d;
         }
-        body { 
-            background-color: var(--dark); color: white; 
-            font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; 
-            display: flex; flex-direction: column; align-items: center; 
+
+        body {
+            background: #000 url('https://www.transparenttextures.com/patterns/dark-wood.png'); /* Texture boisée */
+            color: #f4e4bc;
+            font-family: 'Special Elite', serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
-        .hidden { display: none !important; }
 
-        /* Auth Screen */
-        #auth-screen { 
-            margin-top: 80px; border: 2px solid var(--gold); padding: 30px; 
-            border-radius: 15px; background: var(--card); width: 320px;
-            box-shadow: 0 0 20px rgba(241, 196, 15, 0.2); text-align: center;
+        /* Écran de connexion façon Parchemin */
+        #auth-screen {
+            margin-top: 50px;
+            background: #e4d5b7 url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+            color: #2b1d0e;
+            padding: 40px;
+            border-radius: 5px;
+            border: 10px solid var(--wood);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.2);
+            width: 350px;
+            text-align: center;
         }
-        input, select, button { 
-            display: block; width: 100%; margin: 10px 0; padding: 12px; 
-            border-radius: 5px; border: none; box-sizing: border-box;
+
+        h1 { font-family: 'Cinzel', serif; font-size: 2.5em; margin-bottom: 20px; text-shadow: 2px 2px 2px rgba(0,0,0,0.3); }
+
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #8b5a2b;
+            background: #fff9eb;
+            font-family: 'Special Elite', serif;
+            box-sizing: border-box;
         }
-        button { background: var(--gold); color: black; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #d4ac0d; transform: translateY(-2px); }
 
-        /* Game UI */
-        #game-ui { width: 95%; max-width: 1000px; padding: 20px; }
-        
-        nav { display: flex; gap: 10px; margin-bottom: 20px; }
-        .btn-nav { background: #333; color: white; flex: 1; padding: 12px; border: 1px solid #444; }
-        .btn-nav.active { background: var(--gold); color: black; border-color: var(--gold); }
-
-        .stats-bar { 
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            background: var(--card); padding: 15px; border-radius: 10px; 
-            border-bottom: 3px solid var(--gold); gap: 10px; text-align: center;
+        button {
+            background: var(--wood);
+            color: var(--gold);
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 2px solid var(--gold);
         }
-        .status-tag { font-size: 0.8em; padding: 2px 8px; border-radius: 3px; background: #444; text-transform: uppercase; }
-        .traitor { color: #e74c3c; font-weight: bold; border: 1px solid #e74c3c; box-shadow: 0 0 5px #e74c3c; }
 
-        .view { background: var(--card); padding: 20px; border-radius: 10px; margin-top: 10px; min-height: 250px; border: 1px solid #333; }
-        .btn-action { background: #444; color: white; display: inline-block; width: auto; padding: 10px 20px; margin: 5px; border: 1px solid #555; }
-        .btn-danger { background: #c0392b !important; color: white !important; border-color: #962d22 !important; }
+        button:hover { background: #5d4037; transform: scale(1.02); }
 
-        /* Chat System */
-        #chat-container { margin-top: 20px; border: 1px solid #333; border-radius: 8px; padding: 10px; background: #0b0b0b; }
-        #chat-box { height: 180px; overflow-y: auto; padding: 10px; font-size: 0.92em; border-bottom: 1px solid #222; line-height: 1.4; }
-        .chat-input-row { display: flex; gap: 8px; margin-top: 10px; }
-        .msg-system { color: var(--gold); font-style: italic; }
-        .msg-faction { color: #3498db; }
-        
-        /* Leaderboard */
-        #leaderboard-list { list-style: none; padding: 0; }
-        #leaderboard-list li { 
-            padding: 12px; border-bottom: 1px solid #222; 
-            display: flex; justify-content: space-between; align-items: center; 
+        /* HUD du jeu */
+        #game-ui { width: 95%; max-width: 900px; padding: 20px; }
+
+        .stats-bar {
+            background: rgba(0,0,0,0.8);
+            border: 2px solid var(--gold);
+            padding: 15px;
+            display: flex;
+            justify-content: space-around;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .view {
+            background: rgba(43, 29, 14, 0.9);
+            border: 2px solid var(--gold);
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        /* Emblème en arrière-plan dynamique */
+        .faction-bg {
+            position: fixed;
+            bottom: -50px;
+            right: -50px;
+            opacity: 0.15;
+            width: 400px;
+            pointer-events: none;
+            z-index: -1;
         }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
-        <h1 style="color: var(--gold); margin-bottom: 5px;">🏴‍☠️ OP V3</h1>
-        <p style="font-size: 0.8em; color: #888; margin-bottom: 20px;">L'ère de la piraterie commence ici</p>
-        
-        <input type="text" id="username" placeholder="Nom du personnage...">
-        <input type="password" id="password" placeholder="Mot de passe...">
-        
+        <h1>WANTED</h1>
+        <p>REJOIGNEZ L'AVENTURE</p>
+        <input type="text" id="username" placeholder="Nom du Pirate/Soldat...">
+        <input type="password" id="password" placeholder="Mot de passe secret...">
         <select id="faction-select">
-            <option value="pirate">🏴‍☠️ Pirate</option>
-            <option value="marine">⚓ Marine</option>
-            <option value="revolutionnaire">🐉 Révolutionnaire</option>
+            <option value="pirate">🏴‍☠️ Équipage Pirate</option>
+            <option value="marine">🛡️ Marine Royale</option>
+            <option value="revolutionnaire">🐉 Armée Révolutionnaire</option>
         </select>
-        
         <button onclick="login()">SE CONNECTER</button>
-        <button onclick="register()" style="background: #444; color: white;">REJOINDRE L'ÉQUIPAGE</button>
+        <button onclick="register()" style="background:#5d4037">CRÉER UN PERSO</button>
     </div>
 
     <div id="game-ui" class="hidden">
-        
         <div class="stats-bar">
-            <div>👤 <b id="p-name">-</b> <br> <span id="p-status"></span></div>
-            <div>🎖️ <span id="p-grade">-</span> <br> <small style="color:#aaa;">XP: <span id="p-xp">0</span></small></div>
-            <div>💰 <span id="p-berries">0</span> ฿</div>
-            <div>🔥 <span id="p-bounty">0</span> ฿</div>
-            <div>🚨 Wanted: <span id="p-wanted">0</span>/3</div>
+            <div><b id="p-name"></b><br><small id="p-faction"></small></div>
+            <div><b>GRADE:</b> <span id="p-grade"></span></div>
+            <div><b>BERRIES:</b> <span id="p-berries"></span> ฿</div>
         </div>
-
-        <nav style="margin-top: 20px;">
-            <button class="btn-nav active" onclick="showView('v-home', this)">🏠 ACCUEIL</button>
-            <button class="btn-nav" onclick="showView('v-map', this)">🗺️ NAVIGUER</button>
-            <button class="btn-nav" onclick="showView('v-leaderboard', this)">🏆 TOP 25</button>
-        </nav>
-
-        <div id="v-home" class="view">
-            <h3>Tableau de Bord</h3>
-            <div style="margin-bottom: 20px;">
-                <button class="btn-action" onclick="action('train')">🏋️ S'ENTRAÎNER</button>
-                <button class="btn-action" onclick="action('pillage')">🏴‍☠️ PILLER / PATROUILLER</button>
-                <button id="btn-betray" class="btn-action btn-danger" onclick="if(confirm('Es-tu sûr de vouloir trahir ta faction ? Ta prime sera divisée par 2 !')) action('betray')">⚖️ TRAHIR</button>
-            </div>
-            
-            <div id="chat-container">
-                <div id="chat-box"></div>
-                <div class="chat-input-row">
-                    <select id="chat-channel" style="width: 130px; margin:0; background: #222; color: white;">
-                        <option value="global">🌍 Global</option>
-                        <option value="faction">🛡️ Faction</option>
-                    </select>
-                    <input type="text" id="chat-input" placeholder="Écrire un message..." onkeydown="if(event.key==='Enter') sendChat()" style="margin:0; background: #111; color: white; border: 1px solid #333;">
-                    <button onclick="sendChat()" style="width: 70px; margin:0;">ENVOI</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="v-map" class="view hidden">
-            <h3>🗺️ Navigation Grand Line</h3>
-            <div style="padding: 40px; text-align: center; color: #888; border: 2px dashed #333;">
-                <p>Le Log Pose est en cours de chargement...</p>
-                <p><small>Les destinations (Loguetown, Alabasta, etc.) apparaîtront ici prochainement.</small></p>
-            </div>
-        </div>
-
-        <div id="v-leaderboard" class="view hidden">
-            <h3>🏆 Les Plus Recherchés</h3>
-            <ul id="leaderboard-list">Chargement des données de la Marine...</ul>
+        
+        <div class="view">
+            <button onclick="socket.emit('action:train')">🏋️ S'ENTRAÎNER (XP)</button>
+            <button onclick="socket.emit('action:pillage')" style="margin-top:10px;">🏴‍☠️ PILLER LES CÔTES</button>
         </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io();
-        let myPlayer = null;
+        const socket = io(); // Connexion automatique
 
-        // --- GESTION DES VUES ---
-        function showView(viewId, btn) {
-            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-            document.querySelectorAll('.btn-nav').forEach(b => b.classList.remove('active'));
-            document.getElementById(viewId).classList.remove('hidden');
-            btn.classList.add('active');
-        }
-
-        // --- AUTHENTIFICATION ---
         function login() {
-            const name = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            if(!name || !password) return alert("Remplis tous les champs !");
-            socket.emit('auth:login', { name, password });
+            const n = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            if(!n || !p) return alert("Remplis tes avis de recherche !");
+            socket.emit('auth:login', { name: n, password: p });
         }
 
         function register() {
-            const name = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const faction = document.getElementById('faction-select').value;
-            if(!name || !password) return alert("Remplis tous les champs !");
-            socket.emit('auth:register', { name, password, faction });
+            const n = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            const f = document.getElementById('faction-select').value;
+            socket.emit('auth:register', { name: n, password: p, faction: f });
         }
 
         socket.on('auth:success', ({ player }) => {
-            myPlayer = player;
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('game-ui').classList.remove('hidden');
             updateUI(player);
         });
 
         socket.on('auth:error', (msg) => alert(msg));
-
-        // --- ACTIONS JEU ---
-        function action(type) { 
-            socket.emit(`action:${type}`); 
-        }
-
-        socket.on('player:update', (player) => updateUI(player));
+        socket.on('player:update', (p) => updateUI(p));
 
         function updateUI(p) {
-            myPlayer = p;
             document.getElementById('p-name').innerText = p.name;
             document.getElementById('p-grade').innerText = p.grade;
-            document.getElementById('p-xp').innerText = p.xp;
             document.getElementById('p-berries').innerText = p.berries.toLocaleString();
-            document.getElementById('p-bounty').innerText = p.bounty.toLocaleString();
-            document.getElementById('p-wanted').innerText = p.wantedLevel || 0;
-            
-            const statusEl = document.getElementById('p-status');
-            const btnBetray = document.getElementById('btn-betray');
-
-            if(p.isTraitor) {
-                statusEl.innerHTML = '<span class="status-tag traitor">⚠️ TRAÎTRE</span>';
-                if(btnBetray) btnBetray.classList.add('hidden');
-            } else {
-                statusEl.innerHTML = `<span class="status-tag">${p.faction}</span>`;
-                if(btnBetray) btnBetray.classList.remove('hidden');
-            }
+            document.getElementById('p-faction').innerText = p.faction.toUpperCase();
         }
 
-        // --- SYSTÈME DE CHAT ---
-        function sendChat() {
-            if (!myPlayer) return;
-            const input = document.getElementById('chat-input');
-            const channelSelect = document.getElementById('chat-channel').value;
-            
-            // Si canal faction, on envoie le nom de la faction du joueur
-            const channel = channelSelect === 'faction' ? myPlayer.faction : 'global';
-            
-            if(input.value.trim()) {
-                socket.emit('chat:send', { text: input.value, channel: channel });
-            }
-            input.value = '';
-        }
-
-        socket.on('chat:message', (msg) => {
-            const box = document.getElementById('chat-box');
-            const isSys = msg.isSystem;
-            const isFaction = msg.channel !== 'global' && !isSys;
-            
-            let html = `<div style="margin-bottom: 4px;">`;
-            if(isSys) {
-                html += `<span class="msg-system">📢 ${msg.text}</span>`;
-            } else {
-                const color = isFaction ? '#3498db' : '#f1c40f';
-                const prefix = isFaction ? `[${msg.channel.toUpperCase()}] ` : '';
-                html += `<small style="color:#666">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small> `;
-                html += `${prefix}<b style="color:${color}">${msg.author}:</b> <span>${msg.text}</span>`;
-            }
-            html += `</div>`;
-            
-            box.innerHTML += html;
-            box.scrollTop = box.scrollHeight;
-        });
-
-        // --- CLASSEMENT ---
-        socket.on('leaderboard:update', (list) => {
-            const el = document.getElementById('leaderboard-list');
-            if(!list || list.length === 0) return;
-            
-            el.innerHTML = list.map((p, i) => `
-                <li>
-                    <span>
-                        <strong style="color:${i < 3 ? 'var(--gold)' : 'white'}">#${i+1}</strong> 
-                        ${p.name} ${p.isTraitor ? '<small style="color:#e74c3c">⚖️</small>' : ''}
-                        <br><small style="color:#666">${p.faction.toUpperCase()} - ${p.grade}</small>
-                    </span>
-                    <b style="color:var(--gold)">${p.bounty.toLocaleString()} ฿</b>
-                </li>
-            `).join('');
-        });
+        socket.on('connect', () => console.log("⚓ Connecté à Grand Line !"));
     </script>
 </body>
 </html>
