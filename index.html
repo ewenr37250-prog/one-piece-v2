@@ -17,6 +17,8 @@
             min-height:100vh;
         }
         .hidden { display:none !important; }
+
+        /* AUTH */
         #auth-screen {
             margin-top:40px; width:380px; padding:25px;
             background:var(--paper); color:var(--ink);
@@ -30,15 +32,13 @@
         }
         button { background:var(--wood); color:var(--gold); cursor:pointer; font-weight:bold; }
         button:hover { filter:brightness(1.1); }
-        #game-ui { width:95%; max-width:1100px; margin-top:20px; display:grid; grid-template-columns:2fr 2fr 1.5fr; gap:10px; }
-        .pane {
-            background:rgba(30,30,30,0.95);
-            border:2px solid var(--gold);
-            border-radius:8px;
-            padding:10px;
+
+        /* LAYOUT */
+        #game-ui {
+            width:95%; max-width:1100px; margin-top:20px;
         }
+
         .stats-bar {
-            grid-column:1 / span 3;
             background:rgba(0,0,0,0.9);
             border:2px solid var(--gold);
             border-radius:8px;
@@ -46,23 +46,80 @@
             display:flex;
             justify-content:space-between;
             align-items:center;
+            margin-bottom:10px;
         }
-        #chat-box, #log-box {
-            height:160px; overflow-y:auto;
-            background:rgba(0,0,0,0.3);
-            padding:8px; border:1px solid var(--gold);
+
+        /* TABS STYLE OP-A PARCHEMINS */
+        #tabs {
+            display:flex;
+            gap:6px;
+            margin-bottom:10px;
+            justify-content:center;
+            flex-wrap:wrap;
+        }
+        .tab-btn {
+            position:relative;
+            padding:8px 16px;
+            background:linear-gradient(135deg,#e4d5b7,#c9a84c);
+            color:#3b2a16;
+            border:2px solid #5a3b1a;
+            font-family:'Special Elite',serif;
             font-size:0.9em;
+            cursor:pointer;
+            text-transform:uppercase;
+            letter-spacing:1px;
+            box-shadow:0 2px 4px rgba(0,0,0,0.6);
         }
+        .tab-btn::before,
+        .tab-btn::after {
+            content:"";
+            position:absolute;
+            top:0; bottom:0;
+            width:10px;
+            background:radial-gradient(circle at center, #c9a84c 0, #5a3b1a 70%);
+        }
+        .tab-btn::before { left:-8px; border-radius:50% 0 0 50%; }
+        .tab-btn::after { right:-8px; border-radius:0 50% 50% 0; }
+        .tab-btn.active {
+            background:linear-gradient(135deg,#f4e4bc,#e4d5b7);
+            border-color:#c9a84c;
+            box-shadow:0 0 10px rgba(201,168,76,0.8);
+            transform:translateY(-1px);
+        }
+
+        .tab {
+            background:rgba(30,30,30,0.95);
+            border:2px solid var(--gold);
+            border-radius:8px;
+            padding:10px;
+            min-height:260px;
+        }
+
+        #chat-box, #log-box, #journal-box, #event-history {
+            background:rgba(0,0,0,0.3);
+            border:1px solid var(--gold);
+            padding:8px;
+            font-size:0.9em;
+            overflow-y:auto;
+        }
+        #chat-box { height:180px; }
+        #log-box { height:140px; }
+        #journal-box { height:220px; }
+        #event-history { height:180px; }
+
         .msg, .log-entry { margin-bottom:4px; }
+
         #skill-tree-branches div {
             display:flex; justify-content:space-between; align-items:center;
             margin-bottom:4px;
         }
-        #modo-panel {
-            position:fixed; top:10%; left:10%; width:80%; height:80%;
-            background:var(--paper); color:#111;
-            border:10px solid var(--wood);
-            padding:15px; overflow-y:auto; z-index:100;
+
+        /* MODO PANEL (onglet interne) */
+        #tab-modo {
+            position:relative;
+        }
+        #modo-log {
+            background:#0002; padding:8px; height:150px; overflow-y:auto; border:1px solid #333;
         }
     </style>
 </head>
@@ -108,55 +165,81 @@
         </div>
     </div>
 
-    <div class="pane">
-        <h3>ACTIONS</h3>
+    <div id="tabs">
+        <button class="tab-btn active" onclick="openTab('profil', this)">Profil</button>
+        <button class="tab-btn" onclick="openTab('quetes', this)">Quêtes</button>
+        <button class="tab-btn" onclick="openTab('skills', this)">Compétences</button>
+        <button class="tab-btn" onclick="openTab('events', this)">Événements</button>
+        <button class="tab-btn" onclick="openTab('journal', this)">Journal</button>
+        <button class="tab-btn" onclick="openTab('taverne', this)">Taverne</button>
+        <button class="tab-btn" onclick="openTab('modo', this)">Modo</button>
+    </div>
+
+    <!-- PROFIL / ACTIONS -->
+    <div id="tab-profil" class="tab">
+        <h3>Profil & Actions</h3>
         <button id="btn-train" onclick="doTrain()">🏋️ S'ENTRAÎNER</button>
-        <button id="btn-faction-quest" onclick="doFactionQuest()" style="margin-top:5px;">⚔️ Progresser quête de faction</button>
-        <button id="btn-class-quest" onclick="doClassQuest()" style="margin-top:5px;">🎯 Progresser quête de classe</button>
         <div id="log-box" style="margin-top:8px;"></div>
     </div>
 
-    <div class="pane">
-        <h3>QUÊTES</h3>
-        <h4>Faction</h4>
-        <div id="faction-quest">
-            <button onclick="requestFactionQuest()">Obtenir / Voir quête de faction</button>
-            <div id="faction-quest-info" style="margin-top:5px; font-size:0.9em;"></div>
-        </div>
-        <h4>Classe</h4>
-        <div id="class-quest">
-            <button onclick="requestClassQuest()">Obtenir / Voir quête de classe</button>
-            <div id="class-quest-info" style="margin-top:5px; font-size:0.9em;"></div>
-        </div>
+    <!-- QUÊTES -->
+    <div id="tab-quetes" class="tab hidden">
+        <h3>Quêtes de Faction</h3>
+        <div id="faction-quest-info"></div>
+        <button onclick="requestFactionQuest()">Obtenir / Voir quête de faction</button>
+        <button onclick="doFactionQuest()" style="margin-top:4px;">Progresser quête de faction</button>
+
+        <h3 style="margin-top:10px;">Quêtes de Classe</h3>
+        <div id="class-quest-info"></div>
+        <button onclick="requestClassQuest()">Obtenir / Voir quête de classe</button>
+        <button onclick="doClassQuest()" style="margin-top:4px;">Progresser quête de classe</button>
     </div>
 
-    <div class="pane">
-        <h3>ARBRE DE COMPÉTENCES</h3>
+    <!-- COMPÉTENCES -->
+    <div id="tab-skills" class="tab hidden">
+        <h3>Arbre de compétences</h3>
         <div>Points de talent : <span id="skill-tp">0</span></div>
         <div id="skill-tree-branches" style="margin-top:5px;"></div>
     </div>
 
-    <div class="pane">
-        <h3>TAVERNE</h3>
+    <!-- ÉVÉNEMENTS -->
+    <div id="tab-events" class="tab hidden">
+        <h3>Événement en cours</h3>
+        <div id="current-event">Aucun événement actif.</div>
+
+        <h3 style="margin-top:10px;">Historique des événements</h3>
+        <div id="event-history"></div>
+    </div>
+
+    <!-- JOURNAL -->
+    <div id="tab-journal" class="tab hidden">
+        <h3>Journal</h3>
+        <div id="journal-box"></div>
+    </div>
+
+    <!-- TAVERNE -->
+    <div id="tab-taverne" class="tab hidden">
+        <h3>Taverne</h3>
         <div id="chat-box"></div>
         <input id="chat-input" placeholder="Message..." onkeydown="if(event.key==='Enter') sendChat()">
     </div>
-</div>
 
-<div id="modo-panel" class="hidden">
-    <button onclick="closeModoPanel()" style="float:right; background:red; color:white; width:auto;">X</button>
-    <h2 style="font-family:Cinzel;">PANTHÉON — PANEL MODO</h2>
-    <h3>Donner des Berries</h3>
-    <input id="modo-target" placeholder="Nom du joueur">
-    <input id="modo-amount" placeholder="Montant">
-    <button onclick="modoGiveBerries()">DONNER</button>
+    <!-- MODO -->
+    <div id="tab-modo" class="tab hidden">
+        <h3>Pantheon — Panel Modo</h3>
 
-    <h3>Kick joueur</h3>
-    <input id="modo-kick-target" placeholder="Nom du joueur">
-    <button onclick="modoKick()">KICK</button>
+        <h4>Donner des Berries</h4>
+        <input id="modo-target" placeholder="Nom du joueur">
+        <input id="modo-amount" placeholder="Montant">
+        <button onclick="modoGiveBerries()">DONNER</button>
 
-    <h3>Logs</h3>
-    <div id="modo-log" style="background:#0002; padding:8px; height:150px; overflow-y:auto; border:1px solid #333;"></div>
+        <h4 style="margin-top:10px;">Kick joueur</h4>
+        <input id="modo-kick-target" placeholder="Nom du joueur">
+        <button onclick="modoKick()">KICK</button>
+
+        <h4 style="margin-top:10px;">Logs</h4>
+        <div id="modo-log"></div>
+    </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -231,8 +314,7 @@ socket.on('action:result', (d) => addLog(d.text));
 socket.on('action:cooldown', ({ action, remaining }) => startCooldown(action, remaining));
 
 function startCooldown(action, ms) {
-    const btnId = action === "train" ? "btn-train" :
-                  action === "quest" ? null : null;
+    const btnId = action === "train" ? "btn-train" : null;
     if (!btnId) return;
     const btn = document.getElementById(btnId);
     if (!btn) return;
@@ -330,6 +412,32 @@ socket.on('chat:message', (m) => {
     box.scrollTop = box.scrollHeight;
 });
 
+// JOURNAL (tu pourras l’utiliser côté serveur plus tard)
+socket.on('journal:entry', (e) => {
+    const box = document.getElementById("journal-box");
+    const div = document.createElement('div');
+    div.className = "log-entry";
+    div.innerText = e.text;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+});
+
+// ÉVÉNEMENTS (idem, prêt pour V3+)
+socket.on('events:history', (list) => {
+    const box = document.getElementById("event-history");
+    box.innerHTML = "";
+    list.forEach(ev => {
+        const div = document.createElement('div');
+        div.className = "log-entry";
+        div.innerText = ev.text;
+        box.appendChild(div);
+    });
+    box.scrollTop = box.scrollHeight;
+});
+socket.on('events:current', (ev) => {
+    document.getElementById("current-event").innerText = ev ? ev.text : "Aucun événement actif.";
+});
+
 // MODO
 function askModoCode() {
     const code = prompt("Code Modo :");
@@ -337,7 +445,7 @@ function askModoCode() {
     socket.emit('modo:login', code);
 }
 socket.on('modo:success', () => {
-    document.getElementById("modo-panel").classList.remove('hidden');
+    openTab('modo', document.querySelector('#tabs .tab-btn:last-child'));
 });
 socket.on('modo:fail', () => alert("Code incorrect."));
 socket.on('modo:log', (txt) => {
@@ -347,10 +455,6 @@ socket.on('modo:log', (txt) => {
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
 });
-
-function closeModoPanel() {
-    document.getElementById("modo-panel").classList.add('hidden');
-}
 
 function modoGiveBerries() {
     const target = document.getElementById("modo-target").value.trim();
@@ -363,6 +467,14 @@ function modoKick() {
     const target = document.getElementById("modo-kick-target").value.trim();
     if (!target) return;
     socket.emit('modo:kick', { target });
+}
+
+// TABS
+function openTab(name, btn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.add('hidden'));
+    document.getElementById('tab-' + name).classList.remove('hidden');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
 }
 </script>
 </body>
