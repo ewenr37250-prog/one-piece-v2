@@ -9,56 +9,166 @@ const io = new Server(server, { cors: { origin: "*" } });
 
 app.use(express.static(path.join(__dirname)));
 
+const PORT = process.env.PORT || 3000;
+
 // --- CONFIG ---
-const ADMIN_PASSWORD = "OPRP";
+const MODO_CODE = "PANTHEON_OP"; // code spécial modo
 
 const COOLDOWNS = {
     train: 20 * 1000,
-    pillage: 45 * 1000
+    quest: 30 * 1000
 };
 
 // --- ÉTAT ---
-let players = {};
-let currentEvent = { name: "Aucun", multiplier: 1, color: "#c9a84c" };
-let currentQuest = { active: false, title: "", goal: 0, progress: 0, type: "", reward: 0 };
+let players = {};          // par nom
+let socketsToPlayer = {};  // socket.id -> playerName
 
-// --- PERMISSIONS / MODOS ---
-const PERMISSIONS = {
-    START_EVENT: "start_event",
-    START_QUEST: "start_quest",
-    EDIT_PLAYER: "edit_player",
-    BAN_PLAYER: "ban_player",
-    UNBAN_PLAYER: "unban_player"
+let currentFactionQuests = {}; // par faction
+let currentClassQuests = {};   // par classe
+
+// --- CLASSES & ARBRES DE COMPÉTENCES ---
+
+const CLASSES = [
+    "Guerrier",
+    "Tireur",
+    "Navigateur",
+    "Médecin",
+    "Charpentier",
+    "Espion",
+    "Artiste Martial"
+];
+
+// 4 branches x 5 niveaux max
+const SKILL_TREE_TEMPLATE = {
+    "Guerrier": {
+        branches: {
+            "Force brute": 0,
+            "Défense": 0,
+            "Technique d'armes": 0,
+            "Haki de l'Armement": 0
+        },
+        maxLevel: 5
+    },
+    "Tireur": {
+        branches: {
+            "Précision": 0,
+            "Vitesse": 0,
+            "Armes spéciales": 0,
+            "Haki de l'Observation": 0
+        },
+        maxLevel: 5
+    },
+    "Navigateur": {
+        branches: {
+            "Météo": 0,
+            "Orientation": 0,
+            "Cartographie": 0,
+            "Climat-Tact": 0
+        },
+        maxLevel: 5
+    },
+    "Médecin": {
+        branches: {
+            "Soins": 0,
+            "Pharmacie": 0,
+            "Biologie": 0,
+            "Rumble Ball": 0
+        },
+        maxLevel: 5
+    },
+    "Charpentier": {
+        branches: {
+            "Construction": 0,
+            "Réparation": 0,
+            "Ingénierie": 0,
+            "Cyborg": 0
+        },
+        maxLevel: 5
+    },
+    "Espion": {
+        branches: {
+            "Infiltration": 0,
+            "Sabotage": 0,
+            "Manipulation": 0,
+            "Assassinat": 0
+        },
+        maxLevel: 5
+    },
+    "Artiste Martial": {
+        branches: {
+            "Techniques": 0,
+            "Agilité": 0,
+            "Ki / Énergie": 0,
+            "Haki du Roi": 0
+        },
+        maxLevel: 5
+    }
 };
 
-let moderators = {
-    // Exemple :
-    // "Ewen": { permissions: [PERMISSIONS.START_EVENT, PERMISSIONS.START_QUEST] }
+// --- QUÊTES DE FACTION ---
+
+const FACTION_QUEST_POOL = {
+    "pirate": [
+        { id: "P1", title: "Piller un village", goal: 5, rewardBerries: 500, rewardXP: 50 },
+        { id: "P2", title: "Attaquer un navire marchand", goal: 3, rewardBerries: 800, rewardXP: 80 },
+        { id: "P3", title: "Trouver un trésor", goal: 2, rewardBerries: 1200, rewardXP: 100 }
+    ],
+    "marine": [
+        { id: "M1", title: "Patrouiller les mers", goal: 5, rewardBerries: 400, rewardXP: 40 },
+        { id: "M2", title: "Arrêter un pirate", goal: 3, rewardBerries: 700, rewardXP: 70 },
+        { id: "M3", title: "Inspecter un navire", goal: 4, rewardBerries: 600, rewardXP: 60 }
+    ],
+    "revolutionnaire": [
+        { id: "R1", title: "Saboter un poste de la Marine", goal: 3, rewardBerries: 700, rewardXP: 70 },
+        { id: "R2", title: "Libérer un village", goal: 2, rewardBerries: 900, rewardXP: 90 },
+        { id: "R3", title: "Propager un message révolutionnaire", goal: 5, rewardBerries: 500, rewardXP: 50 }
+    ]
 };
 
-let bannedPlayers = new Set();
+// --- QUÊTES DE CLASSE ---
 
-function hasPermission(name, perm) {
-    return moderators[name] && moderators[name].permissions.includes(perm);
-}
-
-function addModerator(name, perms = []) {
-    moderators[name] = { permissions: perms };
-}
-
-function removeModerator(name) {
-    delete moderators[name];
-}
-
-function banPlayer(name) {
-    bannedPlayers.add(name);
-}
-
-function unbanPlayer(name) {
-    bannedPlayers.delete(name);
-}
+const CLASS_QUEST_POOL = {
+    "Guerrier": [
+        { id: "G1", title: "Duel d'entraînement", goal: 3, rewardXP: 40, rewardTalent: 1 },
+        { id: "G2", title: "Maîtrise d'arme", goal: 5, rewardXP: 70, rewardTalent: 2 }
+    ],
+    "Tireur": [
+        { id: "T1", title: "Séance de tir", goal: 5, rewardXP: 40, rewardTalent: 1 },
+        { id: "T2", title: "Tir de précision", goal: 3, rewardXP: 70, rewardTalent: 2 }
+    ],
+    "Navigateur": [
+        { id: "N1", title: "Tracer une route sûre", goal: 3, rewardXP: 40, rewardTalent: 1 },
+        { id: "N2", title: "Éviter une tempête", goal: 2, rewardXP: 70, rewardTalent: 2 }
+    ],
+    "Médecin": [
+        { id: "ME1", title: "Soigner un équipage", goal: 3, rewardXP: 40, rewardTalent: 1 },
+        { id: "ME2", title: "Préparer un remède", goal: 2, rewardXP: 70, rewardTalent: 2 }
+    ],
+    "Charpentier": [
+        { id: "C1", title: "Réparer un navire", goal: 3, rewardXP: 40, rewardTalent: 1 },
+        { id: "C2", title: "Renforcer la coque", goal: 2, rewardXP: 70, rewardTalent: 2 }
+    ],
+    "Espion": [
+        { id: "E1", title: "Infiltrer une base", goal: 2, rewardXP: 50, rewardTalent: 1 },
+        { id: "E2", title: "Voler des informations", goal: 3, rewardXP: 80, rewardTalent: 2 }
+    ],
+    "Artiste Martial": [
+        { id: "AM1", title: "Entraînement intensif", goal: 3, rewardXP: 40, rewardTalent: 1 },
+        { id: "AM2", title: "Maîtriser une nouvelle technique", goal: 2, rewardXP: 70, rewardTalent: 2 }
+    ]
+};
 
 // --- OUTILS ---
+
+function cloneSkillTreeForClass(classe) {
+    const tpl = SKILL_TREE_TEMPLATE[classe];
+    return {
+        branches: { ...tpl.branches },
+        maxLevel: tpl.maxLevel,
+        talentPoints: 0
+    };
+}
+
 function now() { return Date.now(); }
 
 function canUse(player, key, cdMs) {
@@ -71,318 +181,261 @@ function canUse(player, key, cdMs) {
 
 function addXP(player, amount) {
     player.xp += amount;
-    if (player.xp >= 100 && player.xp < 300) player.grade = "Matelot";
-    else if (player.xp >= 300 && player.xp < 700) player.grade = "Second";
-    else if (player.xp >= 700 && player.xp < 1500) player.grade = "Capitaine";
-    else if (player.xp >= 1500) player.grade = "Légende émergente";
-}
-
-function sendSystemMessage(text) {
-    io.emit('chat:message', { author: "SYSTÈME", text, channel: "global" });
-}
-
-// --- MINI SCÉNARIOS ---
-function resolveTrainScenario(player) {
-    const roll = Math.random();
-    if (roll < 0.7) {
-        addXP(player, 10);
-        return "Tu t'entraînes dur. Tu sens tes muscles brûler, mais tu progresses.";
-    } else if (roll < 0.9) {
-        addXP(player, 15);
-        return "Entraînement intense ! Tu dépasses tes limites aujourd'hui.";
-    } else {
-        addXP(player, 5);
-        if (!player.cooldownPenalty) player.cooldownPenalty = {};
-        player.cooldownPenalty.train = (player.cooldownPenalty.train || 0) + 10 * 1000;
-        return "Tu te blesses légèrement pendant l'entraînement. Tu devras récupérer un peu.";
+    while (player.xp >= xpForLevel(player.level + 1)) {
+        player.level++;
+        player.skillTree.talentPoints++;
     }
 }
 
-function resolvePillageScenario(player) {
-    const roll = Math.random();
-    let baseGain = Math.floor(Math.random() * 200) + 50;
-    baseGain = Math.floor(baseGain * currentEvent.multiplier);
-
-    if (roll < 0.6) {
-        player.berries += baseGain;
-        player.bounty += Math.floor(baseGain / 2);
-        addXP(player, 10);
-        return `Pillage réussi ! Tu récupères ${baseGain}฿ et ta prime augmente.`;
-    } else if (roll < 0.9) {
-        const gain = Math.floor(baseGain * 0.5);
-        player.berries += gain;
-        player.bounty += Math.floor(gain / 2);
-        addXP(player, 15);
-        return `Combat difficile, mais tu t'en sors. Tu récupères ${gain}฿ et gagnes en réputation.`;
-    } else {
-        const loss = Math.min(player.berries, Math.floor(baseGain * 0.7));
-        player.berries -= loss;
-        player.bounty += Math.floor(baseGain / 3);
-        addXP(player, 5);
-        return `Emboscade ! Tu perds ${loss}฿ et ta prime grimpe.`;
-    }
+function xpForLevel(level) {
+    return 100 * level; // simple
 }
 
-// --- ÉVÉNEMENTS GLOBAUX ---
-function triggerRandomWorldEvent() {
-    const events = [
-        { name: "Calme plat", multiplier: 1, color: "#c9a84c", msg: "Les mers sont étrangement calmes..." },
-        { name: "Tempête", multiplier: 0.8, color: "#1f2937", msg: "Une tempête secoue Grand Line. Les pillages sont plus risqués." },
-        { name: "Raid pirate", multiplier: 1.5, color: "#7f1d1d", msg: "Une vague de raids pirates déferle. Les gains explosent, mais les primes aussi." },
-        { name: "Inspection de la Marine", multiplier: 0.7, color: "#1d4ed8", msg: "La Marine patrouille partout. Les criminels doivent se faire discrets." },
-        { name: "Soulèvement révolutionnaire", multiplier: 1.3, color: "#065f46", msg: "Les Révolutionnaires agitent les foules. Le monde est en ébullition." }
-    ];
-    const ev = events[Math.floor(Math.random() * events.length)];
-    currentEvent = { name: ev.name, multiplier: ev.multiplier, color: ev.color };
-    io.emit('event:update', currentEvent);
-    sendSystemMessage(ev.msg);
+function sendPlayerUpdate(player) {
+    io.to(player.id).emit('player:update', sanitizePlayer(player));
 }
 
-// --- PASSIF XP ---
-setInterval(() => {
-    Object.values(players).forEach(p => {
-        addXP(p, 1);
-        io.to(p.id).emit('player:update', p);
-    });
-}, 5 * 60 * 1000);
+function sanitizePlayer(p) {
+    return {
+        name: p.name,
+        faction: p.faction,
+        classe: p.classe,
+        berries: p.berries,
+        xp: p.xp,
+        level: p.level,
+        bounty: p.bounty,
+        skillTree: p.skillTree,
+        factionQuest: p.factionQuest,
+        classQuest: p.classQuest
+    };
+}
 
-// --- ÉVÉNEMENTS ALÉATOIRES ---
-setInterval(() => {
-    triggerRandomWorldEvent();
-}, 20 * 60 * 1000);
+function pickRandom(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
 
 // --- SOCKET.IO ---
+
 io.on('connection', (socket) => {
-    console.log(`⚓ Connexion : ${socket.id}`);
+    console.log("⚓ Nouveau joueur :", socket.id);
 
-    socket.emit('event:update', currentEvent);
-    socket.emit('quest:update', currentQuest);
-
-    // --- AUTH REGISTER ---
     socket.on('auth:register', (data) => {
-        if (!data.name || players[data.name]) {
-            return socket.emit('auth:error', "Nom déjà pris ou invalide !");
+        const { name, password, faction, classe } = data;
+        if (!name || !password || !faction || !classe) {
+            return socket.emit('auth:error', "Champs manquants.");
         }
-        if (bannedPlayers.has(data.name)) {
-            return socket.emit('auth:error', "Tu es banni de Grand Line.");
+        if (players[name]) {
+            return socket.emit('auth:error', "Nom déjà pris.");
         }
-
-        if (data.faction === "pantheon") {
-            if (data.password === ADMIN_PASSWORD) {
-                socket.isAdmin = true;
-                socket.adminName = data.name;
-                socket.join('admin_room');
-                socket.emit('admin:success', { players: Object.values(players), moderators });
-                console.log(`🟣 Accès Panthéon (register) : ${data.name}`);
-            } else {
-                socket.emit('auth:error', "Code Panthéon incorrect.");
-            }
-            return;
+        if (!["pirate", "marine", "revolutionnaire"].includes(faction)) {
+            return socket.emit('auth:error', "Faction invalide.");
+        }
+        if (!CLASSES.includes(classe)) {
+            return socket.emit('auth:error', "Classe invalide.");
         }
 
-        players[data.name] = {
+        const player = {
             id: socket.id,
-            name: data.name,
-            password: data.password,
-            faction: data.faction,
+            name,
+            password,
+            faction,
+            classe,
             berries: 1000,
             xp: 0,
-            grade: "Mousse",
+            level: 1,
             bounty: 0,
             cooldowns: {},
-            cooldownPenalty: {}
+            skillTree: cloneSkillTreeForClass(classe),
+            factionQuest: null,
+            classQuest: null,
+            isModo: false
         };
 
-        console.log(`📝 Nouveau joueur : ${data.name} [${data.faction}]`);
-        socket.emit('auth:success', { player: players[data.name] });
-        updateLeaderboard();
+        players[name] = player;
+        socketsToPlayer[socket.id] = name;
+
+        socket.emit('auth:success', { player: sanitizePlayer(player) });
+        console.log(`📝 Nouveau joueur : ${name} [${faction} / ${classe}]`);
     });
 
-    // --- AUTH LOGIN ---
     socket.on('auth:login', (data) => {
-        if (bannedPlayers.has(data.name)) {
-            return socket.emit('auth:error', "Tu es banni de Grand Line.");
+        const { name, password } = data;
+        const p = players[name];
+        if (!p || p.password !== password) {
+            return socket.emit('auth:error', "Identifiants invalides.");
         }
-
-        if (data.faction === "pantheon") {
-            if (data.password === ADMIN_PASSWORD) {
-                socket.isAdmin = true;
-                socket.adminName = data.name;
-                socket.join('admin_room');
-                socket.emit('admin:success', { players: Object.values(players), moderators });
-                console.log(`🟣 Accès Panthéon (login) : ${data.name}`);
-            } else {
-                socket.emit('auth:error', "Code Panthéon incorrect.");
-            }
-            return;
-        }
-
-        const p = players[data.name];
-        if (p && p.password === data.password) {
-            p.id = socket.id;
-            socket.emit('auth:success', { player: p });
-            console.log(`🔑 Connexion joueur : ${data.name}`);
-        } else {
-            socket.emit('auth:error', "Identifiants invalides.");
-        }
+        p.id = socket.id;
+        socketsToPlayer[socket.id] = name;
+        socket.emit('auth:success', { player: sanitizePlayer(p) });
+        console.log(`🔑 Connexion : ${name}`);
     });
 
-    // --- ACTIONS ---
+    // --- ACTIONS RP SIMPLES ---
+
     socket.on('action:train', () => {
-        const p = Object.values(players).find(pl => pl.id === socket.id);
+        const p = getPlayerBySocket(socket);
         if (!p) return;
-
-        const penalty = (p.cooldownPenalty && p.cooldownPenalty.train) || 0;
-        const cd = COOLDOWNS.train + penalty;
-
-        if (!canUse(p, 'train', cd)) {
-            socket.emit('action:cooldown', { action: 'train', remaining: cd - (now() - p.cooldowns.train) });
-            return;
+        if (!canUse(p, 'train', COOLDOWNS.train)) {
+            const remaining = COOLDOWNS.train - (now() - p.cooldowns.train);
+            return socket.emit('action:cooldown', { action: 'train', remaining });
         }
-
-        const msg = resolveTrainScenario(p);
-        socket.emit('player:update', p);
-        updateLeaderboard();
-        socket.emit('action:result', { action: 'train', text: msg });
+        const xpGain = 10 + p.level;
+        addXP(p, xpGain);
+        socket.emit('action:result', { text: `Tu t'entraînes dur et gagnes ${xpGain} XP.` });
+        sendPlayerUpdate(p);
     });
 
-    socket.on('action:pillage', () => {
-        const p = Object.values(players).find(pl => pl.id === socket.id);
+    socket.on('action:quest_progress', (data) => {
+        const p = getPlayerBySocket(socket);
         if (!p) return;
-
-        const penalty = (p.cooldownPenalty && p.cooldownPenalty.pillage) || 0;
-        const cd = COOLDOWNS.pillage + penalty;
-
-        if (!canUse(p, 'pillage', cd)) {
-            socket.emit('action:cooldown', { action: 'pillage', remaining: cd - (now() - p.cooldowns.pillage) });
-            return;
+        if (!canUse(p, 'quest', COOLDOWNS.quest)) {
+            const remaining = COOLDOWNS.quest - (now() - p.cooldowns.quest);
+            return socket.emit('action:cooldown', { action: 'quest', remaining });
         }
 
-        const msg = resolvePillageScenario(p);
-        socket.emit('player:update', p);
-        updateLeaderboard();
-        socket.emit('action:result', { action: 'pillage', text: msg });
+        const { type } = data; // "faction" ou "class"
+        if (type === "faction" && p.factionQuest) {
+            p.factionQuest.progress++;
+            checkFactionQuestCompletion(p);
+        } else if (type === "class" && p.classQuest) {
+            p.classQuest.progress++;
+            checkClassQuestCompletion(p);
+        }
+        sendPlayerUpdate(p);
+    });
+
+    // --- QUÊTES ---
+
+    socket.on('quest:request_faction', () => {
+        const p = getPlayerBySocket(socket);
+        if (!p) return;
+        if (p.factionQuest) {
+            return socket.emit('quest:faction_update', p.factionQuest);
+        }
+        const pool = FACTION_QUEST_POOL[p.faction];
+        if (!pool) return;
+        const q = pickRandom(pool);
+        p.factionQuest = { ...q, progress: 0 };
+        socket.emit('quest:faction_update', p.factionQuest);
+        sendPlayerUpdate(p);
+    });
+
+    socket.on('quest:request_class', () => {
+        const p = getPlayerBySocket(socket);
+        if (!p) return;
+        if (p.classQuest) {
+            return socket.emit('quest:class_update', p.classQuest);
+        }
+        const pool = CLASS_QUEST_POOL[p.classe];
+        if (!pool) return;
+        const q = pickRandom(pool);
+        p.classQuest = { ...q, progress: 0 };
+        socket.emit('quest:class_update', p.classQuest);
+        sendPlayerUpdate(p);
+    });
+
+    // --- ARBRE DE COMPÉTENCES ---
+
+    socket.on('skill:upgrade', ({ branch }) => {
+        const p = getPlayerBySocket(socket);
+        if (!p) return;
+        const tree = p.skillTree;
+        if (!tree.branches[branch]) tree.branches[branch] = 0;
+
+        if (tree.talentPoints <= 0) {
+            return socket.emit('skill:error', "Pas assez de points de talent.");
+        }
+        if (tree.branches[branch] >= tree.maxLevel) {
+            return socket.emit('skill:error', "Cette branche est déjà au niveau maximum.");
+        }
+
+        tree.branches[branch]++;
+        tree.talentPoints--;
+        socket.emit('skill:update', tree);
+        sendPlayerUpdate(p);
     });
 
     // --- CHAT ---
-    socket.on('chat:send', (data) => {
-        const p = Object.values(players).find(pl => pl.id === socket.id);
-        if (!p) return;
-        const payload = { author: p.name, text: data.text, channel: data.channel || "global" };
-        io.emit('chat:message', payload);
-        addXP(p, 1);
-        socket.emit('player:update', p);
+
+    socket.on('chat:send', ({ text }) => {
+        const p = getPlayerBySocket(socket);
+        if (!p || !text) return;
+        io.emit('chat:message', { author: p.name, text, channel: "global" });
     });
 
-    // --- ADMIN SIMPLE (code bouton ADMIN) ---
-    socket.on('admin:login', (pass) => {
-        if (pass === ADMIN_PASSWORD) {
-            socket.isAdmin = true;
-            socket.adminName = "Console";
-            socket.join('admin_room');
-            socket.emit('admin:success', { players: Object.values(players), moderators });
-            console.log("🟣 Accès admin via code.");
+    // --- MODO ---
+
+    socket.on('modo:login', (code) => {
+        const p = getPlayerBySocket(socket);
+        if (!p) return;
+        if (code === MODO_CODE) {
+            p.isModo = true;
+            socket.emit('modo:success');
+            console.log(`🟣 Modo activé : ${p.name}`);
         } else {
-            socket.emit('auth:error', "Code admin incorrect.");
+            socket.emit('modo:fail');
         }
     });
 
-    // --- ADMIN : EVENTS & QUÊTES ---
-    socket.on('admin:start_rp_event', (data) => {
-        if (!socket.isAdmin || !hasPermission(socket.adminName, PERMISSIONS.START_EVENT) && socket.adminName !== "Console") return;
-
-        let s = { name: "Normal", mult: 1, color: "#c9a84c", msg: "Le monde est calme." };
-        if (data.scenario === 'marineford') s = { name: "Guerre de Marineford", mult: 2, color: "#7f1d1d", msg: "🔥 MARINEFORD ! Les primes doublent !" };
-        if (data.scenario === 'buster_call') s = { name: "Buster Call", mult: 0.5, color: "#1a1a1a", msg: "🐚 Buster Call ! Le pillage est risqué." };
-
-        currentEvent = { name: s.name, multiplier: s.mult, color: s.color };
-        io.emit('event:update', currentEvent);
-        sendSystemMessage(s.msg);
+    socket.on('modo:give_berries', ({ target, amount }) => {
+        const p = getPlayerBySocket(socket);
+        if (!p || !p.isModo) return;
+        const t = players[target];
+        if (!t) return;
+        t.berries += amount;
+        sendPlayerUpdate(t);
+        socket.emit('modo:log', `+${amount} ฿ pour ${target}`);
     });
 
-    socket.on('admin:start_quest', (data) => {
-        if (!socket.isAdmin || !hasPermission(socket.adminName, PERMISSIONS.START_QUEST) && socket.adminName !== "Console") return;
-
-        currentQuest = {
-            active: true,
-            title: data.title,
-            goal: parseInt(data.goal),
-            progress: 0,
-            type: data.type,
-            reward: parseInt(data.reward)
-        };
-        io.emit('quest:update', currentQuest);
-        sendSystemMessage(`Nouvelle quête : ${currentQuest.title}`);
-    });
-
-    // --- ADMIN : MODOS & BANS & EDIT ---
-    socket.on('admin:add_moderator', ({ name, perms }) => {
-        if (!socket.isAdmin) return;
-        addModerator(name, perms || []);
-        socket.emit('admin:log', `Modérateur ajouté : ${name}`);
-    });
-
-    socket.on('admin:remove_moderator', ({ name }) => {
-        if (!socket.isAdmin) return;
-        removeModerator(name);
-        socket.emit('admin:log', `Modérateur retiré : ${name}`);
-    });
-
-    socket.on('admin:ban', ({ name }) => {
-        if (!socket.isAdmin || !hasPermission(socket.adminName, PERMISSIONS.BAN_PLAYER) && socket.adminName !== "Console") return;
-        banPlayer(name);
-        socket.emit('admin:log', `${name} a été banni.`);
-    });
-
-    socket.on('admin:unban', ({ name }) => {
-        if (!socket.isAdmin || !hasPermission(socket.adminName, PERMISSIONS.UNBAN_PLAYER) && socket.adminName !== "Console") return;
-        unbanPlayer(name);
-        socket.emit('admin:log', `${name} a été débanni.`);
-    });
-
-    socket.on('admin:edit_player', ({ name, berries, xp, bounty }) => {
-        if (!socket.isAdmin || !hasPermission(socket.adminName, PERMISSIONS.EDIT_PLAYER) && socket.adminName !== "Console") return;
-        const p = players[name];
-        if (!p) return socket.emit('admin:log', "Joueur introuvable.");
-
-        if (!isNaN(berries)) p.berries = berries;
-        if (!isNaN(xp)) p.xp = xp;
-        if (!isNaN(bounty)) p.bounty = bounty;
-
-        io.to(p.id).emit('player:update', p);
-        updateLeaderboard();
-        socket.emit('admin:log', `Modifications appliquées à ${name}.`);
+    socket.on('modo:kick', ({ target }) => {
+        const p = getPlayerBySocket(socket);
+        if (!p || !p.isModo) return;
+        const t = players[target];
+        if (!t) return;
+        const sId = t.id;
+        if (sId && io.sockets.sockets.get(sId)) {
+            io.sockets.sockets.get(sId).disconnect(true);
+        }
+        socket.emit('modo:log', `Kick de ${target}`);
     });
 
     socket.on('disconnect', () => {
-        console.log(`👋 Déconnexion : ${socket.id}`);
+        const name = socketsToPlayer[socket.id];
+        delete socketsToPlayer[socket.id];
+        console.log("👋 Déconnexion :", socket.id, name || "");
     });
 });
 
-// --- QUÊTES ---
-function updateQuest(val) {
-    if (!currentQuest.active) return;
-    currentQuest.progress += val;
-    io.emit('quest:update', currentQuest);
-    if (currentQuest.progress >= currentQuest.goal) {
-        sendSystemMessage(`VICTOIRE ! ${currentQuest.reward}฿ pour tous !`);
-        Object.values(players).forEach(p => {
-            p.berries += currentQuest.reward;
-            io.to(p.id).emit('player:update', p);
-        });
-        currentQuest.active = false;
-        io.emit('quest:update', currentQuest);
+// --- FONCTIONS QUÊTES ---
+
+function getPlayerBySocket(socket) {
+    const name = socketsToPlayer[socket.id];
+    if (!name) return null;
+    return players[name];
+}
+
+function checkFactionQuestCompletion(p) {
+    const q = p.factionQuest;
+    if (!q) return;
+    if (q.progress >= q.goal) {
+        p.berries += q.rewardBerries;
+        addXP(p, q.rewardXP);
+        p.factionQuest = null;
     }
 }
 
-// --- LEADERBOARD ---
-function updateLeaderboard() {
-    const list = Object.values(players)
-        .sort((a, b) => b.bounty - a.bounty)
-        .slice(0, 10);
-    io.emit('leaderboard:update', list);
+function checkClassQuestCompletion(p) {
+    const q = p.classQuest;
+    if (!q) return;
+    if (q.progress >= q.goal) {
+        addXP(p, q.rewardXP);
+        p.skillTree.talentPoints += q.rewardTalent;
+        p.classQuest = null;
+    }
 }
 
 // --- LANCEMENT ---
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`⚓ Serveur prêt sur le port ${PORT}`));
+
+server.listen(PORT, () => {
+    console.log(`⚓ Serveur prêt sur le port ${PORT}`);
+});
