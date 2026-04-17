@@ -2,160 +2,165 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>One Piece RP – Grand Line V2</title>
+    <title>Grand Line V2 – RP</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Special+Elite&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --wood: #2b1d0e; --gold: #c9a84c; --paper: #e4d5b7; --ink: #1a1a1a;
-            --parchment-bg: var(--paper); --parchment-border: #8b5a2b;
-            --pirate: #7f1d1d; --marine: #1e3a5f; --revo: #14532d;
-        }
-
+        :root { --wood:#2b1d0e; --gold:#c9a84c; --paper:#e4d5b7; --ink:#1a1a1a; }
         body {
-            margin: 0; background: #000 url('https://www.transparenttextures.com/patterns/dark-wood.png');
-            color: #f4e4bc; font-family: 'Special Elite', serif;
-            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+            background:#1a1a1a;
+            color:#f4e4bc;
+            font-family:'Special Elite',serif;
+            display:flex; flex-direction:column; align-items:center;
+            margin:0; min-height:100vh;
         }
+        .hidden { display:none !important; }
 
-        .hidden { display: none !important; }
-
-        /* --- AUTH SCREEN --- */
         #auth-screen {
-            margin-top: 50px; width: 380px; padding: 30px; border-radius: 8px;
-            background: var(--parchment-bg); border: 12px solid var(--parchment-border);
-            box-shadow: 0 0 40px rgba(0,0,0,0.5); text-align: center; color: var(--ink);
+            margin-top:50px; width:360px; padding:30px;
+            background:var(--paper); border:10px solid var(--wood);
+            color:var(--ink); text-align:center;
+            box-shadow:0 0 30px rgba(0,0,0,0.6);
         }
-        #faction-emblem { width: 100px; height: 100px; margin-bottom: 10px; }
-
-        /* --- HUD & STATS --- */
-        #game-ui { width: 95%; max-width: 800px; margin-top: 20px; }
-        .stats-bar {
-            background: rgba(0,0,0,0.85); border: 2px solid var(--gold);
-            padding: 15px; display: grid; grid-template-columns: 1fr 1fr 1fr;
-            border-radius: 8px; margin-bottom: 15px; text-align: center;
-        }
-        .traitor-alert { color: #ff4444; font-weight: bold; text-shadow: 0 0 5px black; }
-
-        /* --- TABS --- */
-        .tab-nav { display: flex; gap: 5px; margin-bottom: 10px; }
-        .tab-btn { 
-            flex: 1; padding: 10px; background: var(--wood); color: var(--gold); 
-            border: 1px solid var(--gold); cursor: pointer; font-family: 'Cinzel';
-        }
-        .tab-btn.active { background: var(--gold); color: var(--wood); }
-
-        .view-pane { 
-            background: rgba(43,29,14,0.95); border: 2px solid var(--gold); 
-            padding: 20px; border-radius: 8px; min-height: 400px; 
-        }
-
-        /* --- CHAT --- */
-        #chat-display { 
-            height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); 
-            padding: 10px; border: 1px solid var(--gold); margin-bottom: 10px;
-        }
-        .msg { margin-bottom: 5px; border-bottom: 1px solid rgba(201,168,76,0.1); padding-bottom: 2px; }
-        .msg-global { color: #f4e4bc; }
-
-        /* Correction faction chat */
-        .msg-pirate, .msg-marine, .msg-revolutionnaire {
-            color: #a3cfbb;
-            border-left: 3px solid #14532d;
-            padding-left: 5px;
-        }
-
-        /* --- LEADERBOARD --- */
-        .lead-item {
-            display: flex; justify-content: space-between; padding: 8px;
-            border-bottom: 1px solid rgba(201,168,76,0.3);
-        }
-
         input, select, button {
-            width: 100%; padding: 12px; margin: 5px 0; border: 2px solid #8b5a2b;
-            background: #fff9eb; font-family: 'Special Elite', serif; box-sizing: border-box;
+            width:100%; padding:12px; margin:5px 0;
+            border:2px solid var(--wood); box-sizing:border-box;
+            font-family:'Special Elite',serif;
         }
-        button { background: var(--wood); color: var(--gold); cursor: pointer; font-weight: bold; }
-        button:hover { filter: brightness(1.2); }
+        button { background:var(--wood); color:var(--gold); cursor:pointer; font-weight:bold; }
+        button:hover { filter:brightness(1.15); }
+
+        #game-ui { width:95%; max-width:800px; margin-top:20px; }
+        .stats-bar {
+            background:rgba(0,0,0,0.9); border:2px solid var(--gold);
+            padding:15px; display:grid; grid-template-columns:1fr 1fr 1fr;
+            border-radius:8px; text-align:center; margin-bottom:10px;
+        }
+        .pane {
+            background:rgba(40,40,40,0.95); border:2px solid var(--gold);
+            padding:20px; margin-top:10px; min-height:200px; border-radius:8px;
+        }
+
+        .quest-bar-bg { width:100%; height:10px; background:#333; border-radius:5px; margin-top:5px; }
+        #quest-prog-fill { height:100%; background:var(--gold); width:0%; transition:0.4s; }
+
+        #chat-box { height:160px; overflow-y:auto; background:rgba(0,0,0,0.3); padding:8px; border:1px solid var(--gold); margin-bottom:8px; }
+        .msg { margin-bottom:4px; font-size:0.9em; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
-    <svg id="faction-emblem"></svg>
-    <h1 style="margin:0; font-family:Cinzel;">WANTED</h1>
-    <input type="text" id="username" placeholder="Nom du personnage...">
-    <input type="password" id="password" placeholder="Mot de passe...">
-    <select id="faction-select" onchange="updateFactionBackground()">
+    <h1 style="font-family:Cinzel; margin-top:0;">WANTED</h1>
+
+    <!-- IMAGE DE FACTION -->
+    <div id="faction-image" style="margin-bottom:10px; text-align:center;">
+        <img id="faction-img" src="img/pirate.png" style="width:120px; height:120px; object-fit:contain;">
+    </div>
+
+    <input type="text" id="reg-name" placeholder="Nom du personnage">
+    <input type="password" id="reg-pass" placeholder="Mot de passe">
+
+    <select id="reg-faction" onchange="updateFactionImage()">
         <option value="pirate">🏴‍☠️ Pirate</option>
         <option value="marine">🛡️ Marine</option>
         <option value="revolutionnaire">🐉 Révolutionnaire</option>
+        <option value="pantheon">🟣 Panthéon (Vue Modo)</option>
     </select>
-    <button onclick="login()">SE CONNECTER</button>
-    <button onclick="register()" style="background:#5d4037">S'INSCRIRE</button>
+
+    <button onclick="register()">S'INSCRIRE</button>
+    <button onclick="login()" style="background:#444">SE CONNECTER</button>
 </div>
 
 <div id="game-ui" class="hidden">
-    <div class="stats-bar">
-        <div><b id="p-name"></b><br><small id="p-faction"></small><br><span id="p-traitor" class="traitor-alert hidden">⚠️ TRAÎTRE ⚠️</span></div>
-        <div><b>EXP:</b> <span id="p-xp">0</span><br><b>WANTED:</b> ★<span id="p-wanted">0</span></div>
-        <div><b style="color:var(--gold)" id="p-berries">0</b> ฿<br><b>GRADE:</b> <small id="p-grade"></small></div>
-    </div>
+    <div id="event-banner" style="padding:10px; text-align:center; font-weight:bold; margin-bottom:10px; border-radius:5px;"></div>
 
-    <div class="tab-nav">
-        <button class="tab-btn active" onclick="showTab('tab-actions', this)">⚓ NAVIRE</button>
-        <button class="tab-btn" onclick="showTab('tab-chat', this)">🍻 TAVERNE</button>
-        <button class="tab-btn" onclick="showTab('tab-lead', this)">📜 AVIS</button>
-    </div>
-
-    <div id="tab-actions" class="view-pane">
-        <h3>ACTIONS DE BORD</h3>
-        <button onclick="socket.emit('action:train')">🏋️ S'ENTRAÎNER (+XP)</button>
-        <button onclick="socket.emit('action:pillage')" style="margin-top:10px">🏴‍☠️ PILLER LES CÔTES (+฿)</button>
-        <button onclick="if(confirm('Trahir ?')) socket.emit('action:betray')" style="margin-top:20px; background:var(--pirate); color:white;">⚖️ TRAHIR VOTRE CAMP</button>
-    </div>
-
-    <div id="tab-chat" class="view-pane hidden">
-        <div id="chat-display"></div>
-        <div style="display:flex; gap:5px;">
-            <select id="chat-chan" style="width:100px;"><option value="global">Global</option><option value="faction">Faction</option></select>
-            <input type="text" id="chat-input" placeholder="Message..." onkeydown="if(event.key==='Enter') sendChat()">
+    <div id="quest-ui" class="hidden" style="border:2px solid var(--gold); padding:10px; margin-bottom:10px; border-radius:6px;">
+        <div style="display:flex; justify-content:space-between; font-size:12px;">
+            <span id="q-title-disp"></span>
+            <span id="q-count-disp"></span>
         </div>
+        <div class="quest-bar-bg"><div id="quest-prog-fill"></div></div>
     </div>
 
-    <div id="tab-lead" class="view-pane hidden">
-        <h3 style="text-align:center; font-family:Cinzel;">LES PLUS RECHERCHÉS</h3>
+    <div class="stats-bar">
+        <div><b id="ui-name"></b><br><small id="ui-grade"></small></div>
+        <div><b style="color:var(--gold)" id="ui-berries"></b> ฿</div>
+        <div>EXP: <span id="ui-xp"></span></div>
+    </div>
+
+    <div class="pane">
+        <h3>ACTIONS</h3>
+        <button onclick="socket.emit('action:train')">🏋️ S'ENTRAÎNER</button>
+        <button onclick="socket.emit('action:pillage')" style="margin-top:10px">🏴‍☠️ PILLER LES CÔTES</button>
+    </div>
+
+    <div class="pane" style="margin-top:15px;">
+        <h3>TAVERNE</h3>
+        <div id="chat-box"></div>
+        <input type="text" id="chat-in" placeholder="Message..." onkeydown="if(event.key==='Enter') sendChat()">
+    </div>
+
+    <div class="pane" style="margin-top:15px;">
+        <h3>LES PLUS RECHERCHÉS</h3>
         <div id="leaderboard-list"></div>
     </div>
 </div>
 
+<!-- PANEL ADMIN / PANTHÉON -->
+<div id="admin-panel" class="hidden" style="position:fixed; top:5%; left:5%; width:90%; height:90%; background:var(--paper); color:#111; z-index:100; padding:20px; overflow-y:auto; border:10px solid var(--wood);">
+    <button onclick="this.parentElement.classList.add('hidden')" style="background:red; color:white; width:auto; float:right;">X</button>
+    <h2 style="font-family:Cinzel">PANTHÉON – CONTRÔLE DU MONDE</h2>
+
+    <h3>ÉVÉNEMENT RP</h3>
+    <select id="adm-ev">
+        <option value="marineford">Marineford (x2)</option>
+        <option value="buster_call">Buster Call (x0.5)</option>
+    </select>
+    <button onclick="startEvent()">LANCER SCÉNARIO</button>
+
+    <h3>CRÉER QUÊTE</h3>
+    <input id="adm-q-t" placeholder="Titre">
+    <input type="number" id="adm-q-g" placeholder="Objectif (clics)">
+    <input type="number" id="adm-q-r" placeholder="Récompense ฿">
+    <select id="adm-q-type">
+        <option value="pillage">Pillage collectif</option>
+        <option value="train">Entraînement collectif</option>
+    </select>
+    <button onclick="startQuest()">ACTIVER QUÊTE</button>
+</div>
+
+<button onclick="adminLogin()" style="position:fixed; bottom:5px; right:5px; opacity:0.2; width:auto; font-size:10px;">ADMIN</button>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
-    const socket = io({ transports: ['websocket', 'polling'] });
+    const socket = io();
 
-    function showTab(id, btn) {
-        document.querySelectorAll('.view-pane').forEach(p => p.classList.add('hidden'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.remove('hidden');
-        btn.classList.add('active');
+    // --- IMAGE DE FACTION ---
+    function updateFactionImage() {
+        const f = document.getElementById('reg-faction').value;
+        const img = document.getElementById('faction-img');
+
+        if (f === "pirate") img.src = "img/pirate.png";
+        else if (f === "marine") img.src = "img/marine.png";
+        else if (f === "revolutionnaire") img.src = "img/revo.png";
+        else if (f === "pantheon") img.src = "img/pantheon.png";
     }
 
-    /* --- AUTHENTIFICATION (CORRIGÉ) --- */
-    function login() {
-        const n = document.getElementById('username').value;
-        const p = document.getElementById('password').value;
-
-        if (!n || !p) return alert("Remplissez l'avis de recherche !");
-        socket.emit('auth:login', { name: n, password: p });
-    }
-
+    // --- AUTH ---
     function register() {
-        const n = document.getElementById('username').value;
-        const p = document.getElementById('password').value;
-        const f = document.getElementById('faction-select').value;
-
-        if (!n || !p) return alert("Remplissez l'avis de recherche !");
+        const n = document.getElementById('reg-name').value;
+        const p = document.getElementById('reg-pass').value;
+        const f = document.getElementById('reg-faction').value;
+        if (!n || !p) return alert("Remplis l'avis de recherche !");
         socket.emit('auth:register', { name: n, password: p, faction: f });
+    }
+
+    function login() {
+        const n = document.getElementById('reg-name').value;
+        const p = document.getElementById('reg-pass').value;
+        const f = document.getElementById('reg-faction').value;
+        if (!n || !p) return alert("Remplis l'avis de recherche !");
+        socket.emit('auth:login', { name: n, password: p, faction: f });
     }
 
     socket.on('auth:success', ({ player }) => {
@@ -164,78 +169,87 @@
         updateUI(player);
     });
 
-    socket.on('player:update', updateUI);
     socket.on('auth:error', alert);
+    socket.on('player:update', updateUI);
 
     function updateUI(p) {
-        document.getElementById('p-name').innerText = p.name;
-        document.getElementById('p-faction').innerText = p.faction.toUpperCase();
-        document.getElementById('p-berries').innerText = p.berries.toLocaleString();
-        document.getElementById('p-grade').innerText = p.grade;
-        document.getElementById('p-xp').innerText = p.xp;
-        document.getElementById('p-wanted').innerText = p.wantedLevel;
-        document.getElementById('p-traitor').classList.toggle('hidden', !p.isTraitor);
+        document.getElementById('ui-name').innerText = p.name;
+        document.getElementById('ui-berries').innerText = p.berries.toLocaleString();
+        document.getElementById('ui-xp').innerText = p.xp;
+        document.getElementById('ui-grade').innerText = p.grade;
     }
 
-    /* --- CHAT --- */
+    // --- CHAT ---
     function sendChat() {
-        const input = document.getElementById('chat-input');
-        const chan = document.getElementById('chat-chan').value;
-
+        const input = document.getElementById('chat-in');
         if (!input.value.trim()) return;
-
-        socket.emit('chat:send', {
-            text: input.value,
-            channel: chan
-        });
-
+        socket.emit('chat:send', { text: input.value, channel: 'global' });
         input.value = '';
     }
 
     socket.on('chat:message', (m) => {
         const div = document.createElement('div');
-        div.className = `msg msg-${m.channel}`;
+        div.className = 'msg';
         div.innerHTML = `<b>[${m.channel.toUpperCase()}] ${m.author}:</b> ${m.text}`;
-
-        const display = document.getElementById('chat-display');
-        display.appendChild(div);
-        display.scrollTop = display.scrollHeight;
+        const box = document.getElementById('chat-box');
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
     });
 
-    /* --- LEADERBOARD --- */
+    // --- ÉVÉNEMENTS & QUÊTES ---
+    socket.on('event:update', (data) => {
+        const b = document.getElementById('event-banner');
+        b.innerText = "🚩 MONDE : " + data.name + " (x" + data.multiplier + ")";
+        b.style.backgroundColor = data.color;
+        b.style.color = (data.multiplier < 1) ? "white" : "black";
+    });
+
+    socket.on('quest:update', (data) => {
+        const ui = document.getElementById('quest-ui');
+        if (data.active) {
+            ui.classList.remove('hidden');
+            document.getElementById('q-title-disp').innerText = data.title;
+            document.getElementById('q-count-disp').innerText = data.progress + "/" + data.goal;
+            document.getElementById('quest-prog-fill').style.width = (data.progress / data.goal * 100) + "%";
+        } else {
+            ui.classList.add('hidden');
+        }
+    });
+
     socket.on('leaderboard:update', (list) => {
-        const container = document.getElementById('leaderboard-list');
-        container.innerHTML = list.map((p, i) => `
-            <div class="lead-item">
-                <span>#${i+1} <b>${p.name}</b> <small>(${p.grade})</small></span>
+        document.getElementById('leaderboard-list').innerHTML = list.map((p, i) => `
+            <div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid rgba(201,168,76,0.3);">
+                <span>#${i+1} <b>${p.name}</b></span>
                 <span style="color:var(--gold)">${p.bounty.toLocaleString()} ฿</span>
             </div>
         `).join('');
     });
 
-    /* --- SVG & DESIGN --- */
-    function updateFactionBackground() {
-        const f = document.getElementById('faction-select').value;
-        const emblem = document.getElementById('faction-emblem');
-        const auth = document.getElementById('auth-screen');
-
-        if (f === "pirate") {
-            auth.style.setProperty('--parchment-bg', '#d8c3a5');
-            auth.style.setProperty('--parchment-border', '#7f1d1d');
-            emblem.innerHTML = `<svg viewBox="0 0 100 100" fill="none" stroke="#1a1a1a" stroke-width="4"><circle cx="50" cy="40" r="18"/><line x1="20" y1="80" x2="80" y2="20"/><line x1="20" y1="20" x2="80" y2="80"/></svg>`;
-        } else if (f === "marine") {
-            auth.style.setProperty('--parchment-bg', '#e8e8ff');
-            auth.style.setProperty('--parchment-border', '#1e3a5f');
-            emblem.innerHTML = `<svg viewBox="0 0 100 100" fill="none" stroke="#1a1a1a" stroke-width="4"><path d="M10 60 Q50 10 90 60" /><line x1="10" y1="60" x2="90" y2="60"/></svg>`;
-        } else {
-            auth.style.setProperty('--parchment-bg', '#d7e8d0');
-            auth.style.setProperty('--parchment-border', '#14532d');
-            emblem.innerHTML = `<svg viewBox="0 0 100 100" fill="none" stroke="#1a1a1a" stroke-width="4"><path d="M20 80 Q50 10 80 80" /><path d="M35 60 Q50 30 65 60" /></svg>`;
-        }
+    // --- ADMIN / PANTHÉON ---
+    function adminLogin() {
+        const code = prompt("Code secret :");
+        if (!code) return;
+        socket.emit('admin:login', code);
     }
 
-    updateFactionBackground();
-    socket.on('connect', () => console.log("⚓ Grand Line Online"));
+    socket.on('admin:success', () => {
+        document.getElementById('admin-panel').classList.remove('hidden');
+    });
+
+    function startEvent() {
+        socket.emit('admin:start_rp_event', { scenario: document.getElementById('adm-ev').value });
+    }
+
+    function startQuest() {
+        socket.emit('admin:start_quest', {
+            title: document.getElementById('adm-q-t').value,
+            goal: document.getElementById('adm-q-g').value,
+            reward: document.getElementById('adm-q-r').value,
+            type: document.getElementById('adm-q-type').value
+        });
+    }
+
+    socket.on('connect', () => console.log("⚓ Connecté au serveur."));
 </script>
 </body>
 </html>
