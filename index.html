@@ -167,42 +167,43 @@ let cooldownTimers = {};
 
 // IMAGE FACTION
 function updateFactionImage() {
-    const f = document.getElementById('reg-faction').value;
-    const img = document.getElementById('faction-img');
-    img.src = "img/" + f + ".png";
+    const f = document.getElementById("reg-faction").value;
+    document.getElementById("faction-img").src = "img/" + f + ".png";
 }
 
 // AUTH
 function register() {
     socket.emit('auth:register', {
-        name: reg-name.value,
-        password: reg-pass.value,
-        faction: reg-faction.value
+        name: document.getElementById("reg-name").value,
+        password: document.getElementById("reg-pass").value,
+        faction: document.getElementById("reg-faction").value
     });
 }
 function login() {
     socket.emit('auth:login', {
-        name: reg-name.value,
-        password: reg-pass.value,
-        faction: reg-faction.value
+        name: document.getElementById("reg-name").value,
+        password: document.getElementById("reg-pass").value,
+        faction: document.getElementById("reg-faction").value
     });
 }
 
 socket.on('auth:success', ({ player }) => {
-    auth-screen.classList.add('hidden');
+    document.getElementById("auth-screen").classList.add('hidden');
     if (player) {
-        game-ui.classList.remove('hidden');
+        document.getElementById("game-ui").classList.remove('hidden');
         updateUI(player);
-    } else admin-panel.classList.remove('hidden');
+    } else {
+        document.getElementById("admin-panel").classList.remove('hidden');
+    }
 });
 socket.on('auth:error', alert);
 
 // UI UPDATE
 function updateUI(p) {
-    ui-name.innerText = p.name;
-    ui-grade.innerText = p.grade;
-    ui-berries.innerText = p.berries;
-    ui-xp.innerText = p.xp;
+    document.getElementById("ui-name").innerText = p.name;
+    document.getElementById("ui-grade").innerText = p.grade;
+    document.getElementById("ui-berries").innerText = p.berries;
+    document.getElementById("ui-xp").innerText = p.xp;
 }
 
 // ACTIONS
@@ -216,8 +217,9 @@ function addLog(t) {
     const div = document.createElement('div');
     div.className = "log-entry";
     div.innerText = t;
-    log-box.appendChild(div);
-    log-box.scrollTop = log-box.scrollHeight;
+    const box = document.getElementById("log-box");
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
 }
 
 function startCooldown(action, ms) {
@@ -239,34 +241,36 @@ function startCooldown(action, ms) {
 
 // CHAT
 function sendChat() {
-    socket.emit('chat:send', { text: chat-in.value });
-    chat-in.value = "";
+    socket.emit('chat:send', { text: document.getElementById("chat-in").value });
+    document.getElementById("chat-in").value = "";
 }
 socket.on('chat:message', m => {
     const div = document.createElement('div');
     div.className = "msg";
     div.innerHTML = `<b>${m.author}:</b> ${m.text}`;
-    chat-box.appendChild(div);
-    chat-box.scrollTop = chat-box.scrollHeight;
+    const box = document.getElementById("chat-box");
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
 });
 
 // EVENTS
 socket.on('event:update', ev => {
-    event-banner.innerText = `🌊 ${ev.name} (x${ev.multiplier})`;
-    event-banner.style.background = ev.color;
+    const b = document.getElementById("event-banner");
+    b.innerText = `🌊 ${ev.name} (x${ev.multiplier})`;
+    b.style.background = ev.color;
 });
 
 // QUEST
 socket.on('quest:update', q => {
     if (!q.active) return;
-    q-title-disp.innerText = q.title;
-    q-count-disp.innerText = `${q.progress}/${q.goal}`;
-    quest-prog-fill.style.width = (q.progress / q.goal * 100) + "%";
+    document.getElementById("q-title-disp").innerText = q.title;
+    document.getElementById("q-count-disp").innerText = `${q.progress}/${q.goal}`;
+    document.getElementById("quest-prog-fill").style.width = (q.progress / q.goal * 100) + "%";
 });
 
 // LEADERBOARD
 socket.on('leaderboard:update', list => {
-    leaderboard-list.innerHTML = list.map((p,i)=>`
+    document.getElementById("leaderboard-list").innerHTML = list.map((p,i)=>`
         <div>#${i+1} <b>${p.name}</b> — ${p.bounty} ฿</div>
     `).join("");
 });
@@ -276,47 +280,48 @@ function adminLogin() {
     const code = prompt("Code admin :");
     socket.emit('admin:login', code);
 }
-socket.on('admin:success', () => admin-panel.classList.remove('hidden'));
+socket.on('admin:success', () => document.getElementById("admin-panel").classList.remove('hidden'));
 socket.on('admin:log', t => {
     const div = document.createElement('div');
     div.innerText = t;
-    admin-log.appendChild(div);
-    admin-log.scrollTop = admin-log.scrollHeight;
+    const box = document.getElementById("admin-log");
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
 });
 
 // ADMIN ACTIONS
 function startEvent() {
-    socket.emit('admin:start_rp_event', { scenario: adm-ev.value });
+    socket.emit('admin:start_rp_event', { scenario: document.getElementById("adm-ev").value });
 }
 function startQuest() {
     socket.emit('admin:start_quest', {
-        title: adm-q-t.value,
-        goal: adm-q-g.value,
-        reward: adm-q-r.value,
-        type: adm-q-type.value
+        title: document.getElementById("adm-q-t").value,
+        goal: document.getElementById("adm-q-g").value,
+        reward: document.getElementById("adm-q-r").value,
+        type: document.getElementById("adm-q-type").value
     });
 }
 function addMod() {
     socket.emit('admin:add_moderator', {
-        name: mod-name.value,
-        perms: mod-perms.value.split(',')
+        name: document.getElementById("mod-name").value,
+        perms: document.getElementById("mod-perms").value.split(',')
     });
 }
 function removeMod() {
-    socket.emit('admin:remove_moderator', { name: mod-name.value });
+    socket.emit('admin:remove_moderator', { name: document.getElementById("mod-name").value });
 }
 function ban() {
-    socket.emit('admin:ban', { name: ban-name.value });
+    socket.emit('admin:ban', { name: document.getElementById("ban-name").value });
 }
 function unban() {
-    socket.emit('admin:unban', { name: ban-name.value });
+    socket.emit('admin:unban', { name: document.getElementById("ban-name").value });
 }
 function editPlayer() {
     socket.emit('admin:edit_player', {
-        name: edit-name.value,
-        berries: parseInt(edit-berries.value),
-        xp: parseInt(edit-xp.value),
-        bounty: parseInt(edit-bounty.value)
+        name: document.getElementById("edit-name").value,
+        berries: parseInt(document.getElementById("edit-berries").value),
+        xp: parseInt(document.getElementById("edit-xp").value),
+        bounty: parseInt(document.getElementById("edit-bounty").value)
     });
 }
 </script>
