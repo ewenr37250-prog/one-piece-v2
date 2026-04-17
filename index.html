@@ -2,298 +2,128 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Grand Line RPG V3</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Special+Elite&display=swap" rel="stylesheet">
+    <title>Grand Line RPG — Version Fonctionnelle</title>
     <style>
-        :root { --wood:#2b1d0e; --gold:#c9a84c; --paper:#e4d5b7; --ink:#1a1a1a; }
-        body {
-            background:#111;
-            color:#f4e4bc;
-            font-family:'Special Elite',serif;
-            margin:0;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            min-height:100vh;
-        }
-        .hidden { display:none !important; }
-
-        /* AUTH */
-        #auth-screen {
-            margin-top:40px; width:380px; padding:25px;
-            background:var(--paper); color:var(--ink);
-            border:10px solid var(--wood);
-            box-shadow:0 0 30px rgba(0,0,0,0.7);
-        }
-        input, select, button {
-            width:100%; padding:10px; margin:5px 0;
-            border:2px solid var(--wood); box-sizing:border-box;
-            font-family:'Special Elite',serif;
-        }
-        button { background:var(--wood); color:var(--gold); cursor:pointer; font-weight:bold; }
-        button:hover { filter:brightness(1.1); }
-
-        /* LAYOUT */
-        #game-ui {
-            width:95%; max-width:1100px; margin-top:20px;
-        }
-
-        .stats-bar {
-            background:rgba(0,0,0,0.9);
-            border:2px solid var(--gold);
-            border-radius:8px;
-            padding:10px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            margin-bottom:10px;
-        }
-
-        /* ONGLET STYLE GOOGLE × ONE PIECE */
-        #tabs {
-            display:flex;
-            gap:25px;
-            border-bottom:3px solid #5a3b1a; /* bois foncé */
-            margin-bottom:10px;
-            padding:8px 0;
-            justify-content:center;
-        }
-
-        .tab-btn {
-            background:none;
-            border:none;
-            color:#e4d5b7; /* parchemin */
-            font-family:'Cinzel', serif;
-            font-size:1.05em;
-            padding:6px 4px;
-            cursor:pointer;
-            position:relative;
-            letter-spacing:1px;
-            transition:0.2s;
-        }
-
-        .tab-btn:hover {
-            color:#fff2c7; /* parchemin clair */
-            transform:translateY(-1px);
-        }
-
-        .tab-btn.active {
-            color:#ffffff;
-            font-weight:bold;
-        }
-
-        .tab-btn.active::after {
-            content:"";
-            position:absolute;
-            bottom:-8px;
-            left:0;
-            right:0;
-            height:4px;
-            background:#c9a84c; /* or One Piece */
-            border-radius:2px;
-            box-shadow:0 0 6px #c9a84c;
-        }
-
-        .tab {
-            background:rgba(30,30,30,0.95);
-            border:2px solid var(--gold);
-            border-radius:8px;
-            padding:10px;
-            min-height:260px;
-        }
-
-        #chat-box, #log-box, #journal-box, #event-history {
-            background:rgba(0,0,0,0.3);
-            border:1px solid var(--gold);
-            padding:8px;
-            font-size:0.9em;
-            overflow-y:auto;
-        }
-        #chat-box { height:180px; }
-        #log-box { height:140px; }
-        #journal-box { height:220px; }
-        #event-history { height:180px; }
-
-        .msg, .log-entry { margin-bottom:4px; }
-
-        #skill-tree-branches div {
-            display:flex; justify-content:space-between; align-items:center;
-            margin-bottom:4px;
-        }
-
-        /* PANEL MODO FLOTTANT */
-        #modo-panel {
-            position:fixed;
-            top:10%; left:50%;
-            transform:translateX(-50%);
-            width:60%;
-            background:var(--paper);
-            color:#111;
-            border:10px solid var(--wood);
-            padding:15px;
-            z-index:200;
-            box-shadow:0 0 40px rgba(0,0,0,0.8);
-        }
+        body { background:#111; color:#eee; font-family:Arial; }
+        .hidden { display:none; }
+        button { padding:8px 12px; margin:4px; cursor:pointer; }
+        #game-ui { margin-top:20px; }
+        #chat-box, #log-box { height:150px; overflow-y:auto; background:#222; padding:8px; }
     </style>
 </head>
 <body>
 
 <!-- AUTH -->
 <div id="auth-screen">
-    <h1 style="font-family:Cinzel; text-align:center;">GRAND LINE V3</h1>
-    <input id="auth-name" placeholder="Nom du personnage">
-    <input id="auth-pass" type="password" placeholder="Mot de passe">
+    <h2>Connexion</h2>
+    <input id="auth-name" placeholder="Nom"><br>
+    <input id="auth-pass" type="password" placeholder="Mot de passe"><br>
 
     <select id="auth-faction">
-        <option value="pirate">🏴‍☠️ Pirate</option>
-        <option value="marine">🛡️ Marine</option>
-        <option value="revolutionnaire">🐉 Révolutionnaire</option>
-    </select>
+        <option value="pirate">Pirate</option>
+        <option value="marine">Marine</option>
+        <option value="revolutionnaire">Révolutionnaire</option>
+    </select><br>
 
     <select id="auth-class">
-        <option value="Guerrier">⚔️ Guerrier</option>
-        <option value="Tireur">🎯 Tireur</option>
-        <option value="Navigateur">🧭 Navigateur</option>
-        <option value="Médecin">🧪 Médecin</option>
-        <option value="Charpentier">🔧 Charpentier</option>
-        <option value="Espion">🕵️ Espion</option>
-        <option value="Artiste Martial">🥋 Artiste Martial</option>
-    </select>
+        <option value="Guerrier">Guerrier</option>
+        <option value="Tireur">Tireur</option>
+        <option value="Navigateur">Navigateur</option>
+        <option value="Médecin">Médecin</option>
+        <option value="Charpentier">Charpentier</option>
+        <option value="Espion">Espion</option>
+        <option value="Artiste Martial">Artiste Martial</option>
+    </select><br>
 
-    <button onclick="register()">S'INSCRIRE</button>
-    <button onclick="login()" style="background:#444;">SE CONNECTER</button>
+    <button onclick="register()">S'inscrire</button>
+    <button onclick="login()">Se connecter</button>
 </div>
 
 <!-- GAME UI -->
 <div id="game-ui" class="hidden">
 
-    <!-- BARRE DU HAUT -->
-    <div class="stats-bar">
-        <div>
-            <b id="ui-name"></b> — <span id="ui-faction"></span> / <span id="ui-class"></span><br>
-            Niveau <span id="ui-level"></span> — <span id="ui-xp"></span> XP
-        </div>
-        <div>
-            <b id="ui-berries" style="color:var(--gold)"></b> ฿<br>
-            Prime : <span id="ui-bounty"></span> ฿
-        </div>
-        <div>
-            <button onclick="askModoCode()" style="width:auto; padding:5px 10px; font-size:0.8em;">MODO</button>
-        </div>
+    <h2 id="ui-name"></h2>
+    <p>
+        Faction : <span id="ui-faction"></span><br>
+        Classe : <span id="ui-class"></span><br>
+        Niveau : <span id="ui-level"></span><br>
+        XP : <span id="ui-xp"></span><br>
+        Berries : <span id="ui-berries"></span><br>
+    </p>
+
+    <h3>Actions</h3>
+    <button onclick="doTrain()">S'entraîner</button>
+    <button onclick="doFactionQuest()">Progresser quête faction</button>
+    <button onclick="doClassQuest()">Progresser quête classe</button>
+
+    <div id="log-box"></div>
+
+    <h3>Quêtes</h3>
+    <button onclick="requestFactionQuest()">Obtenir quête faction</button>
+    <div id="faction-quest-info"></div>
+
+    <button onclick="requestClassQuest()">Obtenir quête classe</button>
+    <div id="class-quest-info"></div>
+
+    <h3>Compétences</h3>
+    Points de talent : <span id="skill-tp"></span>
+    <div id="skill-tree-branches"></div>
+
+    <h3>Taverne</h3>
+    <div id="chat-box"></div>
+    <input id="chat-input" placeholder="Message..." onkeydown="if(event.key==='Enter') sendChat()">
+
+    <h3>Modo</h3>
+    <button onclick="askModoCode()">Entrer code modo</button>
+
+    <div id="modo-panel" class="hidden" style="background:#333; padding:10px;">
+        <button onclick="closeModoPanel()">Fermer</button>
+        <h3>Panel Modo</h3>
+
+        <input id="modo-target" placeholder="Nom joueur">
+        <input id="modo-amount" placeholder="Montant">
+        <button onclick="modoGiveBerries()">Donner Berries</button>
+
+        <input id="modo-kick-target" placeholder="Nom joueur">
+        <button onclick="modoKick()">Kick</button>
+
+        <div id="modo-log"></div>
     </div>
 
-    <!-- ONGLET BAR -->
-    <div id="tabs">
-        <button class="tab-btn active" onclick="openTab('profil', this)">Profil</button>
-        <button class="tab-btn" onclick="openTab('quetes', this)">Quêtes</button>
-        <button class="tab-btn" onclick="openTab('skills', this)">Compétences</button>
-        <button class="tab-btn" onclick="openTab('events', this)">Événements</button>
-        <button class="tab-btn" onclick="openTab('journal', this)">Journal</button>
-        <button class="tab-btn" onclick="openTab('taverne', this)">Taverne</button>
-    </div>
-
-    <!-- PROFIL -->
-    <div id="tab-profil" class="tab">
-        <h3>Profil & Actions</h3>
-        <button id="btn-train" onclick="doTrain()">🏋️ S'ENTRAÎNER</button>
-        <div id="log-box" style="margin-top:8px;"></div>
-    </div>
-
-    <!-- QUÊTES -->
-    <div id="tab-quetes" class="tab hidden">
-        <h3>Quêtes de Faction</h3>
-        <div id="faction-quest-info"></div>
-        <button onclick="requestFactionQuest()">Obtenir / Voir quête de faction</button>
-        <button onclick="doFactionQuest()" style="margin-top:4px;">Progresser quête de faction</button>
-
-        <h3 style="margin-top:10px;">Quêtes de Classe</h3>
-        <div id="class-quest-info"></div>
-        <button onclick="requestClassQuest()">Obtenir / Voir quête de classe</button>
-        <button onclick="doClassQuest()" style="margin-top:4px;">Progresser quête de classe</button>
-    </div>
-
-    <!-- COMPÉTENCES -->
-    <div id="tab-skills" class="tab hidden">
-        <h3>Arbre de compétences</h3>
-        <div>Points de talent : <span id="skill-tp">0</span></div>
-        <div id="skill-tree-branches" style="margin-top:5px;"></div>
-    </div>
-
-    <!-- ÉVÉNEMENTS -->
-    <div id="tab-events" class="tab hidden">
-        <h3>Événement en cours</h3>
-        <div id="current-event">Aucun événement actif.</div>
-
-        <h3 style="margin-top:10px;">Historique des événements</h3>
-        <div id="event-history"></div>
-    </div>
-
-    <!-- JOURNAL -->
-    <div id="tab-journal" class="tab hidden">
-        <h3>Journal</h3>
-        <div id="journal-box"></div>
-    </div>
-
-    <!-- TAVERNE -->
-    <div id="tab-taverne" class="tab hidden">
-        <h3>Taverne</h3>
-        <div id="chat-box"></div>
-        <input id="chat-input" placeholder="Message..." onkeydown="if(event.key==='Enter') sendChat()">
-    </div>
-</div>
-
-<!-- PANEL MODO FLOTTANT -->
-<div id="modo-panel" class="hidden">
-    <button onclick="closeModoPanel()" style="float:right; background:red; color:white; width:auto;">X</button>
-    <h2 style="font-family:Cinzel;">PANTHÉON — PANEL MODO</h2>
-
-    <h3>Donner des Berries</h3>
-    <input id="modo-target" placeholder="Nom du joueur">
-    <input id="modo-amount" placeholder="Montant">
-    <button onclick="modoGiveBerries()">DONNER</button>
-
-    <h3>Kick joueur</h3>
-    <input id="modo-kick-target" placeholder="Nom du joueur">
-    <button onclick="modoKick()">KICK</button>
-
-    <h3>Logs</h3>
-    <div id="modo-log"></div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-/* --- JS IDENTIQUE À TA VERSION PRÉCÉDENTE (COMPATIBLE SERVER.JS) --- */
-/* Je ne le réécris pas ici pour éviter un message trop long,
-   mais si tu veux je peux te renvoyer la version complète JS. */
-
 const socket = io();
 let currentPlayer = null;
-let cooldownTimers = {};
 
+/* AUTH */
 function register() {
-    const name = document.getElementById("auth-name").value.trim();
-    const pass = document.getElementById("auth-pass").value.trim();
-    const faction = document.getElementById("auth-faction").value;
-    const classe = document.getElementById("auth-class").value;
-    socket.emit('auth:register', { name, password: pass, faction, classe });
+    socket.emit("auth:register", {
+        name: document.getElementById("auth-name").value,
+        password: document.getElementById("auth-pass").value,
+        faction: document.getElementById("auth-faction").value,
+        classe: document.getElementById("auth-class").value
+    });
 }
 
 function login() {
-    const name = document.getElementById("auth-name").value.trim();
-    const pass = document.getElementById("auth-pass").value.trim();
-    socket.emit('auth:login', { name, password: pass });
+    socket.emit("auth:login", {
+        name: document.getElementById("auth-name").value,
+        password: document.getElementById("auth-pass").value
+    });
 }
 
-socket.on('auth:success', ({ player }) => {
+socket.on("auth:success", ({ player }) => {
     currentPlayer = player;
-    document.getElementById("auth-screen").classList.add('hidden');
-    document.getElementById("game-ui").classList.remove('hidden');
+    document.getElementById("auth-screen").classList.add("hidden");
+    document.getElementById("game-ui").classList.remove("hidden");
     updateUI(player);
-    renderSkillTree(player.skillTree);
 });
 
-socket.on('auth:error', (msg) => alert(msg));
+socket.on("auth:error", msg => alert(msg));
 
+/* UI UPDATE */
 function updateUI(p) {
     document.getElementById("ui-name").innerText = p.name;
     document.getElementById("ui-faction").innerText = p.faction;
@@ -301,139 +131,116 @@ function updateUI(p) {
     document.getElementById("ui-level").innerText = p.level;
     document.getElementById("ui-xp").innerText = p.xp;
     document.getElementById("ui-berries").innerText = p.berries;
-    document.getElementById("ui-bounty").innerText = p.bounty || 0;
     document.getElementById("skill-tp").innerText = p.skillTree.talentPoints;
-    currentPlayer = p;
+
     renderSkillTree(p.skillTree);
     renderQuests(p);
 }
 
-socket.on('player:update', (p) => updateUI(p));
+socket.on("player:update", p => updateUI(p));
 
-function addLog(text) {
+/* ACTIONS */
+function doTrain() { socket.emit("action:train"); }
+function doFactionQuest() { socket.emit("action:quest_progress", { type:"faction" }); }
+function doClassQuest() { socket.emit("action:quest_progress", { type:"class" }); }
+
+socket.on("action:result", d => addLog(d.text));
+
+function addLog(t) {
     const box = document.getElementById("log-box");
-    const div = document.createElement('div');
-    div.className = "log-entry";
-    div.innerText = text;
-    box.appendChild(div);
+    box.innerHTML += t + "<br>";
     box.scrollTop = box.scrollHeight;
 }
 
-function doTrain() { socket.emit('action:train'); }
-function doFactionQuest() { socket.emit('action:quest_progress', { type: "faction" }); }
-function doClassQuest() { socket.emit('action:quest_progress', { type: "class" }); }
+/* QUÊTES */
+function requestFactionQuest() { socket.emit("quest:request_faction"); }
+function requestClassQuest() { socket.emit("quest:request_class"); }
 
-socket.on('action:result', (d) => addLog(d.text));
-
-function requestFactionQuest() { socket.emit('quest:request_faction'); }
-function requestClassQuest() { socket.emit('quest:request_class'); }
-
-socket.on('quest:faction_update', (q) => {
+socket.on("quest:faction_update", q => {
     document.getElementById("faction-quest-info").innerText =
-        `${q.title} — ${q.progress}/${q.goal} (Récompense: ${q.rewardBerries} ฿, ${q.rewardXP} XP)`;
+        `${q.title} — ${q.progress}/${q.goal}`;
 });
 
-socket.on('quest:class_update', (q) => {
+socket.on("quest:class_update", q => {
     document.getElementById("class-quest-info").innerText =
-        `${q.title} — ${q.progress}/${q.goal} (Récompense: ${q.rewardXP} XP, ${q.rewardTalent} PT)`;
+        `${q.title} — ${q.progress}/${q.goal}`;
 });
 
 function renderQuests(p) {
-    const fq = p.factionQuest;
-    const cq = p.classQuest;
     document.getElementById("faction-quest-info").innerText =
-        fq ? `${fq.title} — ${fq.progress}/${fq.goal}` : "Aucune quête active.";
+        p.factionQuest ? p.factionQuest.title : "Aucune quête";
     document.getElementById("class-quest-info").innerText =
-        cq ? `${cq.title} — ${cq.progress}/${cq.goal}` : "Aucune quête active.";
+        p.classQuest ? p.classQuest.title : "Aucune quête";
 }
 
+/* SKILLS */
 function renderSkillTree(tree) {
-    const container = document.getElementById("skill-tree-branches");
-    container.innerHTML = "";
-    Object.keys(tree.branches).forEach(branch => {
-        const lvl = tree.branches[branch];
-        const row = document.createElement('div');
-        row.innerHTML = `
-            <span>${branch} : ${lvl}/${tree.maxLevel}</span>
-            <button style="width:40px;" onclick="upgradeSkill('${branch}')">+</button>
+    const box = document.getElementById("skill-tree-branches");
+    box.innerHTML = "";
+    for (const b in tree.branches) {
+        box.innerHTML += `
+            ${b} : ${tree.branches[b]}/${tree.maxLevel}
+            <button onclick="upgradeSkill('${b}')">+</button><br>
         `;
-        container.appendChild(row);
-    });
+    }
 }
 
 function upgradeSkill(branch) {
-    socket.emit('skill:upgrade', { branch });
+    socket.emit("skill:upgrade", { branch });
 }
 
-socket.on('skill:update', (tree) => {
+socket.on("skill:update", tree => {
     currentPlayer.skillTree = tree;
     renderSkillTree(tree);
     document.getElementById("skill-tp").innerText = tree.talentPoints;
 });
 
+/* CHAT */
 function sendChat() {
-    const input = document.getElementById("chat-input");
-    const text = input.value.trim();
-    if (!text) return;
-    socket.emit('chat:send', { text });
-    input.value = "";
+    const text = document.getElementById("chat-input").value;
+    socket.emit("chat:send", { text });
+    document.getElementById("chat-input").value = "";
 }
 
-socket.on('chat:message', (m) => {
+socket.on("chat:message", m => {
     const box = document.getElementById("chat-box");
-    const div = document.createElement('div');
-    div.className = "msg";
-    div.innerHTML = `<b>${m.author}:</b> ${m.text}`;
-    box.appendChild(div);
+    box.innerHTML += `<b>${m.author}:</b> ${m.text}<br>`;
     box.scrollTop = box.scrollHeight;
 });
 
-socket.on('journal:entry', (e) => {
-    const box = document.getElementById("journal-box");
-    const div = document.createElement('div');
-    div.className = "log-entry";
-    div.innerText = e.text;
-    box.appendChild(div);
-    box.scrollTop = box.scrollHeight;
-});
-
-socket.on('events:history', (list) => {
-    const box = document.getElementById("event-history");
-    box.innerHTML = "";
-    list.forEach(ev => {
-        const div = document.createElement('div');
-        div.className = "log-entry";
-        div.innerText = ev.text;
-        box.appendChild(div);
-    });
-});
-
-socket.on('events:current', (ev) => {
-    document.getElementById("current-event").innerText =
-        ev ? ev.text : "Aucun événement actif.";
-});
-
+/* MODO */
 function askModoCode() {
     const code = prompt("Code Modo :");
-    socket.emit('modo:login', code);
+    socket.emit("modo:login", code);
 }
 
-socket.on('modo:success', () => {
-    document.getElementById("modo-panel").classList.remove('hidden');
+socket.on("modo:success", () => {
+    document.getElementById("modo-panel").classList.remove("hidden");
 });
 
-socket.on('modo:fail', () => alert("Code incorrect."));
-
-socket.on('modo:log', (txt) => {
-    const box = document.getElementById("modo-log");
-    const div = document.createElement('div');
-    div.innerText = txt;
-    box.appendChild(div);
-});
+socket.on("modo:fail", () => alert("Code incorrect"));
 
 function closeModoPanel() {
-    document.getElementById("modo-panel").classList.add('hidden');
+    document.getElementById("modo-panel").classList.add("hidden");
 }
 
 function modoGiveBerries() {
-    const target = document.getElementById("modo
+    socket.emit("modo:give_berries", {
+        target: document.getElementById("modo-target").value,
+        amount: parseInt(document.getElementById("modo-amount").value)
+    });
+}
+
+function modoKick() {
+    socket.emit("modo:kick", {
+        target: document.getElementById("modo-kick-target").value
+    });
+}
+
+socket.on("modo:log", t => {
+    document.getElementById("modo-log").innerHTML += t + "<br>";
+});
+</script>
+</body>
+</html>
+
