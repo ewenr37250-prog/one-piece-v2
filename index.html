@@ -2,231 +2,245 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Grand Line RPG – V2.5</title>
+    <title>Grand Line RPG V3</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Special+Elite&display=swap" rel="stylesheet">
     <style>
         :root { --wood:#2b1d0e; --gold:#c9a84c; --paper:#e4d5b7; --ink:#1a1a1a; }
         body {
-            background:#1a1a1a;
+            background:#111;
             color:#f4e4bc;
             font-family:'Special Elite',serif;
-            display:flex; flex-direction:column; align-items:center;
-            margin:0; min-height:100vh;
+            margin:0;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            min-height:100vh;
         }
         .hidden { display:none !important; }
-
         #auth-screen {
-            margin-top:50px; width:360px; padding:30px;
-            background:var(--paper); border:10px solid var(--wood);
-            color:var(--ink); text-align:center;
-            box-shadow:0 0 30px rgba(0,0,0,0.6);
+            margin-top:40px; width:380px; padding:25px;
+            background:var(--paper); color:var(--ink);
+            border:10px solid var(--wood);
+            box-shadow:0 0 30px rgba(0,0,0,0.7);
         }
         input, select, button {
-            width:100%; padding:12px; margin:5px 0;
+            width:100%; padding:10px; margin:5px 0;
             border:2px solid var(--wood); box-sizing:border-box;
             font-family:'Special Elite',serif;
         }
         button { background:var(--wood); color:var(--gold); cursor:pointer; font-weight:bold; }
-        button[disabled] { opacity:0.4; cursor:not-allowed; }
-        button:hover:not([disabled]) { filter:brightness(1.15); }
-
-        #game-ui { width:95%; max-width:900px; margin-top:20px; }
-
-        .stats-bar {
-            background:rgba(0,0,0,0.9); border:2px solid var(--gold);
-            padding:15px; display:grid; grid-template-columns:1fr 1fr 1fr;
-            border-radius:8px; text-align:center; margin-bottom:10px;
-        }
+        button:hover { filter:brightness(1.1); }
+        #game-ui { width:95%; max-width:1100px; margin-top:20px; display:grid; grid-template-columns:2fr 2fr 1.5fr; gap:10px; }
         .pane {
-            background:rgba(40,40,40,0.95); border:2px solid var(--gold);
-            padding:20px; margin-top:10px; border-radius:8px;
+            background:rgba(30,30,30,0.95);
+            border:2px solid var(--gold);
+            border-radius:8px;
+            padding:10px;
         }
-
+        .stats-bar {
+            grid-column:1 / span 3;
+            background:rgba(0,0,0,0.9);
+            border:2px solid var(--gold);
+            border-radius:8px;
+            padding:10px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
         #chat-box, #log-box {
-            height:160px; overflow-y:auto; background:rgba(0,0,0,0.3);
-            padding:8px; border:1px solid var(--gold); margin-bottom:8px;
-        }
-        .msg, .log-entry { margin-bottom:4px; font-size:0.9em; }
-
-        #leaderboard-list div {
-            display:flex; justify-content:space-between;
-            padding:4px 0; border-bottom:1px solid rgba(201,168,76,0.3);
+            height:160px; overflow-y:auto;
+            background:rgba(0,0,0,0.3);
+            padding:8px; border:1px solid var(--gold);
             font-size:0.9em;
         }
-
-        #admin-panel {
-            position:fixed; top:5%; left:5%; width:90%; height:90%;
-            background:var(--paper); color:#111; z-index:100;
-            padding:20px; overflow-y:auto; border:10px solid var(--wood);
+        .msg, .log-entry { margin-bottom:4px; }
+        #skill-tree-branches div {
+            display:flex; justify-content:space-between; align-items:center;
+            margin-bottom:4px;
+        }
+        #modo-panel {
+            position:fixed; top:10%; left:10%; width:80%; height:80%;
+            background:var(--paper); color:#111;
+            border:10px solid var(--wood);
+            padding:15px; overflow-y:auto; z-index:100;
         }
     </style>
 </head>
 <body>
 
-<!-- AUTH -->
 <div id="auth-screen">
-    <h1 style="font-family:Cinzel; margin-top:0;">WANTED</h1>
+    <h1 style="font-family:Cinzel; text-align:center;">GRAND LINE V3</h1>
+    <input id="auth-name" placeholder="Nom du personnage">
+    <input id="auth-pass" type="password" placeholder="Mot de passe">
 
-    <div id="faction-image" style="margin-bottom:10px; text-align:center;">
-        <img id="faction-img" src="img/pirate.png" style="width:120px; height:120px; object-fit:contain;">
-    </div>
-
-    <input type="text" id="reg-name" placeholder="Nom du personnage">
-    <input type="password" id="reg-pass" placeholder="Mot de passe">
-
-    <select id="reg-faction" onchange="updateFactionImage()">
+    <select id="auth-faction">
         <option value="pirate">🏴‍☠️ Pirate</option>
         <option value="marine">🛡️ Marine</option>
         <option value="revolutionnaire">🐉 Révolutionnaire</option>
-        <option value="pantheon">🟣 Panthéon (Modo)</option>
+    </select>
+
+    <select id="auth-class">
+        <option value="Guerrier">⚔️ Guerrier</option>
+        <option value="Tireur">🎯 Tireur</option>
+        <option value="Navigateur">🧭 Navigateur</option>
+        <option value="Médecin">🧪 Médecin</option>
+        <option value="Charpentier">🔧 Charpentier</option>
+        <option value="Espion">🕵️ Espion</option>
+        <option value="Artiste Martial">🥋 Artiste Martial</option>
     </select>
 
     <button onclick="register()">S'INSCRIRE</button>
-    <button onclick="login()" style="background:#444">SE CONNECTER</button>
+    <button onclick="login()" style="background:#444;">SE CONNECTER</button>
 </div>
 
-<!-- GAME UI -->
 <div id="game-ui" class="hidden">
-    <div id="event-banner" style="padding:10px; text-align:center; font-weight:bold; margin-bottom:10px; border-radius:5px;"></div>
-
     <div class="stats-bar">
-        <div><b id="ui-name"></b><br><small id="ui-grade"></small></div>
-        <div><b style="color:var(--gold)" id="ui-berries"></b> ฿</div>
-        <div>EXP: <span id="ui-xp"></span></div>
+        <div>
+            <b id="ui-name"></b> — <span id="ui-faction"></span> / <span id="ui-class"></span><br>
+            Niveau <span id="ui-level"></span> — <span id="ui-xp"></span> XP
+        </div>
+        <div>
+            <b id="ui-berries" style="color:var(--gold)"></b> ฿<br>
+            Prime : <span id="ui-bounty"></span> ฿
+        </div>
+        <div>
+            <button onclick="askModoCode()" style="width:auto; padding:5px 10px; font-size:0.8em;">MODO</button>
+        </div>
     </div>
 
     <div class="pane">
         <h3>ACTIONS</h3>
         <button id="btn-train" onclick="doTrain()">🏋️ S'ENTRAÎNER</button>
-        <button id="btn-pillage" onclick="doPillage()" style="margin-top:10px">🏴‍☠️ PILLER</button>
-        <div id="log-box"></div>
+        <button id="btn-faction-quest" onclick="doFactionQuest()" style="margin-top:5px;">⚔️ Progresser quête de faction</button>
+        <button id="btn-class-quest" onclick="doClassQuest()" style="margin-top:5px;">🎯 Progresser quête de classe</button>
+        <div id="log-box" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="pane">
+        <h3>QUÊTES</h3>
+        <h4>Faction</h4>
+        <div id="faction-quest">
+            <button onclick="requestFactionQuest()">Obtenir / Voir quête de faction</button>
+            <div id="faction-quest-info" style="margin-top:5px; font-size:0.9em;"></div>
+        </div>
+        <h4>Classe</h4>
+        <div id="class-quest">
+            <button onclick="requestClassQuest()">Obtenir / Voir quête de classe</button>
+            <div id="class-quest-info" style="margin-top:5px; font-size:0.9em;"></div>
+        </div>
+    </div>
+
+    <div class="pane">
+        <h3>ARBRE DE COMPÉTENCES</h3>
+        <div>Points de talent : <span id="skill-tp">0</span></div>
+        <div id="skill-tree-branches" style="margin-top:5px;"></div>
     </div>
 
     <div class="pane">
         <h3>TAVERNE</h3>
         <div id="chat-box"></div>
-        <input type="text" id="chat-in" placeholder="Message..." onkeydown="if(event.key==='Enter') sendChat()">
-    </div>
-
-    <div class="pane">
-        <h3>LES PLUS RECHERCHÉS</h3>
-        <div id="leaderboard-list"></div>
+        <input id="chat-input" placeholder="Message..." onkeydown="if(event.key==='Enter') sendChat()">
     </div>
 </div>
 
-<!-- ADMIN PANEL -->
-<div id="admin-panel" class="hidden">
-    <button onclick="this.parentElement.classList.add('hidden')" style="background:red; color:white; width:auto; float:right;">X</button>
-    <h2 style="font-family:Cinzel">PANTHÉON – CONTRÔLE DU MONDE</h2>
+<div id="modo-panel" class="hidden">
+    <button onclick="closeModoPanel()" style="float:right; background:red; color:white; width:auto;">X</button>
+    <h2 style="font-family:Cinzel;">PANTHÉON — PANEL MODO</h2>
+    <h3>Donner des Berries</h3>
+    <input id="modo-target" placeholder="Nom du joueur">
+    <input id="modo-amount" placeholder="Montant">
+    <button onclick="modoGiveBerries()">DONNER</button>
 
-    <h3>ÉVÉNEMENT RP</h3>
-    <select id="adm-ev">
-        <option value="marineford">Marineford (x2)</option>
-        <option value="buster_call">Buster Call (x0.5)</option>
-    </select>
-    <button onclick="startEvent()">LANCER</button>
+    <h3>Kick joueur</h3>
+    <input id="modo-kick-target" placeholder="Nom du joueur">
+    <button onclick="modoKick()">KICK</button>
 
-    <h3>QUÊTE</h3>
-    <input id="adm-q-t" placeholder="Titre">
-    <input id="adm-q-g" placeholder="Objectif">
-    <input id="adm-q-r" placeholder="Récompense ฿">
-    <select id="adm-q-type">
-        <option value="pillage">Pillage</option>
-        <option value="train">Entraînement</option>
-    </select>
-    <button onclick="startQuest()">ACTIVER</button>
-
-    <h3>MODÉRATEURS</h3>
-    <input id="mod-name" placeholder="Nom">
-    <input id="mod-perms" placeholder="Permissions (ex: start_event,edit_player)">
-    <button onclick="addMod()">AJOUTER</button>
-    <button onclick="removeMod()">RETIRER</button>
-
-    <h3>BANNIR / DÉBANNIR</h3>
-    <input id="ban-name" placeholder="Nom du joueur">
-    <button onclick="ban()">BANNIR</button>
-    <button onclick="unban()">DÉBANNIR</button>
-
-    <h3>MODIFIER JOUEUR</h3>
-    <input id="edit-name" placeholder="Nom">
-    <input id="edit-berries" placeholder="Berries">
-    <input id="edit-xp" placeholder="XP">
-    <input id="edit-bounty" placeholder="Prime">
-    <button onclick="editPlayer()">APPLIQUER</button>
-
-    <h3>LOGS ADMIN</h3>
-    <div id="admin-log" style="background:#0002; padding:10px; height:150px; overflow-y:auto; border:1px solid #333;"></div>
+    <h3>Logs</h3>
+    <div id="modo-log" style="background:#0002; padding:8px; height:150px; overflow-y:auto; border:1px solid #333;"></div>
 </div>
-
-<button onclick="adminLogin()" style="position:fixed; bottom:5px; right:5px; opacity:0.2; width:auto; font-size:10px;">ADMIN</button>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const socket = io();
+let currentPlayer = null;
 let cooldownTimers = {};
 
-// IMAGE FACTION
-function updateFactionImage() {
-    const f = document.getElementById("reg-faction").value;
-    document.getElementById("faction-img").src = "img/" + f + ".png";
+function register() {
+    const name = document.getElementById("auth-name").value.trim();
+    const pass = document.getElementById("auth-pass").value.trim();
+    const faction = document.getElementById("auth-faction").value;
+    const classe = document.getElementById("auth-class").value;
+    socket.emit('auth:register', { name, password: pass, faction, classe });
 }
 
-// AUTH
-function register() {
-    socket.emit('auth:register', {
-        name: document.getElementById("reg-name").value,
-        password: document.getElementById("reg-pass").value,
-        faction: document.getElementById("reg-faction").value
-    });
-}
 function login() {
-    socket.emit('auth:login', {
-        name: document.getElementById("reg-name").value,
-        password: document.getElementById("reg-pass").value,
-        faction: document.getElementById("reg-faction").value
-    });
+    const name = document.getElementById("auth-name").value.trim();
+    const pass = document.getElementById("auth-pass").value.trim();
+    socket.emit('auth:login', { name, password: pass });
 }
 
 socket.on('auth:success', ({ player }) => {
+    currentPlayer = player;
     document.getElementById("auth-screen").classList.add('hidden');
-    if (player) {
-        document.getElementById("game-ui").classList.remove('hidden');
-        updateUI(player);
-    } else {
-        document.getElementById("admin-panel").classList.remove('hidden');
-    }
+    document.getElementById("game-ui").classList.remove('hidden');
+    updateUI(player);
+    renderSkillTree(player.skillTree);
 });
-socket.on('auth:error', alert);
 
-// UI UPDATE
+socket.on('auth:error', (msg) => alert(msg));
+
 function updateUI(p) {
     document.getElementById("ui-name").innerText = p.name;
-    document.getElementById("ui-grade").innerText = p.grade;
-    document.getElementById("ui-berries").innerText = p.berries;
+    document.getElementById("ui-faction").innerText = p.faction;
+    document.getElementById("ui-class").innerText = p.classe;
+    document.getElementById("ui-level").innerText = p.level;
     document.getElementById("ui-xp").innerText = p.xp;
+    document.getElementById("ui-berries").innerText = p.berries;
+    document.getElementById("ui-bounty").innerText = p.bounty || 0;
+    document.getElementById("skill-tp").innerText = p.skillTree.talentPoints;
+    currentPlayer = p;
+    renderSkillTree(p.skillTree);
+    renderQuests(p);
 }
 
-// ACTIONS
-function doTrain() { socket.emit('action:train'); }
-function doPillage() { socket.emit('action:pillage'); }
+socket.on('player:update', (p) => {
+    updateUI(p);
+});
 
-socket.on('action:result', d => addLog(d.text));
-socket.on('action:cooldown', ({ action, remaining }) => startCooldown(action, remaining));
-
-function addLog(t) {
+function addLog(text) {
+    const box = document.getElementById("log-box");
     const div = document.createElement('div');
     div.className = "log-entry";
-    div.innerText = t;
-    const box = document.getElementById("log-box");
+    div.innerText = text;
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
 }
 
+// ACTIONS
+function doTrain() {
+    socket.emit('action:train');
+}
+function doFactionQuest() {
+    socket.emit('action:quest_progress', { type: "faction" });
+}
+function doClassQuest() {
+    socket.emit('action:quest_progress', { type: "class" });
+}
+
+socket.on('action:result', (d) => addLog(d.text));
+socket.on('action:cooldown', ({ action, remaining }) => startCooldown(action, remaining));
+
 function startCooldown(action, ms) {
-    const btn = document.getElementById("btn-" + action);
+    const btnId = action === "train" ? "btn-train" :
+                  action === "quest" ? null : null;
+    if (!btnId) return;
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+
+    if (cooldownTimers[action]) clearInterval(cooldownTimers[action]);
     let sec = Math.ceil(ms / 1000);
-    btn.disabled = true;
     const base = btn.innerText;
+    btn.disabled = true;
 
     cooldownTimers[action] = setInterval(() => {
         btn.innerText = `${base} (${sec}s)`;
@@ -239,90 +253,116 @@ function startCooldown(action, ms) {
     }, 1000);
 }
 
+// QUÊTES
+function requestFactionQuest() {
+    socket.emit('quest:request_faction');
+}
+function requestClassQuest() {
+    socket.emit('quest:request_class');
+}
+
+socket.on('quest:faction_update', (q) => {
+    const info = document.getElementById("faction-quest-info");
+    info.innerText = `${q.title} — ${q.progress}/${q.goal} (Récompense: ${q.rewardBerries} ฿, ${q.rewardXP} XP)`;
+});
+socket.on('quest:class_update', (q) => {
+    const info = document.getElementById("class-quest-info");
+    info.innerText = `${q.title} — ${q.progress}/${q.goal} (Récompense: ${q.rewardXP} XP, ${q.rewardTalent} PT)`;
+});
+
+function renderQuests(p) {
+    const fq = p.factionQuest;
+    const cq = p.classQuest;
+    const fInfo = document.getElementById("faction-quest-info");
+    const cInfo = document.getElementById("class-quest-info");
+    fInfo.innerText = fq ? `${fq.title} — ${fq.progress}/${fq.goal} (Récompense: ${fq.rewardBerries} ฿, ${fq.rewardXP} XP)` : "Aucune quête active.";
+    cInfo.innerText = cq ? `${cq.title} — ${cq.progress}/${cq.goal} (Récompense: ${cq.rewardXP} XP, ${cq.rewardTalent} PT)` : "Aucune quête active.";
+}
+
+// SKILL TREE
+function renderSkillTree(tree) {
+    const container = document.getElementById("skill-tree-branches");
+    container.innerHTML = "";
+    if (!tree || !tree.branches) return;
+    Object.keys(tree.branches).forEach(branch => {
+        const lvl = tree.branches[branch];
+        const row = document.createElement('div');
+        const label = document.createElement('span');
+        label.innerText = `${branch} : ${lvl}/${tree.maxLevel}`;
+        const btn = document.createElement('button');
+        btn.innerText = "+";
+        btn.style.width = "40px";
+        btn.onclick = () => upgradeSkill(branch);
+        row.appendChild(label);
+        row.appendChild(btn);
+        container.appendChild(row);
+    });
+    document.getElementById("skill-tp").innerText = tree.talentPoints;
+}
+
+function upgradeSkill(branch) {
+    socket.emit('skill:upgrade', { branch });
+}
+
+socket.on('skill:update', (tree) => {
+    if (!currentPlayer) return;
+    currentPlayer.skillTree = tree;
+    renderSkillTree(tree);
+    document.getElementById("skill-tp").innerText = tree.talentPoints;
+});
+
+socket.on('skill:error', (msg) => alert(msg));
+
 // CHAT
 function sendChat() {
-    socket.emit('chat:send', { text: document.getElementById("chat-in").value });
-    document.getElementById("chat-in").value = "";
+    const input = document.getElementById("chat-input");
+    const text = input.value.trim();
+    if (!text) return;
+    socket.emit('chat:send', { text });
+    input.value = "";
 }
-socket.on('chat:message', m => {
+socket.on('chat:message', (m) => {
+    const box = document.getElementById("chat-box");
     const div = document.createElement('div');
     div.className = "msg";
     div.innerHTML = `<b>${m.author}:</b> ${m.text}`;
-    const box = document.getElementById("chat-box");
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
 });
 
-// EVENTS
-socket.on('event:update', ev => {
-    const b = document.getElementById("event-banner");
-    b.innerText = `🌊 ${ev.name} (x${ev.multiplier})`;
-    b.style.background = ev.color;
-});
-
-// QUEST
-socket.on('quest:update', q => {
-    if (!q.active) return;
-    document.getElementById("q-title-disp").innerText = q.title;
-    document.getElementById("q-count-disp").innerText = `${q.progress}/${q.goal}`;
-    document.getElementById("quest-prog-fill").style.width = (q.progress / q.goal * 100) + "%";
-});
-
-// LEADERBOARD
-socket.on('leaderboard:update', list => {
-    document.getElementById("leaderboard-list").innerHTML = list.map((p,i)=>`
-        <div>#${i+1} <b>${p.name}</b> — ${p.bounty} ฿</div>
-    `).join("");
-});
-
-// ADMIN
-function adminLogin() {
-    const code = prompt("Code admin :");
-    socket.emit('admin:login', code);
+// MODO
+function askModoCode() {
+    const code = prompt("Code Modo :");
+    if (!code) return;
+    socket.emit('modo:login', code);
 }
-socket.on('admin:success', () => document.getElementById("admin-panel").classList.remove('hidden'));
-socket.on('admin:log', t => {
+socket.on('modo:success', () => {
+    document.getElementById("modo-panel").classList.remove('hidden');
+});
+socket.on('modo:fail', () => alert("Code incorrect."));
+socket.on('modo:log', (txt) => {
+    const box = document.getElementById("modo-log");
     const div = document.createElement('div');
-    div.innerText = t;
-    const box = document.getElementById("admin-log");
+    div.innerText = txt;
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
 });
 
-// ADMIN ACTIONS
-function startEvent() {
-    socket.emit('admin:start_rp_event', { scenario: document.getElementById("adm-ev").value });
+function closeModoPanel() {
+    document.getElementById("modo-panel").classList.add('hidden');
 }
-function startQuest() {
-    socket.emit('admin:start_quest', {
-        title: document.getElementById("adm-q-t").value,
-        goal: document.getElementById("adm-q-g").value,
-        reward: document.getElementById("adm-q-r").value,
-        type: document.getElementById("adm-q-type").value
-    });
+
+function modoGiveBerries() {
+    const target = document.getElementById("modo-target").value.trim();
+    const amount = parseInt(document.getElementById("modo-amount").value);
+    if (!target || isNaN(amount)) return;
+    socket.emit('modo:give_berries', { target, amount });
 }
-function addMod() {
-    socket.emit('admin:add_moderator', {
-        name: document.getElementById("mod-name").value,
-        perms: document.getElementById("mod-perms").value.split(',')
-    });
-}
-function removeMod() {
-    socket.emit('admin:remove_moderator', { name: document.getElementById("mod-name").value });
-}
-function ban() {
-    socket.emit('admin:ban', { name: document.getElementById("ban-name").value });
-}
-function unban() {
-    socket.emit('admin:unban', { name: document.getElementById("ban-name").value });
-}
-function editPlayer() {
-    socket.emit('admin:edit_player', {
-        name: document.getElementById("edit-name").value,
-        berries: parseInt(document.getElementById("edit-berries").value),
-        xp: parseInt(document.getElementById("edit-xp").value),
-        bounty: parseInt(document.getElementById("edit-bounty").value)
-    });
+
+function modoKick() {
+    const target = document.getElementById("modo-kick-target").value.trim();
+    if (!target) return;
+    socket.emit('modo:kick', { target });
 }
 </script>
 </body>
