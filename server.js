@@ -1,113 +1,173 @@
-'use strict';
-require('dotenv').config();
 const express = require('express');
 const http = require('http');
-const path = require('path');
-const mongoose = require('mongoose');
 const { Server } = require('socket.io');
-
-const { Player } = require('./models');
-const combat = require('./combat');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
-
-const PORT = process.env.PORT || 10000;
-const MONGO_URI = process.env.MONGODB_URI;
-const ACTION_CD = 3000; // 3 secondes de cooldown
-
-const onlineMap = new Map(); // socket.id -> { name, faction }
-const cdMap = new Map(); // name -> lastActionTimestamp
+const io = new Server(server, { cors: { origin: "*" } });
 
 app.use(express.static(path.join(__dirname)));
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('⚓ Moteur V2 branché et opérationnel sur le port ' + PORT))
-    .catch(e => console.error('[DB ERROR]', e));
-
-// Helpers
-const isOnCd = (name) => cdMap.has(name) && Date.now() - cdMap.get(name) < ACTION_CD;
-const setCd = (name) => cdMap.set(name, Date.now());
-
-async function broadcastLeaderboard() {
-    const top = await Player.find({ adminLevel: 0 }).sort({ bounty: -1 }).limit(25);
-    io.emit('leaderboard:update', top.map(p => combat.sanitize(p)));
-}
+// --- DONNÉES DU MONDE ---
+let players = {};
+let currentEvent = { name: "Aucun", multiplier: 1, color: "#c9a84c" };
+let currentQuest = { active: false, title: "", goal: 0, progress: 0, type: "", reward: 0 };
+const ADMIN_PASSWORD = "OPRP"; // Mot de passe admin par défaut
 
 io.on('connection', (socket) => {
-    socket.on('auth:login', async (data) => {
-        const p = await Player.findOne({ name: data.name });
-        if (!p || !(await p.checkPassword(data.password))) return socket.emit('auth:error', 'Identifiants invalides');
-        _connectPlayer(socket, p);
-    });
+    console.log(`⚓ Nouveau marin : ${socket.id}`);
 
-    socket.on('auth:register', async (data) => {
-        const exists = await Player.findOne({ name: data.name });
-        if (exists) return socket.emit('auth:error', 'Ce nom est déjà gravé sur une stèle');
-        const p = new Player({ name: data.name, passwordHash: data.password, faction: data.faction });
-        await p.save();
-        _connectPlayer(socket, p);
-    });
+    // Synchro initiale
+    socket.emit('event:update', currentEvent);
+    socket.emit('quest:update', currentQuest);
 
-    socket.on('action:train', async () => {
-        if (!socket.playerName || isOnCd(socket.playerName)) return;
-        setCd(socket.playerName);
-        const p = await Player.findOne({ name: socket.playerName });
-        if (!p || p.isJailed) return;
-        p.xp += 25; p.bounty += 500;
-        p.refreshGrade(); await p.save();
-        socket.emit('player:update', combat.sanitize(p));
-        broadcastLeaderboard();
-    });
-
-    socket.on('action:pillage', async () => {
-        if (!socket.playerName || isOnCd(socket.playerName)) return;
-        setCd(socket.playerName);
-        const p = await Player.findOne({ name: socket.playerName });
-        if (!p || p.isJailed) return;
-        p.berries += 2000; p.bounty += 1000; p.wantedLevel = Math.min(3, p.wantedLevel + 1);
-        const arrested = await combat.checkArrest(p);
-        await p.save();
-        if (arrested) io.emit('chat:message', { author: 'Système', text: `🚨 ${p.name} a été jeté au cachot !`, isSystem: true });
-        socket.emit('player:update', combat.sanitize(p));
-        broadcastLeaderboard();
-    });
-
-    socket.on('action:betray', async () => {
-        if (!socket.playerName) return;
-        const p = await Player.findOne({ name: socket.playerName });
-        if (!p || p.isTraitor) return;
-        p.isTraitor = true; p.bounty = Math.floor(p.bounty * 0.5);
-        // Change de camp
-        p.faction = p.faction === 'marine' ? 'pirate' : 'revolutionnaire';
-        await p.save();
-        socket.emit('player:update', combat.sanitize(p));
-        io.emit('chat:message', { author: 'Système', text: `⚖️ ${p.name} a choisi la trahison !`, isSystem: true });
-        broadcastLeaderboard();
-    });
-
-    socket.on('chat:send', (data) => {
-        if (!socket.playerName) return;
-        const msg = { author: socket.playerName, text: data.text, channel: data.channel };
-        if (data.channel === 'global') {
-            io.emit('chat:message', msg);
-        } else {
-            for (let [id, user] of onlineMap) {
-                if (user.faction === data.channel) io.to(id).emit('chat:message', msg);
+    // --- AUTHENTIFICATION ---
+    socket.on('auth:register', (data) => {
+        // Panthéon = vue modo RP, pas un joueur
+        if (data.faction === "pantheon") {
+            if (data.password === ADMIN_PASSWORD) {
+                socket.join('admin_room');
+                socket.emit('admin:success', { players: Object.values(players) });
+                console.log(`🟣 Accès Panthéon pour ${data.name}`);
+            } else {
+                socket.emit('auth:error', "Code Panthéon incorrect.");
             }
+            return;
+        }
+
+        if (!data.name || players[data.name]) {
+            return socket.emit('auth:error', "Nom déjà pris ou invalide !");
+        }
+
+        players[data.name] = {
+            id: socket.id,
+            name: data.name,
+            password: data.password,
+            faction: data.faction,
+            berries: 1000,
+            xp: 0,
+            grade: "Mousse",
+            bounty: 0
+        };
+
+        console.log(`📝 Nouveau joueur : ${data.name} [${data.faction}]`);
+        socket.emit('auth:success', { player: players[data.name] });
+        updateLeaderboard();
+    });
+
+    socket.on('auth:login', (data) => {
+        // Connexion Panthéon
+        if (data.faction === "pantheon") {
+            if (data.password === ADMIN_PASSWORD) {
+                socket.join('admin_room');
+                socket.emit('admin:success', { players: Object.values(players) });
+                console.log(`🟣 Connexion Panthéon : ${data.name}`);
+            } else {
+                socket.emit('auth:error', "Code Panthéon incorrect.");
+            }
+            return;
+        }
+
+        const p = players[data.name];
+        if (p && p.password === data.password) {
+            p.id = socket.id;
+            socket.emit('auth:success', { player: p });
+            console.log(`🔑 Connexion joueur : ${data.name}`);
+        } else {
+            socket.emit('auth:error', "Identifiants invalides.");
         }
     });
 
-    socket.on('disconnect', () => onlineMap.delete(socket.id));
+    // --- ACTIONS JEU ---
+    socket.on('action:train', () => {
+        const p = Object.values(players).find(pl => pl.id === socket.id);
+        if (!p) return;
+        p.xp += 10;
+        if (p.xp >= 100) p.grade = "Matelot";
+        if (currentQuest.active && currentQuest.type === 'train') updateQuest(1);
+        socket.emit('player:update', p);
+    });
+
+    socket.on('action:pillage', () => {
+        const p = Object.values(players).find(pl => pl.id === socket.id);
+        if (!p) return;
+        let gain = (Math.floor(Math.random() * 200) + 50) * currentEvent.multiplier;
+        p.berries += Math.floor(gain);
+        p.bounty += Math.floor(gain / 2);
+        if (currentQuest.active && currentQuest.type === 'pillage') updateQuest(1);
+        socket.emit('player:update', p);
+        updateLeaderboard();
+    });
+
+    // --- CHAT ---
+    socket.on('chat:send', (data) => {
+        const p = Object.values(players).find(pl => pl.id === socket.id);
+        if (!p) return;
+        const payload = { author: p.name, text: data.text, channel: data.channel };
+        io.emit('chat:message', payload);
+    });
+
+    // --- ADMIN ---
+    socket.on('admin:login', (pass) => {
+        if (pass === ADMIN_PASSWORD) {
+            socket.join('admin_room');
+            socket.emit('admin:success', { players: Object.values(players) });
+            console.log("🟣 Accès admin via code.");
+        } else {
+            socket.emit('auth:error', "Code admin incorrect.");
+        }
+    });
+
+    socket.on('admin:start_rp_event', (data) => {
+        let s = { name: "Normal", mult: 1, color: "#c9a84c", msg: "Le monde est calme." };
+        if (data.scenario === 'marineford') s = { name: "Guerre de Marineford", mult: 2, color: "#7f1d1d", msg: "🔥 MARINEFORD ! Les primes doublent !" };
+        if (data.scenario === 'buster_call') s = { name: "Buster Call", mult: 0.5, color: "#1a1a1a", msg: "🐚 Buster Call ! Le pillage est risqué." };
+
+        currentEvent = { name: s.name, multiplier: s.mult, color: s.color };
+        io.emit('event:update', currentEvent);
+        io.emit('chat:message', { author: "SYSTÈME", text: s.msg, channel: "global" });
+    });
+
+    socket.on('admin:start_quest', (data) => {
+        currentQuest = {
+            active: true,
+            title: data.title,
+            goal: parseInt(data.goal),
+            progress: 0,
+            type: data.type,
+            reward: parseInt(data.reward)
+        };
+        io.emit('quest:update', currentQuest);
+        io.emit('chat:message', { author: "QUÊTE", text: `Nouvelle quête : ${currentQuest.title}`, channel: "global" });
+    });
+
+    socket.on('disconnect', () => {
+        console.log("👋 Départ d'un marin");
+    });
 });
 
-function _connectPlayer(socket, player) {
-    socket.playerName = player.name;
-    onlineMap.set(socket.id, { name: player.name, faction: player.faction });
-    socket.emit('auth:success', { player: combat.sanitize(player) });
-    broadcastLeaderboard();
+function updateQuest(val) {
+    if (!currentQuest.active) return;
+    currentQuest.progress += val;
+    io.emit('quest:update', currentQuest);
+    if (currentQuest.progress >= currentQuest.goal) {
+        io.emit('chat:message', { author: "QUÊTE", text: `VICTOIRE ! ${currentQuest.reward}฿ pour tous !`, channel: "global" });
+        Object.values(players).forEach(p => {
+            p.berries += currentQuest.reward;
+            io.to(p.id).emit('player:update', p);
+        });
+        currentQuest.active = false;
+        io.emit('quest:update', currentQuest);
+    }
 }
 
-server.listen(PORT);
+function updateLeaderboard() {
+    const list = Object.values(players)
+        .sort((a, b) => b.bounty - a.bounty)
+        .slice(0, 10);
+    io.emit('leaderboard:update', list);
+}
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`⚓ Serveur prêt sur le port ${PORT}`));
