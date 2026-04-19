@@ -1,9 +1,5 @@
-/* ===========================
-   RESET & BASE
-=========================== */
-* {
-    box-sizing: border-box;
-}
+/* RESET */
+* { box-sizing: border-box; }
 
 body {
     margin: 0;
@@ -15,13 +11,12 @@ body {
 }
 
 /* ===========================
-   FONDS MODULABLES — DÉFINITIF
+   FONDS MODULABLES — FINAL
 =========================== */
 
 /* LOGIN : carte + sépia */
 body.theme-login {
     --text: #2b1a0b;
-
     background:
         linear-gradient(rgba(180,150,100,0.55), rgba(180,150,100,0.55)),
         url("assets/backgrounds/login-map.jpg") center/cover no-repeat fixed;
@@ -33,7 +28,6 @@ body.theme-marine {
     --border: #d9c47a;
     --accent: #e0c97f;
     --tab-color: #3b6ea8;
-
     background:
         linear-gradient(rgba(60,110,160,0.65), rgba(60,110,160,0.65)),
         url("assets/textures/wood-light.jpg") center/cover repeat fixed;
@@ -45,7 +39,6 @@ body.theme-pirate {
     --border: #a13a3a;
     --accent: #d24a4a;
     --tab-color: #b3362f;
-
     background:
         linear-gradient(rgba(150,40,40,0.65), rgba(150,40,40,0.65)),
         url("assets/textures/wood-light.jpg") center/cover repeat fixed;
@@ -57,7 +50,6 @@ body.theme-revo {
     --border: #5f8f6a;
     --accent: #8fd49a;
     --tab-color: #4a8b5a;
-
     background:
         linear-gradient(rgba(40,120,70,0.65), rgba(40,120,70,0.65)),
         url("assets/textures/wood-light.jpg") center/cover repeat fixed;
@@ -78,7 +70,6 @@ body.theme-revo {
     padding: 12px;
 }
 
-/* Auth panel plus compact */
 .panel-auth {
     max-width: 420px;
     margin: 40px auto;
@@ -201,39 +192,18 @@ body.theme-revo {
     background-size: 18px 18px;
 }
 
-/* Icônes RP par onglet (style encre/manga) */
-.tab-btn[data-tab="profil"] {
-    background-image: url("assets/icons/profil-ink.png");
-}
-.tab-btn[data-tab="quetes"] {
-    background-image: url("assets/icons/quest-ink.png");
-}
-.tab-btn[data-tab="skills"] {
-    background-image: url("assets/icons/skills-ink.png");
-}
-.tab-btn[data-tab="events"] {
-    background-image: url("assets/icons/events-ink.png");
-}
-.tab-btn[data-tab="journal"] {
-    background-image: url("assets/icons/journal-ink.png");
-}
-.tab-btn[data-tab="taverne"] {
-    background-image: url("assets/icons/tavern-ink.png");
-}
+/* Icônes RP */
+.tab-btn[data-tab="profil"] { background-image: url("assets/icons/profil-ink.png"); }
+.tab-btn[data-tab="quetes"] { background-image: url("assets/icons/quest-ink.png"); }
+.tab-btn[data-tab="skills"] { background-image: url("assets/icons/skills-ink.png"); }
+.tab-btn[data-tab="events"] { background-image: url("assets/icons/events-ink.png"); }
+.tab-btn[data-tab="journal"] { background-image: url("assets/icons/journal-ink.png"); }
+.tab-btn[data-tab="taverne"] { background-image: url("assets/icons/tavern-ink.png"); }
 
-/* Couleur d’accent par faction */
-body.theme-marine .tab-btn.active {
-    background-color: var(--tab-color);
-    color: #f5f7fb;
-}
-body.theme-pirate .tab-btn.active {
-    background-color: var(--tab-color);
-    color: #fdf3f1;
-}
-body.theme-revo .tab-btn.active {
-    background-color: var(--tab-color);
-    color: #f4fff7;
-}
+/* Couleur active par faction */
+body.theme-marine .tab-btn.active { background-color: var(--tab-color); color: #f5f7fb; }
+body.theme-pirate .tab-btn.active { background-color: var(--tab-color); color: #fdf3f1; }
+body.theme-revo .tab-btn.active { background-color: var(--tab-color); color: #f4fff7; }
 
 .tab-btn.active {
     box-shadow: 0 0 12px rgba(0,0,0,0.5);
@@ -316,21 +286,11 @@ body.theme-revo .tab-btn.active {
     filter: drop-shadow(0 0 6px rgba(0,0,0,0.4));
 }
 
-/* Emblèmes par faction */
-body.theme-marine #faction-emblem {
-    background-image: url("assets/emblems/marine.png");
-}
-body.theme-pirate #faction-emblem {
-    background-image: url("assets/emblems/pirate.png");
-}
-body.theme-revo #faction-emblem {
-    background-image: url("assets/emblems/revo.png");
-}
+body.theme-marine #faction-emblem { background-image: url("assets/emblems/marine.png"); }
+body.theme-pirate #faction-emblem { background-image: url("assets/emblems/pirate.png"); }
+body.theme-revo #faction-emblem { background-image: url("assets/emblems/revo.png"); }
 
-/* Pas d’emblème sur login */
-body.theme-login #faction-emblem {
-    display: none;
-}
+body.theme-login #faction-emblem { display: none; }
 
 @keyframes emblemFadeIn {
     0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
