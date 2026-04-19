@@ -2,43 +2,55 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Grand Line RPG V3</title>
+    <title>Grand Line RPG</title>
+
+    <!-- Polices RP -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Special+Elite&display=swap" rel="stylesheet">
+
+    <!-- Style principal -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="theme-login">
 
+<!-- Emblème watermark -->
 <div id="faction-emblem"></div>
 
-<div id="auth-screen">
-    <h1 class="title-main">GRAND LINE V3</h1>
+<!-- ÉCRAN DE CONNEXION -->
+<div id="auth-screen" class="panel panel-auth">
+    <h1 class="title-main">GRAND LINE RPG</h1>
 
-    <input id="auth-name" placeholder="Nom du personnage">
-    <input id="auth-pass" type="password" placeholder="Mot de passe">
+    <div class="auth-fields">
+        <input id="auth-name" placeholder="Nom du personnage">
+        <input id="auth-pass" type="password" placeholder="Mot de passe">
 
-    <select id="auth-faction">
-        <option value="pirate">🏴‍☠️ Pirate</option>
-        <option value="marine">🛡️ Marine</option>
-        <option value="revolutionnaire">🐉 Révolutionnaire</option>
-    </select>
+        <select id="auth-faction">
+            <option value="pirate">🏴‍☠️ Pirate</option>
+            <option value="marine">🛡️ Marine</option>
+            <option value="revolutionnaire">🐉 Révolutionnaire</option>
+        </select>
 
-    <select id="auth-class">
-        <option value="Guerrier">⚔️ Guerrier</option>
-        <option value="Tireur">🎯 Tireur</option>
-        <option value="Navigateur">🧭 Navigateur</option>
-        <option value="Médecin">🧪 Médecin</option>
-        <option value="Charpentier">🔧 Charpentier</option>
-        <option value="Espion">🕵️ Espion</option>
-        <option value="Artiste Martial">🥋 Artiste Martial</option>
-    </select>
+        <select id="auth-class">
+            <option value="Guerrier">⚔️ Guerrier</option>
+            <option value="Tireur">🎯 Tireur</option>
+            <option value="Navigateur">🧭 Navigateur</option>
+            <option value="Médecin">🧪 Médecin</option>
+            <option value="Charpentier">🔧 Charpentier</option>
+            <option value="Espion">🕵️ Espion</option>
+            <option value="Artiste Martial">🥋 Artiste Martial</option>
+        </select>
+    </div>
 
-    <button class="btn" onclick="register()">S'INSCRIRE</button>
-    <button class="btn btn-secondary" onclick="login()">SE CONNECTER</button>
+    <div class="auth-buttons">
+        <button class="btn" onclick="register()">S'INSCRIRE</button>
+        <button class="btn btn-secondary" onclick="login()">SE CONNECTER</button>
+    </div>
 </div>
 
+<!-- INTERFACE DE JEU -->
 <div id="game-ui" class="hidden">
 
-    <div class="stats-bar">
+    <!-- BARRE DE STATS -->
+    <div class="stats-bar panel">
         <div>
             <b id="ui-name"></b> — <span id="ui-faction"></span> / <span id="ui-class"></span><br>
             Niveau <span id="ui-level"></span> — <span id="ui-xp"></span> XP
@@ -52,21 +64,24 @@
         </div>
     </div>
 
+    <!-- TABS -->
     <div id="tabs">
-        <button class="tab-btn active" onclick="openTab('profil', this)">Profil</button>
-        <button class="tab-btn" onclick="openTab('quetes', this)">Quêtes</button>
-        <button class="tab-btn" onclick="openTab('skills', this)">Compétences</button>
-        <button class="tab-btn" onclick="openTab('events', this)">Événements</button>
-        <button class="tab-btn" onclick="openTab('journal', this)">Journal</button>
-        <button class="tab-btn" onclick="openTab('taverne', this)">Taverne</button>
+        <button class="tab-btn active" data-tab="profil" onclick="openTab('profil', this)">Profil</button>
+        <button class="tab-btn" data-tab="quetes" onclick="openTab('quetes', this)">Quêtes</button>
+        <button class="tab-btn" data-tab="skills" onclick="openTab('skills', this)">Compétences</button>
+        <button class="tab-btn" data-tab="events" onclick="openTab('events', this)">Événements</button>
+        <button class="tab-btn" data-tab="journal" onclick="openTab('journal', this)">Journal</button>
+        <button class="tab-btn" data-tab="taverne" onclick="openTab('taverne', this)">Taverne</button>
     </div>
 
+    <!-- PROFIL -->
     <div id="tab-profil" class="tab">
         <h3>Profil & Actions</h3>
         <button id="btn-train" class="btn" onclick="doTrain()">🏋️ S'ENTRAÎNER</button>
         <div id="log-box" class="box"></div>
     </div>
 
+    <!-- QUÊTES -->
     <div id="tab-quetes" class="tab hidden">
         <h3>Quêtes de Faction</h3>
         <div id="faction-quest-info" class="info-line"></div>
@@ -79,12 +94,14 @@
         <button class="btn" onclick="doClassQuest()">Progresser quête de classe</button>
     </div>
 
+    <!-- COMPÉTENCES -->
     <div id="tab-skills" class="tab hidden">
         <h3>Arbre de compétences</h3>
         <div>Points de talent : <span id="skill-tp">0</span></div>
         <div id="skill-tree-branches" class="skills-container"></div>
     </div>
 
+    <!-- ÉVÉNEMENTS -->
     <div id="tab-events" class="tab hidden">
         <h3>Événement en cours</h3>
         <div id="current-event" class="box">Aucun événement actif.</div>
@@ -93,11 +110,13 @@
         <div id="event-history" class="box"></div>
     </div>
 
+    <!-- JOURNAL -->
     <div id="tab-journal" class="tab hidden">
         <h3>Journal</h3>
         <div id="journal-box" class="box"></div>
     </div>
 
+    <!-- TAVERNE -->
     <div id="tab-taverne" class="tab hidden">
         <h3>Taverne</h3>
         <div id="chat-box" class="box"></div>
@@ -105,7 +124,8 @@
     </div>
 </div>
 
-<div id="modo-panel" class="hidden panel-modo">
+<!-- PANEL MODO -->
+<div id="modo-panel" class="hidden panel panel-modo">
     <button class="btn btn-close" onclick="closeModoPanel()">X</button>
     <h2 class="title-modo">PANTHÉON — PANEL ADMIN</h2>
 
