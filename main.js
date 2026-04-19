@@ -1,8 +1,6 @@
 const socket = io();
 
-/* ===========================
-   AUTH
-=========================== */
+/* AUTH */
 
 function register() {
     const name = document.getElementById("auth-name").value;
@@ -27,12 +25,24 @@ socket.on("auth:error", (msg) => {
 socket.on("auth:success", ({ player }) => {
     document.getElementById("auth-screen").classList.add("hidden");
     document.getElementById("game-ui").classList.remove("hidden");
+
+    document.body.className = ""; // enlève theme-login
+    applyFactionTheme(player.faction);
+
     updateUI(player);
 });
 
-/* ===========================
-   UI UPDATE
-=========================== */
+/* THEMES FACTION */
+
+function applyFactionTheme(faction) {
+    document.body.className = "";
+
+    if (faction === "marine") document.body.classList.add("theme-marine");
+    if (faction === "pirate") document.body.classList.add("theme-pirate");
+    if (faction === "revolutionnaire") document.body.classList.add("theme-revo");
+}
+
+/* UI UPDATE */
 
 function updateUI(p) {
     document.getElementById("ui-name").textContent = p.name;
@@ -43,31 +53,10 @@ function updateUI(p) {
     document.getElementById("ui-berries").textContent = p.berries;
     document.getElementById("ui-bounty").textContent = p.bounty;
 
-    applyFactionTheme(p.faction);
-    updateSkillTree(p.skillTree);
+    if (p.skillTree) updateSkillTree(p.skillTree);
 }
 
-/* ===========================
-   THEMES FACTION + EMBLÈME
-=========================== */
-
-function applyFactionTheme(faction) {
-    document.body.classList.remove("theme-marine", "theme-pirate", "theme-revo");
-
-    if (faction === "marine") document.body.classList.add("theme-marine");
-    if (faction === "pirate") document.body.classList.add("theme-pirate");
-    if (faction === "revolutionnaire") document.body.classList.add("theme-revo");
-
-    // Reset animation de l’emblème
-    const emblem = document.getElementById("faction-emblem");
-    emblem.style.animation = "none";
-    void emblem.offsetWidth;
-    emblem.style.animation = "emblemFadeIn 1.8s ease-out forwards";
-}
-
-/* ===========================
-   TABS
-=========================== */
+/* TABS */
 
 function openTab(id, btn) {
     document.querySelectorAll(".tab").forEach(t => t.classList.add("hidden"));
@@ -77,9 +66,7 @@ function openTab(id, btn) {
     btn.classList.add("active");
 }
 
-/* ===========================
-   ACTIONS
-=========================== */
+/* ACTIONS */
 
 function doTrain() {
     socket.emit("action:train");
@@ -93,9 +80,7 @@ socket.on("action:cooldown", ({ action, remaining }) => {
     addLog(`⏳ ${action} encore ${Math.ceil(remaining / 1000)}s`);
 });
 
-/* ===========================
-   QUÊTES
-=========================== */
+/* QUÊTES */
 
 function requestFactionQuest() {
     socket.emit("quest:request_faction");
@@ -123,9 +108,7 @@ socket.on("quest:class_update", (q) => {
         `${q.title} — ${q.description} (${q.progress}/${q.goal})`;
 });
 
-/* ===========================
-   SKILLS
-=========================== */
+/* SKILLS */
 
 function updateSkillTree(tree) {
     document.getElementById("skill-tp").textContent = tree.talentPoints;
@@ -158,9 +141,7 @@ socket.on("skill:error", (msg) => {
     addLog(msg);
 });
 
-/* ===========================
-   CHAT
-=========================== */
+/* CHAT */
 
 function sendChat() {
     const input = document.getElementById("chat-input");
@@ -177,9 +158,7 @@ socket.on("chat:message", ({ author, text }) => {
     box.scrollTop = box.scrollHeight;
 });
 
-/* ===========================
-   EVENTS
-=========================== */
+/* EVENTS */
 
 socket.on("events:current", (ev) => {
     const box = document.getElementById("current-event");
@@ -198,9 +177,7 @@ socket.on("events:history", (list) => {
     });
 });
 
-/* ===========================
-   JOURNAL
-=========================== */
+/* JOURNAL / LOGS */
 
 function addLog(text) {
     const box = document.getElementById("log-box");
@@ -211,9 +188,7 @@ function addLog(text) {
     journal.innerHTML += `<div>${text}</div>`;
 }
 
-/* ===========================
-   MODO / ADMIN
-=========================== */
+/* MODO / ADMIN */
 
 function askModoCode() {
     const code = prompt("Code Modo ?");
@@ -237,8 +212,6 @@ socket.on("modo:log", (msg) => {
 function closeModoPanel() {
     document.getElementById("modo-panel").classList.add("hidden");
 }
-
-/* ADMIN ACTIONS */
 
 function adminSetGrade() {
     const target = document.getElementById("admin-grade-target").value;
