@@ -1,7 +1,3 @@
-/* ===========================
-   RESET SIMPLE
-=========================== */
-
 * {
     box-sizing: border-box;
 }
@@ -11,49 +7,47 @@ body {
     padding: 0;
     font-family: "Special Elite", serif;
     color: var(--text);
-    background-color: #05070b;
+    background-color: #000;
     transition: background 0.4s ease, color 0.4s ease;
 }
 
-/* ===========================
-   FOND GLOBAL RP
-=========================== */
+/* FONDS MODULABLES */
 
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
+body.theme-login {
+    --text: #f5f0e5;
     background:
-        radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 55%),
-        url("assets/backgrounds/grandline-sea.jpg") center/cover no-repeat;
-    opacity: 0.35;
-    z-index: -3;
+        linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+        url("assets/backgrounds/login-common.jpg") center/cover no-repeat fixed;
 }
 
-body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: url("assets/textures/parchment-soft.png") center/cover repeat;
-    mix-blend-mode: multiply;
-    opacity: 0.55;
-    z-index: -2;
+body.theme-marine {
+    --text: #f2f2e9;
+    --border: #e0c97f;
+    --accent: #e0c97f;
+    background:
+        linear-gradient(rgba(0,0,20,0.55), rgba(0,0,20,0.55)),
+        url("assets/backgrounds/marine-bg.jpg") center/cover no-repeat fixed;
 }
 
-/* ===========================
-   STRUCTURE GLOBALE
-=========================== */
-
-#auth-screen,
-#game-ui,
-#modo-panel {
-    position: relative;
-    z-index: 1;
+body.theme-pirate {
+    --text: #fbe6e0;
+    --border: #7a2a2a;
+    --accent: #c74444;
+    background:
+        linear-gradient(rgba(20,0,0,0.55), rgba(20,0,0,0.55)),
+        url("assets/backgrounds/pirate-bg.jpg") center/cover no-repeat fixed;
 }
 
-/* ===========================
-   TITRES
-=========================== */
+body.theme-revo {
+    --text: #e8ffe8;
+    --border: #6b8f71;
+    --accent: #9ccfa3;
+    background:
+        linear-gradient(rgba(0,20,0,0.55), rgba(0,20,0,0.55)),
+        url("assets/backgrounds/revo-bg.jpg") center/cover no-repeat fixed;
+}
+
+/* TITRES */
 
 .title-main {
     text-align: center;
@@ -70,9 +64,7 @@ body::after {
     margin-top: 0;
 }
 
-/* ===========================
-   FORMULAIRE AUTH
-=========================== */
+/* AUTH SCREEN */
 
 #auth-screen {
     max-width: 420px;
@@ -96,9 +88,7 @@ body::after {
     font-family: "Special Elite", serif;
 }
 
-/* ===========================
-   PANELS & BOXES
-=========================== */
+/* PANELS & BOXES */
 
 .box {
     background: rgba(15, 12, 8, 0.92);
@@ -107,7 +97,6 @@ body::after {
     margin: 10px 0;
     border-radius: 6px;
     box-shadow: 0 0 14px rgba(0,0,0,0.6);
-    backdrop-filter: blur(2px);
 }
 
 .box-modo {
@@ -115,9 +104,7 @@ body::after {
     overflow-y: auto;
 }
 
-/* ===========================
-   BOUTONS
-=========================== */
+/* BOUTONS */
 
 .btn {
     background: var(--accent, #e0c97f);
@@ -144,9 +131,7 @@ body::after {
     color: #f0f0f0;
 }
 
-/* ===========================
-   TABS
-=========================== */
+/* TABS */
 
 #tabs {
     display: flex;
@@ -181,9 +166,7 @@ body::after {
     display: block;
 }
 
-/* ===========================
-   STATS BAR
-=========================== */
+/* STATS BAR */
 
 .stats-bar {
     background: rgba(10, 8, 5, 0.95);
@@ -196,9 +179,7 @@ body::after {
     box-shadow: 0 4px 14px rgba(0,0,0,0.7);
 }
 
-/* ===========================
-   CHAT
-=========================== */
+/* CHAT */
 
 .chat-input {
     width: 100%;
@@ -210,9 +191,7 @@ body::after {
     font-family: "Special Elite", serif;
 }
 
-/* ===========================
-   PANEL ADMIN
-=========================== */
+/* PANEL MODO */
 
 .panel-modo {
     position: fixed;
@@ -247,9 +226,7 @@ body::after {
     right: 6px;
 }
 
-/* ===========================
-   EMBLÈME DE FACTION
-=========================== */
+/* EMBLÈME FACTION */
 
 #faction-emblem {
     position: fixed;
@@ -269,69 +246,26 @@ body::after {
 }
 
 @keyframes emblemFadeIn {
-    0% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.6);
-        filter: blur(6px);
-    }
-    60% {
-        opacity: 0.8;
-        transform: translate(-50%, -50%) scale(1.05);
-        filter: blur(1px);
-    }
-    100% {
-        opacity: 0.35;
-        transform: translate(-50%, -50%) scale(1);
-        filter: blur(0px);
-    }
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+    60% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
+    100% { opacity: 0.35; transform: translate(-50%, -50%) scale(1); }
 }
 
-/* ===========================
-   THEMES PAR FACTION
-=========================== */
+/* EMBLÈMES PAR FACTION */
 
-/* MARINE */
-.theme-marine {
-    --bg: #07121f;
-    --panel: #101c2b;
-    --border: #e0c97f;
-    --accent: #e0c97f;
-    --text: #f2f2e9;
-}
-
-.theme-marine #faction-emblem {
+body.theme-marine #faction-emblem {
     background-image: url("assets/emblems/marine.png");
 }
 
-/* PIRATE */
-.theme-pirate {
-    --bg: #120707;
-    --panel: #221010;
-    --border: #7a2a2a;
-    --accent: #c74444;
-    --text: #fbe6e0;
-}
-
-.theme-pirate #faction-emblem {
+body.theme-pirate #faction-emblem {
     background-image: url("assets/emblems/pirate.png");
 }
 
-/* RÉVOLUTIONNAIRE */
-.theme-revo {
-    --bg: #07140b;
-    --panel: #112219;
-    --border: #6b8f71;
-    --accent: #9ccfa3;
-    --text: #e8ffe8;
-}
-
-.theme-revo #faction-emblem {
+body.theme-revo #faction-emblem {
     background-image: url("assets/emblems/revo.png");
 }
 
-/* ===========================
-   UTILITAIRES
-=========================== */
+/* UTILITAIRE */
 
 .hidden {
     display: none !important;
