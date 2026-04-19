@@ -7,8 +7,8 @@ body {
     padding: 0;
     font-family: "Special Elite", serif;
 
-    /* Fond RP texturé */
-    background: var(--bg) url("assets/textures/dark-parchment.jpg");
+    /* Fond RP discret */
+    background: var(--bg) url("assets/textures/parchment-soft.png");
     background-size: cover;
     background-attachment: fixed;
 
@@ -21,7 +21,7 @@ body {
 =========================== */
 
 .box {
-    background: var(--panel) url("assets/textures/paper.jpg");
+    background: var(--panel) url("assets/textures/paper-fine.png");
     background-size: cover;
 
     border: 2px solid var(--border);
@@ -80,7 +80,7 @@ body {
 }
 
 .tab-btn {
-    background: var(--panel) url("assets/textures/paper.jpg");
+    background: var(--panel) url("assets/textures/paper-fine.png");
     background-size: cover;
 
     border: 2px solid var(--border);
@@ -114,7 +114,7 @@ body {
 =========================== */
 
 .stats-bar {
-    background: var(--panel) url("assets/textures/paper.jpg");
+    background: var(--panel) url("assets/textures/paper-fine.png");
     background-size: cover;
 
     border-bottom: 2px solid var(--border);
@@ -136,7 +136,7 @@ body {
     padding: 8px;
 
     border: 2px solid var(--border);
-    background: var(--panel) url("assets/textures/paper.jpg");
+    background: var(--panel) url("assets/textures/paper-fine.png");
     background-size: cover;
 
     color: var(--text);
@@ -154,7 +154,7 @@ body {
     width: 420px;
     transform: translate(-50%, -50%);
 
-    background: var(--panel) url("assets/textures/paper.jpg");
+    background: var(--panel) url("assets/textures/paper-fine.png");
     background-size: cover;
 
     border: 3px solid var(--border);
