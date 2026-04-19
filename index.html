@@ -3,21 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Grand Line RPG V3</title>
-
-    <!-- Polices RP -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Special+Elite&display=swap" rel="stylesheet">
-
-    <!-- Style principal -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="theme-login">
 
-<!-- EMBLÈME DE FACTION -->
 <div id="faction-emblem"></div>
 
-<!-- ===========================
-     ÉCRAN D'AUTHENTIFICATION
-=========================== -->
 <div id="auth-screen">
     <h1 class="title-main">GRAND LINE V3</h1>
 
@@ -44,29 +36,22 @@
     <button class="btn btn-secondary" onclick="login()">SE CONNECTER</button>
 </div>
 
-<!-- ===========================
-     INTERFACE DE JEU
-=========================== -->
 <div id="game-ui" class="hidden">
 
-    <!-- BARRE DE STATS -->
     <div class="stats-bar">
         <div>
             <b id="ui-name"></b> — <span id="ui-faction"></span> / <span id="ui-class"></span><br>
             Niveau <span id="ui-level"></span> — <span id="ui-xp"></span> XP
         </div>
-
         <div>
             <b id="ui-berries" class="berries"></b> ฿<br>
             Prime : <span id="ui-bounty"></span> ฿
         </div>
-
         <div>
             <button class="btn btn-small" onclick="askModoCode()">MODO</button>
         </div>
     </div>
 
-    <!-- TABS -->
     <div id="tabs">
         <button class="tab-btn active" onclick="openTab('profil', this)">Profil</button>
         <button class="tab-btn" onclick="openTab('quetes', this)">Quêtes</button>
@@ -76,14 +61,12 @@
         <button class="tab-btn" onclick="openTab('taverne', this)">Taverne</button>
     </div>
 
-    <!-- TAB PROFIL -->
     <div id="tab-profil" class="tab">
         <h3>Profil & Actions</h3>
         <button id="btn-train" class="btn" onclick="doTrain()">🏋️ S'ENTRAÎNER</button>
         <div id="log-box" class="box"></div>
     </div>
 
-    <!-- TAB QUÊTES -->
     <div id="tab-quetes" class="tab hidden">
         <h3>Quêtes de Faction</h3>
         <div id="faction-quest-info" class="info-line"></div>
@@ -96,14 +79,12 @@
         <button class="btn" onclick="doClassQuest()">Progresser quête de classe</button>
     </div>
 
-    <!-- TAB COMPÉTENCES -->
     <div id="tab-skills" class="tab hidden">
         <h3>Arbre de compétences</h3>
         <div>Points de talent : <span id="skill-tp">0</span></div>
         <div id="skill-tree-branches" class="skills-container"></div>
     </div>
 
-    <!-- TAB ÉVÉNEMENTS -->
     <div id="tab-events" class="tab hidden">
         <h3>Événement en cours</h3>
         <div id="current-event" class="box">Aucun événement actif.</div>
@@ -112,24 +93,18 @@
         <div id="event-history" class="box"></div>
     </div>
 
-    <!-- TAB JOURNAL -->
     <div id="tab-journal" class="tab hidden">
         <h3>Journal</h3>
         <div id="journal-box" class="box"></div>
     </div>
 
-    <!-- TAB TAVERNE -->
     <div id="tab-taverne" class="tab hidden">
         <h3>Taverne</h3>
         <div id="chat-box" class="box"></div>
         <input id="chat-input" class="chat-input" placeholder="Message..." onkeydown="if(event.key==='Enter') sendChat()">
     </div>
-
 </div>
 
-<!-- ===========================
-     PANEL ADMIN / MODO
-=========================== -->
 <div id="modo-panel" class="hidden panel-modo">
     <button class="btn btn-close" onclick="closeModoPanel()">X</button>
     <h2 class="title-modo">PANTHÉON — PANEL ADMIN</h2>
@@ -166,11 +141,7 @@
     <div id="modo-log" class="box box-modo"></div>
 </div>
 
-<!-- ===========================
-     SCRIPTS
-=========================== -->
 <script src="/socket.io/socket.io.js"></script>
 <script src="main.js"></script>
-
 </body>
 </html>
