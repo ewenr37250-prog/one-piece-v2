@@ -1,4 +1,6 @@
-/* RESET */
+/* ===========================
+   RESET & BASE
+=========================== */
 * {
     box-sizing: border-box;
 }
@@ -13,19 +15,19 @@ body {
 }
 
 /* ===========================
-   FONDS MODULABLES
+   FONDS MODULABLES — DÉFINITIF
 =========================== */
 
-/* Connexion : carte du monde One Piece + bois clair */
+/* LOGIN : carte + sépia */
 body.theme-login {
     --text: #2b1a0b;
 
     background:
-        linear-gradient(rgba(255,255,255,0.35), rgba(255,255,255,0.35)),
+        linear-gradient(rgba(180,150,100,0.55), rgba(180,150,100,0.55)),
         url("assets/backgrounds/login-map.jpg") center/cover no-repeat fixed;
 }
 
-/* Marine : bois clair + overlay bleu */
+/* MARINE : bois + bleu profond */
 body.theme-marine {
     --text: #1a2430;
     --border: #d9c47a;
@@ -33,11 +35,11 @@ body.theme-marine {
     --tab-color: #3b6ea8;
 
     background:
-        linear-gradient(rgba(120,170,220,0.35), rgba(120,170,220,0.35)),
+        linear-gradient(rgba(60,110,160,0.65), rgba(60,110,160,0.65)),
         url("assets/textures/wood-light.jpg") center/cover repeat fixed;
 }
 
-/* Pirate : bois clair + overlay rouge */
+/* PIRATE : bois + rouge sombre */
 body.theme-pirate {
     --text: #2b1414;
     --border: #a13a3a;
@@ -45,11 +47,11 @@ body.theme-pirate {
     --tab-color: #b3362f;
 
     background:
-        linear-gradient(rgba(200,80,80,0.35), rgba(200,80,80,0.35)),
+        linear-gradient(rgba(150,40,40,0.65), rgba(150,40,40,0.65)),
         url("assets/textures/wood-light.jpg") center/cover repeat fixed;
 }
 
-/* Révolutionnaire : bois clair + overlay vert / encre */
+/* RÉVOLUTIONNAIRE : bois + vert encre */
 body.theme-revo {
     --text: #14251a;
     --border: #5f8f6a;
@@ -57,7 +59,7 @@ body.theme-revo {
     --tab-color: #4a8b5a;
 
     background:
-        linear-gradient(rgba(90,160,110,0.35), rgba(90,160,110,0.35)),
+        linear-gradient(rgba(40,120,70,0.65), rgba(40,120,70,0.65)),
         url("assets/textures/wood-light.jpg") center/cover repeat fixed;
 }
 
