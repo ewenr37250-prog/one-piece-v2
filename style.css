@@ -1,289 +1,53 @@
-:root {
-    --bg: #111;
-    --panel: #1f1a14;
-    --border: #c9a84c;
-    --accent: #c9a84c;
-    --text: #f4e4bc;
-}
-
-body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Special Elite', serif;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-}
-
-.hidden { display: none !important; }
-
-.title-main {
-    font-family: 'Cinzel', serif;
-    text-align: center;
-    margin-top: 0;
-}
-
-#auth-screen {
-    margin-top: 40px;
-    width: 380px;
-    padding: 25px;
-    background: #e4d5b7;
-    color: #1a1a1a;
-    border: 10px solid #2b1d0e;
-    box-shadow: 0 0 30px rgba(0,0,0,0.7);
-}
-
-input, select {
-    width: 100%;
-    padding: 10px;
-    margin: 5px 0;
-    border: 2px solid #2b1d0e;
-    box-sizing: border-box;
-    font-family: 'Special Elite', serif;
-    background: #f7f0dd;
-}
-
-.btn {
-    width: 100%;
-    padding: 8px 14px;
-    margin: 5px 0;
-    background: linear-gradient(135deg, #3b2a16, #2b1d0e);
-    color: #f4e4bc;
-    border: 2px solid #c9a84c;
-    font-family: 'Cinzel', serif;
-    font-size: 0.95em;
-    cursor: pointer;
-    border-radius: 6px;
-    letter-spacing: 1px;
-    transition: 0.15s;
-}
-
-.btn:hover {
-    background: linear-gradient(135deg, #4a341c, #3b2a16);
-    transform: translateY(-1px);
-    box-shadow: 0 0 6px rgba(201,168,76,0.6);
-}
-
-.btn-secondary {
-    background: #444;
-    border-color: #888;
-}
-
-.btn-small {
-    width: auto;
-    padding: 5px 10px;
-    font-size: 0.8em;
-}
-
-.btn-close {
-    width: auto;
-    float: right;
-    background: #b30000;
-    border-color: #ff6666;
-}
-
-/* GAME UI */
-
-#game-ui {
-    width: 95%;
-    max-width: 1100px;
-    margin-top: 20px;
-}
-
-.stats-bar {
-    background: rgba(0,0,0,0.9);
-    border: 2px solid var(--border);
-    border-radius: 8px;
-    padding: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.berries {
-    color: var(--accent);
-}
-
-/* TABS */
-
-#tabs {
-    display: flex;
-    gap: 25px;
-    border-bottom: 3px solid var(--border);
-    margin-bottom: 10px;
-    padding: 8px 0;
-    justify-content: center;
-}
-
-.tab-btn {
-    background: none;
-    border: none;
-    color: var(--text);
-    font-family: 'Cinzel', serif;
-    font-size: 1.05em;
-    padding: 6px 4px;
-    cursor: pointer;
-    position: relative;
-    letter-spacing: 1px;
-    transition: 0.2s;
-}
-
-.tab-btn:hover {
-    color: #fff2c7;
-    transform: translateY(-1px);
-}
-
-.tab-btn.active {
-    color: #ffffff;
-    font-weight: bold;
-}
-
-.tab-btn.active::after {
-    content: "";
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--accent);
-    border-radius: 2px;
-    box-shadow: 0 0 6px var(--accent);
-}
-
-/* PANELS */
-
-.tab {
-    background: var(--panel);
-    border: 2px solid var(--border);
-    border-radius: 8px;
-    padding: 10px;
-    min-height: 260px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.6);
-}
-
-/* BOXES */
-
-.box {
-    background: rgba(0,0,0,0.3);
-    border: 1px solid var(--border);
-    padding: 8px;
-    font-size: 0.9em;
-    overflow-y: auto;
-}
-
-#log-box { height: 140px; }
-#chat-box { height: 180px; }
-#journal-box { height: 220px; }
-#event-history { height: 180px; }
-
-.box-modo {
-    height: 150px;
-}
-
-/* SKILLS */
-
-.skills-container div {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
-}
-
-/* CHAT INPUT */
-
-.chat-input {
-    width: 100%;
-    margin-top: 5px;
-    padding: 8px;
-    border: 2px solid var(--border);
-    background: #1a1510;
-    color: var(--text);
-}
-
-/* MODO PANEL */
-
-.panel-modo {
+/* EMBLÈME DE FACTION */
+#faction-emblem {
     position: fixed;
-    top: 10%;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
-    width: 60%;
-    background: #e4d5b7;
-    color: #111;
-    border: 10px solid #2b1d0e;
-    padding: 15px;
-    z-index: 200;
-    box-shadow: 0 0 40px rgba(0,0,0,0.8);
+    width: 420px;
+    height: 420px;
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    pointer-events: none;
+    z-index: -1;
+    animation: emblemFadeIn 1.8s ease-out forwards;
+    filter: drop-shadow(0 0 6px rgba(0,0,0,0.4));
 }
 
-.title-modo {
-    font-family: 'Cinzel', serif;
+@keyframes emblemFadeIn {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.6);
+        filter: blur(6px);
+    }
+    60% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1.05);
+        filter: blur(1px);
+    }
+    100% {
+        opacity: 0.35;
+        transform: translate(-50%, -50%) scale(1);
+        filter: blur(0px);
+    }
 }
 
-/* THEMES PAR CLASSE */
-
-/* Guerrier */
-.theme-Guerrier {
-    --bg: #2a0f0f;
-    --panel: #3b1a1a;
-    --border: #8b2e2e;
-    --accent: #ff4d4d;
-    --text: #fce9e9;
+/* MARINE */
+.theme-marine #faction-emblem {
+    background-image: url("assets/emblems/marine.png");
+    opacity: 0.25;
 }
 
-/* Tireur */
-.theme-Tireur {
-    --bg: #2e2418;
-    --panel: #3b2e1f;
-    --border: #a67c52;
-    --accent: #d9a066;
-    --text: #f7e4c9;
+/* PIRATE */
+.theme-pirate #faction-emblem {
+    background-image: url("assets/emblems/pirate.png");
+    opacity: 0.30;
 }
 
-/* Navigateur */
-.theme-Navigateur {
-    --bg: #0f1f2e;
-    --panel: #1a2f45;
-    --border: #3a6d8c;
-    --accent: #5bb8ff;
-    --text: #d6f0ff;
-}
-
-/* Médecin */
-.theme-Médecin {
-    --bg: #0f2e1a;
-    --panel: #1a3b26;
-    --border: #4caf50;
-    --accent: #7be67b;
-    --text: #e8ffe8;
-}
-
-/* Charpentier */
-.theme-Charpentier {
-    --bg: #2e1f0f;
-    --panel: #3b2a16;
-    --border: #c49a6c;
-    --accent: #e6c49a;
-    --text: #fff2d9;
-}
-
-/* Espion */
-.theme-Espion {
-    --bg: #120f1a;
-    --panel: #1f1a2e;
-    --border: #6a4caf;
-    --accent: #9d7bff;
-    --text: #f0e8ff;
-}
-
-/* Artiste Martial */
-.theme-Artiste-Martial {
-    --bg: #2e2a1f;
-    --panel: #3b362a;
-    --border: #d9c49a;
-    --accent: #ffe6b3;
-    --text: #fff9e6;
+/* RÉVOLUTIONNAIRE */
+.theme-revo #faction-emblem {
+    background-image: url("assets/emblems/revo.png");
+    opacity: 0.28;
 }
