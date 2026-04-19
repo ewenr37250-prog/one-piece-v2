@@ -1,312 +1,2273 @@
-/* RESET */
-* { box-sizing: border-box; }
+/* ============================================================
+   SECTION 1 — RESET GLOBAL & VARIABLES RP ONE PIECE
+   ------------------------------------------------------------
+   Objectif :
+   - Uniformiser le rendu sur tous les navigateurs
+   - Définir les variables dynamiques utilisées par les thèmes
+   - Poser les polices RP (Cinzel + Special Elite)
+   - Préparer les transitions globales
+   ============================================================ */
 
-body {
+/* ------------------------------
+   RESET CSS (propre et minimal)
+   ------------------------------ */
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box; /* évite les calculs foireux */
+}
+
+/* ------------------------------
+   HTML & BODY — fondations
+   ------------------------------ */
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden; /* évite les scrolls horizontaux */
+}
+
+/* ------------------------------
+   POLICES RP ONE PIECE
+   Cinzel = titres nobles (Marine, grades)
+   Special Elite = style encre / manga (RP)
+   ------------------------------ */
+body {
     font-family: "Special Elite", serif;
-    color: var(--text);
-    background-color: #000;
-    transition: background 0.4s ease, color 0.4s ease;
+    line-height: 1.4;
+    color: var(--text, #f5f5f5); /* fallback si thème non chargé */
+    background-color: #000; /* évite le flash blanc */
+    transition:
+        background 0.4s ease,
+        color 0.4s ease,
+        filter 0.3s ease;
 }
 
-/* ===========================
-   FONDS MODULABLES — FINAL
-=========================== */
+/* ------------------------------
+   VARIABLES GLOBALES
+   Ces variables sont écrasées par les thèmes.
+   Elles servent de base si aucun thème n’est appliqué.
+   ------------------------------ */
+:root {
+    --text: #f5f5f5;          /* texte par défaut */
+    --border: #c9a96a;        /* bordure RP (parchemin / bois) */
+    --accent: #e0c97f;        /* couleur des boutons */
+    --tab-color: #b38b4a;     /* couleur active des onglets */
+}
 
-/* LOGIN : carte + sépia */
+/* ------------------------------
+   TRANSITIONS GLOBALES
+   Donne un rendu fluide lors du changement de thème
+   ------------------------------ */
+body, .panel, .box, .tab-btn {
+    transition:
+        background 0.35s ease,
+        color 0.35s ease,
+        border-color 0.35s ease,
+        box-shadow 0.35s ease;
+}
+
+/* ------------------------------
+   ANTI FLASH BLANC (important)
+   Empêche l’écran blanc avant que le thème s’applique
+   ------------------------------ */
+body {
+    background-color: #0d0d0d;
+}
+/* ============================================================
+   SECTION 2 — SYSTÈME DE THÈMES RP ONE PIECE
+   ------------------------------------------------------------
+   Objectif :
+   - Définir les ambiances visuelles du jeu
+   - Appliquer textures + overlays + couleurs RP
+   - Donner une identité forte à chaque faction
+   ============================================================ */
+
+
+/* ============================================================
+   THEME LOGIN — Carte du monde + ambiance aventure
+   ------------------------------------------------------------
+   - Fond carte One Piece
+   - Overlay sépia pour ambiance "vieille carte"
+   - Pas d’emblème
+   ============================================================ */
 body.theme-login {
-    --text: #2b1a0b;
+    --text: #2b1a0b; /* brun encre */
+    --border: #b08a4a; /* bordure parchemin */
+    --accent: #d8b46a; /* boutons */
+    --tab-color: #c49b5a;
+
     background:
-        linear-gradient(rgba(180,150,100,0.55), rgba(180,150,100,0.55)),
-        url("assets/backgrounds/login-map.jpg") center/cover no-repeat fixed;
+        linear-gradient(
+            rgba(150,120,80,0.55),
+            rgba(150,120,80,0.55)
+        ),
+        url("assets/backgrounds/login-map.jpg")
+        center/cover no-repeat fixed;
 }
 
-/* MARINE : bois + bleu profond */
+
+
+/* ============================================================
+   THEME MARINE — QG, discipline, bleu profond
+   ------------------------------------------------------------
+   - Bois sombre texturé
+   - Overlay bleu profond
+   - Texte clair
+   - Ambiance sérieuse / militaire
+   ============================================================ */
 body.theme-marine {
-    --text: #1a2430;
-    --border: #d9c47a;
-    --accent: #e0c97f;
-    --tab-color: #3b6ea8;
+    --text: #e8eef7;     /* bleu très clair lisible */
+    --border: #d9c47a;   /* doré marine */
+    --accent: #e0c97f;   /* boutons */
+    --tab-color: #3b6ea8; /* bleu marine */
+
     background:
-        linear-gradient(rgba(60,110,160,0.65), rgba(60,110,160,0.65)),
-        url("assets/textures/wood-light.jpg") center/cover repeat fixed;
+        linear-gradient(
+            rgba(40,80,130,0.65),
+            rgba(40,80,130,0.65)
+        ),
+        url("assets/textures/wood-dark.jpg")
+        center/cover repeat fixed;
 }
 
-/* PIRATE : bois + rouge sombre */
+
+
+/* ============================================================
+   THEME PIRATE — Taverne, navire, rouge sombre
+   ------------------------------------------------------------
+   - Bois sombre texturé
+   - Overlay rouge pirate
+   - Texte clair
+   - Ambiance chaude / dangereuse
+   ============================================================ */
 body.theme-pirate {
-    --text: #2b1414;
-    --border: #a13a3a;
-    --accent: #d24a4a;
-    --tab-color: #b3362f;
+    --text: #f7e8e8;     /* blanc rosé lisible */
+    --border: #a13a3a;   /* rouge pirate */
+    --accent: #d24a4a;   /* boutons */
+    --tab-color: #b3362f; /* rouge sombre */
+
     background:
-        linear-gradient(rgba(150,40,40,0.65), rgba(150,40,40,0.65)),
-        url("assets/textures/wood-light.jpg") center/cover repeat fixed;
+        linear-gradient(
+            rgba(120,30,30,0.65),
+            rgba(120,30,30,0.65)
+        ),
+        url("assets/textures/wood-dark.jpg")
+        center/cover repeat fixed;
 }
 
-/* RÉVOLUTIONNAIRE : bois + vert encre */
+
+
+/* ============================================================
+   THEME RÉVOLUTIONNAIRE — Repaire clandestin, vert encre
+   ------------------------------------------------------------
+   - Bois sombre texturé
+   - Overlay vert encre
+   - Texte clair
+   - Ambiance secrète / rebelle
+   ============================================================ */
 body.theme-revo {
-    --text: #14251a;
-    --border: #5f8f6a;
-    --accent: #8fd49a;
-    --tab-color: #4a8b5a;
+    --text: #e8f7e8;     /* blanc verdâtre lisible */
+    --border: #5f8f6a;   /* vert militaire */
+    --accent: #8fd49a;   /* boutons */
+    --tab-color: #4a8b5a; /* vert encre */
+
     background:
-        linear-gradient(rgba(40,120,70,0.65), rgba(40,120,70,0.65)),
-        url("assets/textures/wood-light.jpg") center/cover repeat fixed;
+        linear-gradient(
+            rgba(30,90,50,0.65),
+            rgba(30,90,50,0.65)
+        ),
+        url("assets/textures/wood-dark.jpg")
+        center/cover repeat fixed;
+}
+/* ============================================================
+   SECTION 3 — PANNEAUX & SURFACES (Parchemin Vieilli RP)
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un style RP One Piece aux panneaux
+   - Utiliser un parchemin vieilli (style avis de recherche)
+   - Contraste parfait sur fond bois sombre
+   - Lisibilité maximale
+   - Effet manga / encre
+   ============================================================ */
+
+
+/* ============================================================
+   PANNEAU GÉNÉRIQUE (panel)
+   ------------------------------------------------------------
+   Utilisé pour :
+   - Auth panel
+   - Stats panel
+   - Panneau modo
+   - Fenêtres RP
+   ------------------------------------------------------------
+   Style :
+   - Parchemin vieilli
+   - Texture granuleuse
+   - Bords légèrement brûlés
+   - Ombre profonde (effet relief)
+   ============================================================ */
+.panel {
+    background:
+        /* couche de lumière pour lisibilité */
+        linear-gradient(
+            rgba(255,255,240,0.88),
+            rgba(255,255,225,0.92)
+        ),
+        /* texture parchemin vieilli */
+        url("assets/textures/parchment-old.jpg")
+        center/cover repeat;
+
+    border: 2px solid var(--border, #c9a96a); /* couleur dynamique selon faction */
+    border-radius: 10px;
+
+    /* ombre RP profonde */
+    box-shadow:
+        0 0 12px rgba(0,0,0,0.55),
+        0 0 24px rgba(0,0,0,0.35);
+
+    padding: 14px;
+    margin-bottom: 12px;
 }
 
-/* ===========================
-   PANELS & BOXES (parchemin)
-=========================== */
 
-.panel,
+
+/* ============================================================
+   BOX (contenu interne)
+   ------------------------------------------------------------
+   Utilisé pour :
+   - Logs
+   - Chat
+   - Journal
+   - Événements
+   ------------------------------------------------------------
+   Style :
+   - Même parchemin que panel
+   - Moins d’ombre (contenu interne)
+   ============================================================ */
 .box {
     background:
-        linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.9)),
-        url("assets/textures/parchment-light.jpg") center/cover repeat;
+        linear-gradient(
+            rgba(255,255,240,0.85),
+            rgba(255,255,225,0.9)
+        ),
+        url("assets/textures/parchment-old.jpg")
+        center/cover repeat;
+
     border: 2px solid var(--border, #c9a96a);
     border-radius: 8px;
-    box-shadow: 0 0 14px rgba(0,0,0,0.4);
-    padding: 12px;
+
+    box-shadow:
+        0 0 10px rgba(0,0,0,0.45);
+
+    padding: 10px;
 }
 
+
+
+/* ============================================================
+   PANEL AUTH (connexion / inscription)
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un panneau RP dès l’entrée du jeu
+   - Style carte au trésor / avis de recherche
+   - Centré, lisible, immersif
+   ============================================================ */
 .panel-auth {
     max-width: 420px;
-    margin: 40px auto;
+    margin: 60px auto;
+
+    /* effet parchemin plus clair pour la lisibilité */
+    background:
+        linear-gradient(
+            rgba(255,255,240,0.92),
+            rgba(255,255,230,0.95)
+        ),
+        url("assets/textures/parchment-old.jpg")
+        center/cover repeat;
+
+    border: 3px solid var(--border, #b08a4a);
+    border-radius: 12px;
+
+    box-shadow:
+        0 0 18px rgba(0,0,0,0.6),
+        0 0 32px rgba(0,0,0,0.4);
 }
 
-/* ===========================
-   TITRES
-=========================== */
 
+
+/* ============================================================
+   STYLE RP — BORDS BRÛLÉS (effet One Piece)
+   ------------------------------------------------------------
+   Optionnel mais très RP :
+   - Donne un effet “vieille carte”
+   - Utilisé sur panels et boxes
+   ============================================================ */
+.panel,
+.box {
+    /* bordure interne sombre (effet brûlé) */
+    outline: 1px solid rgba(60,40,20,0.35);
+    outline-offset: -4px;
+}
+
+
+
+/* ============================================================
+   STYLE RP — TEXTURE ENCRE / MANGA
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un style One Piece (traits, encre)
+   - Appliquer un léger grain
+   ============================================================ */
+.panel,
+.box {
+    backdrop-filter: contrast(1.05) brightness(1.02);
+    filter: saturate(0.95);
+}
+/* ============================================================
+   SECTION 4 — TITRES & TYPOGRAPHIES RP ONE PIECE
+   ------------------------------------------------------------
+   Objectif :
+   - Donner une identité visuelle RP aux titres
+   - Utiliser Cinzel (titres nobles / Marine / officiels)
+   - Utiliser Special Elite (style encre / manga)
+   - Créer des niveaux de titres cohérents
+   - Ajouter des effets RP (ombre, encre, relief)
+   ============================================================ */
+
+
+/* ============================================================
+   TITRE PRINCIPAL DU JEU (page login)
+   ------------------------------------------------------------
+   Style :
+   - Cinzel (style noble / officiel)
+   - Ombre profonde (effet logo)
+   - Espacement large (style affiche)
+   ============================================================ */
 .title-main {
-    text-align: center;
     font-family: "Cinzel", serif;
-    font-size: 2.4rem;
+    font-size: 2.8rem;
     letter-spacing: 4px;
-    margin: 10px 0 18px;
-    text-shadow: 0 0 6px rgba(0,0,0,0.4);
+    text-align: center;
+    margin: 10px 0 20px;
+
+    color: var(--text);
+    text-shadow:
+        0 0 6px rgba(0,0,0,0.6),
+        0 0 12px rgba(0,0,0,0.4);
 }
 
+
+
+/* ============================================================
+   TITRES DE SECTIONS (Profil, Quêtes, Skills, etc.)
+   ------------------------------------------------------------
+   Style :
+   - Cinzel (structure)
+   - Ombre légère (lisibilité)
+   - Taille moyenne
+   ============================================================ */
+h3 {
+    font-family: "Cinzel", serif;
+    font-size: 1.4rem;
+    margin: 10px 0 8px;
+
+    color: var(--text);
+    text-shadow: 0 0 4px rgba(0,0,0,0.4);
+}
+
+
+
+/* ============================================================
+   TITRES RP (style avis de recherche / journal)
+   ------------------------------------------------------------
+   Utilisé pour :
+   - Sous-sections
+   - Encadrés RP
+   - Informations importantes
+   ------------------------------------------------------------
+   Style :
+   - Special Elite (encre)
+   - Effet grain
+   - Légère rotation aléatoire (effet papier)
+   ============================================================ */
+.title-rp {
+    font-family: "Special Elite", serif;
+    font-size: 1.2rem;
+    margin: 6px 0;
+
+    color: var(--text);
+    filter: contrast(1.1) brightness(0.95);
+
+    /* effet papier légèrement tordu */
+    transform: rotate(-0.4deg);
+}
+
+
+
+/* ============================================================
+   TITRES D’ONGLETS (dans les boutons)
+   ------------------------------------------------------------
+   Style :
+   - Cinzel (lisibilité)
+   - Couleur dynamique selon faction
+   - Ombre légère
+   ============================================================ */
+.tab-btn {
+    font-family: "Cinzel", serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-shadow: 0 0 3px rgba(0,0,0,0.4);
+}
+
+
+
+/* ============================================================
+   TITRE PANEL MODO (Panthéon)
+   ------------------------------------------------------------
+   Style :
+   - Cinzel (autorité)
+   - Ombre forte (effet divin / Panthéon)
+   - Taille plus grande
+   ============================================================ */
 .title-modo {
     font-family: "Cinzel", serif;
+    font-size: 1.8rem;
     text-align: center;
-    margin-top: 0;
+    margin: 0 0 12px;
+
+    color: var(--text);
+    text-shadow:
+        0 0 8px rgba(0,0,0,0.7),
+        0 0 16px rgba(0,0,0,0.5);
 }
 
-/* ===========================
-   FORMULAIRE AUTH
-=========================== */
 
-.auth-fields input,
-.auth-fields select {
-    width: 100%;
-    margin: 6px 0;
-    padding: 8px 10px;
-    border-radius: 6px;
-    border: 1px solid rgba(120,90,50,0.7);
-    background: rgba(255,255,255,0.9);
-    color: #2b1a0b;
+
+/* ============================================================
+   PETITS TITRES / LABELS RP
+   ------------------------------------------------------------
+   Utilisé pour :
+   - Infos de quêtes
+   - Stats
+   - Sous-labels
+   ------------------------------------------------------------
+   Style :
+   - Special Elite
+   - Petite taille
+   - Effet encre
+   ============================================================ */
+.label-rp {
     font-family: "Special Elite", serif;
+    font-size: 0.95rem;
+    color: var(--text);
+    opacity: 0.9;
 }
+/* ============================================================
+   SECTION 5 — FORMULAIRES RP ONE PIECE
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un style RP aux inputs / selects
+   - Utiliser un style parchemin clair
+   - Bordures encre / manga
+   - Focus RP (halo encre)
+   - Cohérence totale avec les panneaux
+   ============================================================ */
 
-.auth-buttons {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-}
 
-/* ===========================
-   BOUTONS
-=========================== */
+/* ============================================================
+   INPUTS & SELECTS (style parchemin)
+   ------------------------------------------------------------
+   Utilisé pour :
+   - Login / inscription
+   - Quêtes
+   - Modo
+   - Chat
+   ------------------------------------------------------------
+   Style :
+   - Parchemin clair
+   - Bordure encre
+   - Texture légère
+   - Lisibilité maximale
+   ============================================================ */
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 8px 12px;
+    margin: 6px 0;
 
-.btn {
-    background: var(--accent, #e0c97f);
-    border: 2px solid var(--border, #b89b4b);
-    padding: 8px 14px;
+    font-family: "Special Elite", serif;
+    font-size: 1rem;
+    color: #2b1a0b;
+
+    background:
+        linear-gradient(
+            rgba(255,250,230,0.92),
+            rgba(255,245,220,0.95)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+
+    border: 2px solid rgba(90,60,30,0.7); /* encre */
     border-radius: 6px;
+
+    box-shadow:
+        inset 0 0 4px rgba(0,0,0,0.25);
+
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease,
+        background 0.25s ease;
+}
+
+
+
+/* ============================================================
+   FOCUS RP (halo encre)
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un effet RP lors de la saisie
+   - Halo encre coloré selon la faction
+   ============================================================ */
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+
+    border-color: var(--border); /* couleur dynamique faction */
+
+    box-shadow:
+        0 0 6px rgba(0,0,0,0.4),
+        0 0 10px var(--border);
+}
+
+
+
+/* ============================================================
+   SELECTS (menus déroulants RP)
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un style RP aux dropdowns
+   - Éviter le style moderne du navigateur
+   ============================================================ */
+select {
+    appearance: none; /* supprime la flèche native */
     cursor: pointer;
+
+    background-image:
+        url("assets/icons/arrow-ink.png"); /* flèche RP */
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 18px;
+}
+
+
+
+/* ============================================================
+   TEXTAREA (chat, descriptions RP)
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un style RP aux zones de texte
+   - Texture parchemin
+   - Bordure encre
+   ============================================================ */
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+
+
+/* ============================================================
+   INPUT SPÉCIAL — CHAT RP
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un style taverne / navire au chat
+   - Lisibilité + immersion
+   ============================================================ */
+.chat-input {
+    background:
+        linear-gradient(
+            rgba(255,250,230,0.9),
+            rgba(255,245,220,0.95)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+
+    border: 2px solid rgba(90,60,30,0.8);
+    border-radius: 6px;
+
+    box-shadow:
+        inset 0 0 4px rgba(0,0,0,0.25);
+}
+
+
+
+/* ============================================================
+   INPUTS MODO (Panthéon)
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un style plus sérieux
+   - Toujours RP mais plus “administratif”
+   ============================================================ */
+.panel-modo input,
+.panel-modo select {
+    background:
+        linear-gradient(
+            rgba(255,250,230,0.95),
+            rgba(255,245,220,0.98)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+
+    border: 2px solid rgba(70,50,25,0.8);
+    border-radius: 5px;
+
+    box-shadow:
+        inset 0 0 4px rgba(0,0,0,0.3);
+}
+/* ============================================================
+   SECTION 6 — BOUTONS RP ONE PIECE
+   ------------------------------------------------------------
+   Objectif :
+   - Boutons immersifs, RP, lisibles
+   - Style parchemin + encre
+   - Accent dynamique selon la faction
+   - Hover RP (relief, lumière, encre)
+   ============================================================ */
+
+
+/* ============================================================
+   BOUTON PRINCIPAL (btn)
+   ------------------------------------------------------------
+   Utilisé pour :
+   - Actions importantes
+   - Quêtes
+   - Entraînement
+   - Validation
+   ------------------------------------------------------------
+   Style :
+   - Parchemin teinté
+   - Bordure encre dynamique (selon faction)
+   - Relief léger
+   - Ombre RP
+   ============================================================ */
+.btn {
+    display: inline-block;
+    padding: 10px 18px;
+    margin: 6px 0;
+
     font-family: "Cinzel", serif;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+
     color: #1a1205;
-    margin: 4px 0;
-    box-shadow: 0 0 8px rgba(0,0,0,0.35);
-    transition: transform 0.1s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    background:
+        linear-gradient(
+            rgba(255,245,210,0.92),
+            rgba(255,240,200,0.95)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+
+    border: 3px solid var(--border); /* dynamique selon faction */
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 0 6px rgba(0,0,0,0.45),
+        inset 0 0 4px rgba(0,0,0,0.25);
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease,
+        background 0.2s ease;
 }
 
+
+
+/* ============================================================
+   HOVER RP — Effet relief + lumière
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un effet “bouton en bois/parchemin”
+   - Simuler une lumière RP
+   ============================================================ */
 .btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 0 12px rgba(0,0,0,0.5);
-    filter: brightness(1.05);
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 0 10px rgba(0,0,0,0.6),
+        inset 0 0 6px rgba(0,0,0,0.3);
+
+    filter: brightness(1.07);
 }
 
+
+
+/* ============================================================
+   ACTIVE (clic)
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un effet “pression”
+   ============================================================ */
+.btn:active {
+    transform: translateY(1px);
+    filter: brightness(0.95);
+}
+
+
+
+/* ============================================================
+   BOUTON SECONDAIRE (btn-secondary)
+   ------------------------------------------------------------
+   Utilisé pour :
+   - Actions moins importantes
+   - Boutons gris RP
+   ------------------------------------------------------------
+   Style :
+   - Parchemin plus neutre
+   - Bordure encre douce
+   ============================================================ */
 .btn-secondary {
-    background: #f0f0f0;
-    border-color: #999;
+    background:
+        linear-gradient(
+            rgba(240,240,240,0.9),
+            rgba(230,230,230,0.95)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+
+    border-color: rgba(120,90,50,0.6);
     color: #333;
 }
 
+
+
+/* ============================================================
+   BOUTON PETIT (btn-small)
+   ------------------------------------------------------------
+   Utilisé pour :
+   - Arbre de compétences (+)
+   - Petites actions
+   ------------------------------------------------------------
+   Style :
+   - Compact
+   - Lisible
+   ============================================================ */
 .btn-small {
-    padding: 4px 8px;
-    font-size: 0.8rem;
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    border-width: 2px;
 }
 
-/* ===========================
-   STATS BAR
-=========================== */
 
+
+/* ============================================================
+   BOUTON DANGER / SUPPRESSION (RP rouge)
+   ------------------------------------------------------------
+   Utilisé pour :
+   - Suppression
+   - Actions risquées
+   ============================================================ */
+.btn-danger {
+    background:
+        linear-gradient(
+            rgba(180,60,60,0.9),
+            rgba(150,40,40,0.95)
+        );
+    color: #fff;
+    border-color: #7a1f1f;
+}
+
+
+
+/* ============================================================
+   BOUTON MODO (Panthéon)
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un style plus sérieux
+   - Accent doré
+   ============================================================ */
+.btn-modo {
+    background:
+        linear-gradient(
+            rgba(255,245,200,0.95),
+            rgba(240,220,160,0.95)
+        );
+    border-color: #c9a96a;
+    color: #3a2a10;
+}
+
+
+
+/* ============================================================
+   BOUTON FERMETURE (X)
+   ------------------------------------------------------------
+   Objectif :
+   - Bouton discret mais RP
+   ============================================================ */
+.btn-close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+
+    padding: 4px 8px;
+    font-size: 0.9rem;
+
+    background:
+        linear-gradient(
+            rgba(255,230,200,0.9),
+            rgba(255,220,180,0.95)
+        );
+    border: 2px solid rgba(120,90,50,0.8);
+    border-radius: 4px;
+
+    cursor: pointer;
+}
+/* ============================================================
+   SECTION 7 — BARRE DE STATS RP ONE PIECE
+   ------------------------------------------------------------
+   Objectif :
+   - Afficher les infos du joueur de manière RP
+   - Style parchemin + encre
+   - Icônes RP
+   - Variantes TRAÎTRE / WANTED
+   ============================================================ */
+
+
+/* ============================================================
+   CONTENEUR GLOBAL DE LA BARRE DE STATS
+   ------------------------------------------------------------
+   Style :
+   - Centré
+   - Aligné horizontalement
+   - Espacement équilibré
+   ============================================================ */
 .stats-bar {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
-    margin: 10px auto;
-    max-width: 900px;
     align-items: center;
+
+    max-width: 900px;
+    margin: 14px auto 18px;
+    padding: 8px 12px;
+
+    background:
+        linear-gradient(
+            rgba(255,250,230,0.85),
+            rgba(255,245,220,0.9)
+        ),
+        url("assets/textures/parchment-old.jpg")
+        center/cover repeat;
+
+    border: 2px solid var(--border);
+    border-radius: 10px;
+
+    box-shadow:
+        0 0 12px rgba(0,0,0,0.45),
+        inset 0 0 4px rgba(0,0,0,0.25);
 }
 
-/* ===========================
-   TABS + ICÔNES
-=========================== */
 
+
+/* ============================================================
+   ÉLÉMENTS DE LA BARRE (cartouches)
+   ------------------------------------------------------------
+   Style :
+   - Parchemin clair
+   - Bordure encre
+   - Icône RP à gauche
+   ============================================================ */
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 6px 10px;
+
+    background:
+        linear-gradient(
+            rgba(255,250,230,0.9),
+            rgba(255,245,220,0.95)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+
+    border: 2px solid rgba(90,60,30,0.7);
+    border-radius: 6px;
+
+    box-shadow:
+        0 0 6px rgba(0,0,0,0.35),
+        inset 0 0 3px rgba(0,0,0,0.2);
+
+    font-family: "Special Elite", serif;
+    font-size: 1rem;
+    color: #2b1a0b;
+}
+
+
+
+/* ============================================================
+   ICÔNES RP (style encre)
+   ------------------------------------------------------------
+   Utilisé pour :
+   - XP
+   - Faction
+   - Grade
+   - Wanted
+   ============================================================ */
+.stat-item .icon {
+    width: 22px;
+    height: 22px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.4));
+}
+
+
+
+/* ============================================================
+   VARIANTES D’ICÔNES (exemples)
+   ------------------------------------------------------------
+   Tu peux adapter selon tes assets
+   ============================================================ */
+.icon-xp { background-image: url("assets/icons/xp-ink.png"); }
+.icon-faction { background-image: url("assets/icons/faction-ink.png"); }
+.icon-grade { background-image: url("assets/icons/grade-ink.png"); }
+.icon-wanted { background-image: url("assets/icons/wanted-ink.png"); }
+
+
+
+/* ============================================================
+   STYLE WANTED (effet avis de recherche)
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un style “Wanted” à un stat-item
+   ============================================================ */
+.stat-wanted {
+    background:
+        linear-gradient(
+            rgba(255,240,200,0.9),
+            rgba(255,230,180,0.95)
+        ),
+        url("assets/textures/parchment-old.jpg")
+        center/cover repeat;
+
+    border-color: #8a5a2a;
+    color: #3a1a0a;
+
+    font-weight: bold;
+    letter-spacing: 1px;
+
+    text-shadow:
+        0 0 3px rgba(0,0,0,0.4);
+}
+
+
+
+/* ============================================================
+   STYLE TRAÎTRE (rouge sombre RP)
+   ------------------------------------------------------------
+   Objectif :
+   - Afficher un statut TRAÎTRE de manière RP
+   ============================================================ */
+.stat-traitre {
+    background:
+        linear-gradient(
+            rgba(120,30,30,0.85),
+            rgba(90,20,20,0.9)
+        );
+
+    border-color: #5a1a1a;
+    color: #f7e8e8;
+
+    font-weight: bold;
+    letter-spacing: 1px;
+
+    text-shadow:
+        0 0 4px rgba(0,0,0,0.6);
+}
+
+
+
+/* ============================================================
+   STYLE FACTION (couleur dynamique)
+   ------------------------------------------------------------
+   Objectif :
+   - Colorer légèrement le cartouche selon la faction
+   ============================================================ */
+body.theme-marine .stat-faction {
+    background:
+        linear-gradient(
+            rgba(200,220,255,0.25),
+            rgba(180,200,240,0.25)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+}
+
+body.theme-pirate .stat-faction {
+    background:
+        linear-gradient(
+            rgba(255,200,200,0.25),
+            rgba(240,170,170,0.25)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+}
+
+body.theme-revo .stat-faction {
+    background:
+        linear-gradient(
+            rgba(200,255,200,0.25),
+            rgba(170,240,170,0.25)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+}
+/* ============================================================
+   SECTION 8 — ONGLETS + ICÔNES RP ONE PIECE
+   ------------------------------------------------------------
+   Objectif :
+   - Créer une barre d’onglets RP immersive
+   - Style parchemin + encre
+   - Icônes manga
+   - Active state dynamique selon la faction
+   ============================================================ */
+
+
+/* ============================================================
+   CONTENEUR DES ONGLETS
+   ------------------------------------------------------------
+   Style :
+   - Centré
+   - Wrap si petit écran
+   - Espacement RP
+   ============================================================ */
 #tabs {
     display: flex;
-    gap: 6px;
-    margin: 10px auto 12px;
-    max-width: 900px;
     flex-wrap: wrap;
+    gap: 8px;
+
+    max-width: 900px;
+    margin: 14px auto 16px;
+    padding: 4px;
 }
 
+
+
+/* ============================================================
+   BOUTON D’ONGLET (tab-btn)
+   ------------------------------------------------------------
+   Style :
+   - Parchemin vieilli
+   - Icône encre à gauche
+   - Bordure dynamique selon faction
+   - Ombre RP
+   ============================================================ */
 .tab-btn {
     position: relative;
-    padding: 6px 12px 6px 32px;
-    border-radius: 6px;
-    border: 2px solid var(--border, #c9a96a);
-    background:
-        linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.9)),
-        url("assets/textures/parchment-light.jpg") center/cover repeat;
+
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 8px 14px 8px 36px;
+
     font-family: "Cinzel", serif;
+    font-size: 1rem;
+    font-weight: 600;
     color: var(--text);
+
+    background:
+        linear-gradient(
+            rgba(255,250,230,0.88),
+            rgba(255,245,220,0.92)
+        ),
+        url("assets/textures/parchment-old.jpg")
+        center/cover repeat;
+
+    border: 3px solid var(--border);
+    border-radius: 8px;
+
     cursor: pointer;
-    box-shadow: 0 0 8px rgba(0,0,0,0.35);
+
+    box-shadow:
+        0 0 8px rgba(0,0,0,0.45),
+        inset 0 0 4px rgba(0,0,0,0.25);
+
     background-repeat: no-repeat;
-    background-position: 8px center;
-    background-size: 18px 18px;
+    background-position: 10px center;
+    background-size: 22px;
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.25s ease,
+        filter 0.25s ease;
 }
 
-/* Icônes RP */
-.tab-btn[data-tab="profil"] { background-image: url("assets/icons/profil-ink.png"); }
-.tab-btn[data-tab="quetes"] { background-image: url("assets/icons/quest-ink.png"); }
-.tab-btn[data-tab="skills"] { background-image: url("assets/icons/skills-ink.png"); }
-.tab-btn[data-tab="events"] { background-image: url("assets/icons/events-ink.png"); }
+
+
+/* ============================================================
+   HOVER RP — Effet relief
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un effet “bouton parchemin”
+   ============================================================ */
+.tab-btn:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 0 12px rgba(0,0,0,0.6),
+        inset 0 0 6px rgba(0,0,0,0.3);
+    filter: brightness(1.05);
+}
+
+
+
+/* ============================================================
+   ACTIVE STATE (onglet sélectionné)
+   ------------------------------------------------------------
+   Objectif :
+   - Accent dynamique selon la faction
+   - Lisibilité maximale
+   ============================================================ */
+.tab-btn.active {
+    box-shadow:
+        0 0 14px rgba(0,0,0,0.7),
+        inset 0 0 6px rgba(0,0,0,0.35);
+
+    filter: brightness(1.1);
+}
+
+
+
+/* ============================================================
+   ACTIVE STATE PAR FACTION
+   ------------------------------------------------------------
+   Objectif :
+   - Donner une couleur RP à l’onglet actif
+   ============================================================ */
+body.theme-marine .tab-btn.active {
+    background-color: rgba(60,110,160,0.35);
+    color: #f5f7fb;
+}
+
+body.theme-pirate .tab-btn.active {
+    background-color: rgba(150,40,40,0.35);
+    color: #fdf3f1;
+}
+
+body.theme-revo .tab-btn.active {
+    background-color: rgba(40,120,70,0.35);
+    color: #f4fff7;
+}
+
+
+
+/* ============================================================
+   ICÔNES RP (style encre)
+   ------------------------------------------------------------
+   Objectif :
+   - Donner une identité visuelle RP aux onglets
+   - Style manga / encre
+   ============================================================ */
+.tab-btn[data-tab="profil"]  { background-image: url("assets/icons/profil-ink.png"); }
+.tab-btn[data-tab="quetes"]  { background-image: url("assets/icons/quest-ink.png"); }
+.tab-btn[data-tab="skills"]  { background-image: url("assets/icons/skills-ink.png"); }
+.tab-btn[data-tab="events"]  { background-image: url("assets/icons/events-ink.png"); }
 .tab-btn[data-tab="journal"] { background-image: url("assets/icons/journal-ink.png"); }
 .tab-btn[data-tab="taverne"] { background-image: url("assets/icons/tavern-ink.png"); }
 
-/* Couleur active par faction */
-body.theme-marine .tab-btn.active { background-color: var(--tab-color); color: #f5f7fb; }
-body.theme-pirate .tab-btn.active { background-color: var(--tab-color); color: #fdf3f1; }
-body.theme-revo .tab-btn.active { background-color: var(--tab-color); color: #f4fff7; }
 
-.tab-btn.active {
-    box-shadow: 0 0 12px rgba(0,0,0,0.5);
-}
 
-/* Tabs contenu */
+/* ============================================================
+   CONTENU DES ONGLETS
+   ------------------------------------------------------------
+   Objectif :
+   - Afficher / cacher proprement
+   ============================================================ */
 .tab {
     display: none;
     max-width: 900px;
-    margin: 0 auto 12px;
+    margin: 0 auto 16px;
 }
 
 .tab:not(.hidden) {
     display: block;
 }
+/* ============================================================
+   SECTION 9 — CONTENU DES ONGLETES (mise en page interne)
+   ------------------------------------------------------------
+   Objectif :
+   - Structurer l’intérieur des onglets
+   - Donner un style RP One Piece aux contenus
+   - Créer des grilles, encadrés, séparateurs RP
+   - Assurer lisibilité + immersion
+   ============================================================ */
 
-/* ===========================
-   CHAT
-=========================== */
 
-.chat-input {
-    width: 100%;
-    padding: 8px;
-    border: 2px solid rgba(120,90,50,0.8);
-    background: rgba(255,255,255,0.9);
-    color: #2b1a0b;
-    border-radius: 6px;
-    font-family: "Special Elite", serif;
+/* ============================================================
+   CONTENEUR GLOBAL D’UN ONGLET
+   ------------------------------------------------------------
+   Style :
+   - Largeur contrôlée
+   - Marges RP
+   - Espacement interne
+   ============================================================ */
+.tab {
+    max-width: 900px;
+    margin: 0 auto 20px;
+    padding: 6px;
 }
 
-/* ===========================
-   PANEL MODO
-=========================== */
 
+
+/* ============================================================
+   TITRE INTERNE D’ONGLET
+   ------------------------------------------------------------
+   Utilisé pour :
+   - Sous-sections (ex : “Statistiques”, “Inventaire”, “Quêtes actives”)
+   ============================================================ */
+.tab-section-title {
+    font-family: "Cinzel", serif;
+    font-size: 1.4rem;
+    margin: 14px 0 8px;
+
+    color: var(--text);
+    text-shadow: 0 0 4px rgba(0,0,0,0.4);
+}
+
+
+
+/* ============================================================
+   SÉPARATEUR RP (ligne encre)
+   ------------------------------------------------------------
+   Objectif :
+   - Séparer proprement les sections
+   - Style encre / manga
+   ============================================================ */
+.separator-rp {
+    width: 100%;
+    height: 2px;
+    margin: 10px 0 14px;
+
+    background: rgba(60,40,20,0.55);
+    box-shadow: 0 0 4px rgba(0,0,0,0.4);
+}
+
+
+
+/* ============================================================
+   GRILLE RP (2 colonnes)
+   ------------------------------------------------------------
+   Utilisé pour :
+   - Profil (infos à gauche, stats à droite)
+   - Inventaire
+   - Compétences
+   ============================================================ */
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+@media (max-width: 700px) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+
+/* ============================================================
+   ENCART RP (carte, fiche, info)
+   ------------------------------------------------------------
+   Style :
+   - Parchemin vieilli
+   - Bordure encre
+   - Ombre RP
+   ============================================================ */
+.encart-rp {
+    background:
+        linear-gradient(
+            rgba(255,250,230,0.88),
+            rgba(255,245,220,0.92)
+        ),
+        url("assets/textures/parchment-old.jpg")
+        center/cover repeat;
+
+    border: 2px solid rgba(90,60,30,0.7);
+    border-radius: 8px;
+
+    padding: 12px;
+
+    box-shadow:
+        0 0 10px rgba(0,0,0,0.45),
+        inset 0 0 4px rgba(0,0,0,0.25);
+}
+
+
+
+/* ============================================================
+   LISTE RP (quêtes, compétences, journal)
+   ------------------------------------------------------------
+   Style :
+   - Liste parchemin
+   - Icône encre
+   ============================================================ */
+.list-rp {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.list-rp li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 8px 10px;
+    margin-bottom: 6px;
+
+    background:
+        linear-gradient(
+            rgba(255,250,230,0.9),
+            rgba(255,245,220,0.95)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+
+    border: 2px solid rgba(90,60,30,0.6);
+    border-radius: 6px;
+
+    box-shadow:
+        0 0 6px rgba(0,0,0,0.35),
+        inset 0 0 3px rgba(0,0,0,0.2);
+
+    font-family: "Special Elite", serif;
+    color: #2b1a0b;
+}
+
+
+
+/* ============================================================
+   ICÔNE RP POUR LISTES
+   ------------------------------------------------------------
+   Objectif :
+   - Icône encre à gauche
+   ============================================================ */
+.list-rp li .icon {
+    width: 20px;
+    height: 20px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.4));
+}
+
+
+
+/* ============================================================
+   ZONE DE TEXTE RP (journal, description)
+   ------------------------------------------------------------
+   Style :
+   - Parchemin
+   - Bordure encre
+   - Texture légère
+   ============================================================ */
+.text-rp {
+    background:
+        linear-gradient(
+            rgba(255,250,230,0.9),
+            rgba(255,245,220,0.95)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+
+    border: 2px solid rgba(90,60,30,0.7);
+    border-radius: 6px;
+
+    padding: 10px;
+    margin: 8px 0;
+
+    font-family: "Special Elite", serif;
+    color: #2b1a0b;
+
+    box-shadow:
+        inset 0 0 4px rgba(0,0,0,0.25);
+}
+
+
+
+/* ============================================================
+   STYLE “JOURNAL DE BORD”
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un style One Piece au journal
+   ============================================================ */
+.journal-entry {
+    padding: 12px;
+    margin-bottom: 12px;
+
+    background:
+        linear-gradient(
+            rgba(255,245,220,0.92),
+            rgba(255,240,210,0.95)
+        ),
+        url("assets/textures/parchment-old.jpg")
+        center/cover repeat;
+
+    border: 2px solid rgba(120,90,50,0.7);
+    border-radius: 8px;
+
+    box-shadow:
+        0 0 8px rgba(0,0,0,0.4),
+        inset 0 0 4px rgba(0,0,0,0.25);
+
+    font-family: "Special Elite", serif;
+    color: #2b1a0b;
+}
+
+
+
+/* ============================================================
+   STYLE “TAVERNE”
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un style RP à la taverne
+   ============================================================ */
+.taverne-box {
+    background:
+        linear-gradient(
+            rgba(255,240,200,0.9),
+            rgba(255,230,180,0.95)
+        ),
+        url("assets/textures/parchment-old.jpg")
+        center/cover repeat;
+
+    border: 3px solid rgba(120,90,50,0.8);
+    border-radius: 10px;
+
+    padding: 14px;
+    margin-bottom: 14px;
+
+    box-shadow:
+        0 0 12px rgba(0,0,0,0.5),
+        inset 0 0 6px rgba(0,0,0,0.3);
+
+    font-family: "Special Elite", serif;
+    color: #2b1a0b;
+}
+/* ============================================================
+   SECTION 10 — CHAT RP ONE PIECE
+   ------------------------------------------------------------
+   Objectif :
+   - Créer un chat immersif, lisible, RP
+   - Style parchemin + encre
+   - Messages typés (RP, système, faction)
+   - Scrollbar RP
+   ============================================================ */
+
+
+/* ============================================================
+   CONTENEUR GLOBAL DU CHAT
+   ------------------------------------------------------------
+   Style :
+   - Parchemin vieilli
+   - Bordure encre
+   - Ombre RP
+   ============================================================ */
+.chat-box {
+    height: 260px;
+    overflow-y: auto;
+    padding: 12px;
+
+    background:
+        linear-gradient(
+            rgba(255,250,230,0.88),
+            rgba(255,245,220,0.92)
+        ),
+        url("assets/textures/parchment-old.jpg")
+        center/cover repeat;
+
+    border: 3px solid rgba(90,60,30,0.75);
+    border-radius: 10px;
+
+    box-shadow:
+        0 0 12px rgba(0,0,0,0.45),
+        inset 0 0 6px rgba(0,0,0,0.25);
+
+    font-family: "Special Elite", serif;
+    color: #2b1a0b;
+}
+
+
+
+/* ============================================================
+   SCROLLBAR RP
+   ------------------------------------------------------------
+   Objectif :
+   - Scrollbar style bois/encre
+   ============================================================ */
+.chat-box::-webkit-scrollbar {
+    width: 10px;
+}
+
+.chat-box::-webkit-scrollbar-track {
+    background: rgba(60,40,20,0.25);
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+    background: rgba(90,60,30,0.7);
+    border-radius: 6px;
+}
+
+
+
+/* ============================================================
+   MESSAGE RP (par défaut)
+   ------------------------------------------------------------
+   Style :
+   - Parchemin clair
+   - Bordure encre
+   - Légère ombre
+   ============================================================ */
+.chat-message {
+    padding: 6px 10px;
+    margin-bottom: 6px;
+
+    background:
+        linear-gradient(
+            rgba(255,250,230,0.9),
+            rgba(255,245,220,0.95)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+
+    border: 2px solid rgba(90,60,30,0.6);
+    border-radius: 6px;
+
+    box-shadow:
+        0 0 6px rgba(0,0,0,0.35),
+        inset 0 0 3px rgba(0,0,0,0.2);
+
+    font-family: "Special Elite", serif;
+    color: #2b1a0b;
+}
+
+
+
+/* ============================================================
+   MESSAGE SYSTÈME (annonces, events)
+   ------------------------------------------------------------
+   Style :
+   - Plus clair
+   - Bordure dorée
+   - Style “annonce officielle”
+   ============================================================ */
+.chat-system {
+    background:
+        linear-gradient(
+            rgba(255,245,200,0.9),
+            rgba(255,240,180,0.95)
+        );
+
+    border-color: #c9a96a;
+    color: #3a2a10;
+    font-weight: bold;
+}
+
+
+
+/* ============================================================
+   MESSAGE FACTION (couleur dynamique)
+   ------------------------------------------------------------
+   Objectif :
+   - Donner une teinte RP selon la faction du joueur
+   ============================================================ */
+body.theme-marine .chat-faction {
+    background:
+        linear-gradient(
+            rgba(200,220,255,0.25),
+            rgba(180,200,240,0.25)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+}
+
+body.theme-pirate .chat-faction {
+    background:
+        linear-gradient(
+            rgba(255,200,200,0.25),
+            rgba(240,170,170,0.25)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+}
+
+body.theme-revo .chat-faction {
+    background:
+        linear-gradient(
+            rgba(200,255,200,0.25),
+            rgba(170,240,170,0.25)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+}
+
+
+
+/* ============================================================
+   MESSAGE NARRATIF (MJ / narration)
+   ------------------------------------------------------------
+   Style :
+   - Italique RP
+   - Couleur encre douce
+   ============================================================ */
+.chat-narration {
+    font-style: italic;
+    opacity: 0.85;
+}
+
+
+
+/* ============================================================
+   INPUT DU CHAT (zone de saisie)
+   ------------------------------------------------------------
+   Style :
+   - Parchemin clair
+   - Bordure encre
+   - Texture légère
+   ============================================================ */
+.chat-input {
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 10px;
+
+    font-family: "Special Elite", serif;
+    font-size: 1rem;
+    color: #2b1a0b;
+
+    background:
+        linear-gradient(
+            rgba(255,250,230,0.92),
+            rgba(255,245,220,0.95)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+
+    border: 2px solid rgba(90,60,30,0.8);
+    border-radius: 6px;
+
+    box-shadow:
+        inset 0 0 4px rgba(0,0,0,0.25);
+
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+
+
+/* ============================================================
+   FOCUS RP (halo encre)
+   ============================================================ */
+.chat-input:focus {
+    outline: none;
+
+    border-color: var(--border);
+
+    box-shadow:
+        0 0 6px rgba(0,0,0,0.4),
+        0 0 10px var(--border);
+}
+
+
+
+/* ============================================================
+   BOUTON ENVOYER (RP)
+   ------------------------------------------------------------
+   Style :
+   - Parchemin
+   - Bordure encre
+   - Accent dynamique
+   ============================================================ */
+.chat-send-btn {
+    margin-top: 8px;
+    padding: 8px 14px;
+
+    font-family: "Cinzel", serif;
+    font-size: 1rem;
+    font-weight: 600;
+
+    background:
+        linear-gradient(
+            rgba(255,245,210,0.92),
+            rgba(255,240,200,0.95)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+
+    border: 3px solid var(--border);
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 0 6px rgba(0,0,0,0.45),
+        inset 0 0 4px rgba(0,0,0,0.25);
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.25s ease,
+        filter 0.25s ease;
+}
+
+.chat-send-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+}
+/* ============================================================
+   SECTION 11 — PANEL MODO (PANTHÉON)
+   ------------------------------------------------------------
+   Objectif :
+   - Créer un panneau d'administration RP
+   - Style parchemin doré / décret officiel
+   - Fenêtre modale flottante
+   - Inputs et boutons modo
+   ============================================================ */
+
+
+/* ============================================================
+   FENÊTRE MODALE DU PANTHÉON
+   ------------------------------------------------------------
+   Style :
+   - Centrée
+   - Parchemin doré
+   - Ombre divine
+   - Apparition animée
+   ============================================================ */
 .panel-modo {
     position: fixed;
     top: 50%;
     left: 50%;
-    width: 440px;
-    transform: translate(-50%, -50%);
+    width: 480px;
+    max-height: 80vh;
+
+    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0;
+
+    padding: 16px;
+    overflow-y: auto;
+
+    background:
+        linear-gradient(
+            rgba(255,245,210,0.95),
+            rgba(255,235,180,0.98)
+        ),
+        url("assets/textures/parchment-old.jpg")
+        center/cover repeat;
+
+    border: 4px solid #c9a96a; /* doré */
+    border-radius: 12px;
+
+    box-shadow:
+        0 0 18px rgba(0,0,0,0.6),
+        0 0 32px rgba(0,0,0,0.4),
+        inset 0 0 6px rgba(0,0,0,0.25);
+
     z-index: 999;
+
+    animation: pantheonAppear 0.45s ease-out forwards;
 }
 
+
+
+/* ============================================================
+   ANIMATION D’APPARITION (effet divin)
+   ============================================================ */
+@keyframes pantheonAppear {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    60% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+
+
+/* ============================================================
+   TITRE DU PANTHÉON
+   ------------------------------------------------------------
+   Style :
+   - Cinzel
+   - Ombre divine
+   - Icône Panthéon
+   ============================================================ */
+.title-modo {
+    font-family: "Cinzel", serif;
+    font-size: 2rem;
+    text-align: center;
+    margin: 0 0 14px;
+
+    color: #3a2a10;
+    text-shadow:
+        0 0 8px rgba(0,0,0,0.7),
+        0 0 16px rgba(0,0,0,0.5);
+}
+
+
+
+/* ============================================================
+   ICÔNE DU PANTHÉON (optionnelle)
+   ------------------------------------------------------------
+   Style :
+   - Icône divine
+   - Encre dorée
+   ============================================================ */
+.pantheon-icon {
+    width: 42px;
+    height: 42px;
+    margin: 0 auto 10px;
+
+    background-image: url("assets/icons/pantheon-ink.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    filter: drop-shadow(0 0 4px rgba(0,0,0,0.5));
+}
+
+
+
+/* ============================================================
+   INPUTS MODO
+   ------------------------------------------------------------
+   Style :
+   - Parchemin administratif
+   - Bordure encre sombre
+   - Lisibilité maximale
+   ============================================================ */
 .panel-modo input,
-.panel-modo select {
+.panel-modo select,
+.panel-modo textarea {
     width: 100%;
-    margin: 4px 0;
-    padding: 6px 8px;
-    border-radius: 5px;
-    border: 1px solid rgba(120,90,50,0.8);
-    background: rgba(255,255,255,0.95);
-    color: #2b1a0b;
+    padding: 8px 10px;
+    margin: 6px 0;
+
     font-family: "Special Elite", serif;
+    font-size: 1rem;
+    color: #2b1a0b;
+
+    background:
+        linear-gradient(
+            rgba(255,250,230,0.95),
+            rgba(255,245,220,0.98)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+
+    border: 2px solid rgba(70,50,25,0.8);
+    border-radius: 6px;
+
+    box-shadow:
+        inset 0 0 4px rgba(0,0,0,0.3);
+
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
 }
 
+
+
+/* ============================================================
+   FOCUS RP (halo doré)
+   ============================================================ */
+.panel-modo input:focus,
+.panel-modo select:focus,
+.panel-modo textarea:focus {
+    outline: none;
+
+    border-color: #c9a96a;
+
+    box-shadow:
+        0 0 6px rgba(0,0,0,0.4),
+        0 0 10px #c9a96a;
+}
+
+
+
+/* ============================================================
+   BOUTONS MODO
+   ------------------------------------------------------------
+   Style :
+   - Parchemin doré
+   - Bordure dorée
+   - Hover divin
+   ============================================================ */
+.btn-modo {
+    display: inline-block;
+    padding: 8px 14px;
+    margin: 6px 0;
+
+    font-family: "Cinzel", serif;
+    font-size: 1rem;
+    font-weight: 600;
+
+    background:
+        linear-gradient(
+            rgba(255,245,200,0.95),
+            rgba(240,220,160,0.95)
+        ),
+        url("assets/textures/parchment-light.jpg")
+        center/cover repeat;
+
+    border: 3px solid #c9a96a;
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    color: #3a2a10;
+
+    box-shadow:
+        0 0 8px rgba(0,0,0,0.45),
+        inset 0 0 4px rgba(0,0,0,0.25);
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.25s ease,
+        filter 0.25s ease;
+}
+
+.btn-modo:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+}
+
+
+
+/* ============================================================
+   BOUTON FERMETURE (X)
+   ------------------------------------------------------------
+   Style :
+   - Petit
+   - Doré
+   - Positionné en haut à droite
+   ============================================================ */
 .btn-close {
     position: absolute;
-    top: 6px;
-    right: 6px;
+    top: 8px;
+    right: 8px;
+
+    padding: 4px 8px;
+    font-size: 0.9rem;
+
+    background:
+        linear-gradient(
+            rgba(255,230,200,0.9),
+            rgba(255,220,180,0.95)
+        );
+    border: 2px solid rgba(120,90,50,0.8);
+    border-radius: 4px;
+
+    cursor: pointer;
 }
+/* ============================================================
+   SECTION 12 — EMBLÈME WATERMARK (Marine / Pirate / Révo)
+   ------------------------------------------------------------
+   Objectif :
+   - Afficher un emblème RP géant en watermark
+   - Style encre / sceau officiel
+   - Animation d’apparition
+   - Couleur dynamique selon la faction
+   ============================================================ */
 
-/* ===========================
-   EMBLÈME WATERMARK
-=========================== */
 
+/* ============================================================
+   CONTENEUR DE L’EMBLÈME
+   ------------------------------------------------------------
+   Style :
+   - Centré
+   - Derrière les panneaux (z-index négatif)
+   - Taille contrôlée
+   - Opacité douce
+   ============================================================ */
 #faction-emblem {
     position: fixed;
     top: 50%;
     left: 50%;
+
     width: 420px;
     height: 420px;
+
     transform: translate(-50%, -50%) scale(0.9);
     opacity: 0;
+
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    pointer-events: none;
+
+    pointer-events: none; /* ne gêne jamais les clics */
+
     z-index: -1;
-    animation: emblemFadeIn 1.8s ease-out forwards;
+
     filter: drop-shadow(0 0 6px rgba(0,0,0,0.4));
+
+    animation: emblemFadeIn 1.8s ease-out forwards;
 }
 
-body.theme-marine #faction-emblem { background-image: url("assets/emblems/marine.png"); }
-body.theme-pirate #faction-emblem { background-image: url("assets/emblems/pirate.png"); }
-body.theme-revo #faction-emblem { background-image: url("assets/emblems/revo.png"); }
 
-body.theme-login #faction-emblem { display: none; }
 
+/* ============================================================
+   ANIMATION D’APPARITION (effet sceau)
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un effet “sceau qui se révèle”
+   - Apparition douce + légère expansion
+   ============================================================ */
 @keyframes emblemFadeIn {
-    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
-    60% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
-    100% { opacity: 0.35; transform: translate(-50%, -50%) scale(0.9); }
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.6);
+    }
+    60% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1.05);
+    }
+    100% {
+        opacity: 0.35;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
 }
 
-/* ===========================
-   DIVERS
-=========================== */
 
-.box-modo {
-    max-height: 200px;
-    overflow-y: auto;
+
+/* ============================================================
+   EMBLÈMES PAR FACTION
+   ------------------------------------------------------------
+   Objectif :
+   - Changer automatiquement l’emblème selon le thème
+   ============================================================ */
+body.theme-marine #faction-emblem {
+    background-image: url("assets/emblems/marine.png");
 }
 
+body.theme-pirate #faction-emblem {
+    background-image: url("assets/emblems/pirate.png");
+}
+
+body.theme-revo #faction-emblem {
+    background-image: url("assets/emblems/revo.png");
+}
+
+
+
+/* ============================================================
+   DÉSACTIVATION SUR LA PAGE LOGIN
+   ------------------------------------------------------------
+   Objectif :
+   - Pas d’emblème sur la page de connexion
+   ============================================================ */
+body.theme-login #faction-emblem {
+    display: none;
+}
+/* ============================================================
+   SECTION 13 — DIVERS & FINITIONS RP ONE PIECE
+   ------------------------------------------------------------
+   Objectif :
+   - Ajouter les finitions visuelles
+   - Scrollbars RP globales
+   - Classes utilitaires
+   - Micro-effets RP
+   ============================================================ */
+
+
+/* ============================================================
+   SCROLLBARS RP GLOBALES
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un style bois/encre à toutes les scrollbars
+   - Cohérence totale avec le thème
+   ============================================================ */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(60,40,20,0.25);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(90,60,30,0.7);
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(90,60,30,0.9);
+}
+
+
+
+/* ============================================================
+   CLASSE .hidden
+   ------------------------------------------------------------
+   Objectif :
+   - Masquer proprement un élément
+   - Sans casser la mise en page
+   ============================================================ */
 .hidden {
     display: none !important;
+}
+
+
+
+/* ============================================================
+   LIENS RP
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un style encre aux liens
+   - Hover RP
+   ============================================================ */
+a {
+    color: var(--border);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    text-shadow: 0 0 4px rgba(0,0,0,0.4);
+}
+
+
+
+/* ============================================================
+   SÉLECTION DE TEXTE RP
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un effet encre lors de la sélection
+   ============================================================ */
+::selection {
+    background: var(--border);
+    color: #1a1205;
+}
+
+
+
+/* ============================================================
+   BOUTONS DÉSACTIVÉS
+   ------------------------------------------------------------
+   Objectif :
+   - Style RP même pour les états disabled
+   ============================================================ */
+button:disabled,
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(0.4);
+}
+
+
+
+/* ============================================================
+   EFFET ENCRE SUR LES PANNEAUX (grain léger)
+   ------------------------------------------------------------
+   Objectif :
+   - Ajouter un grain RP subtil
+   ============================================================ */
+.panel,
+.box,
+.encart-rp,
+.list-rp li,
+.text-rp,
+.journal-entry,
+.taverne-box {
+    backdrop-filter: contrast(1.03) brightness(1.02);
+}
+
+
+
+/* ============================================================
+   ANTI-SÉLECTION SUR LES ICÔNES
+   ------------------------------------------------------------
+   Objectif :
+   - Empêcher la sélection accidentelle des icônes RP
+   ============================================================ */
+.icon,
+.tab-btn {
+    user-select: none;
+}
+
+
+
+/* ============================================================
+   ANTI-CLIGNOTEMENT SUR CHANGEMENT DE THÈME
+   ------------------------------------------------------------
+   Objectif :
+   - Empêcher les flashs blancs ou noirs
+   ============================================================ */
+body {
+    background-color: #0d0d0d;
+}
+
+
+
+/* ============================================================
+   TRANSITIONS GLOBALES (polish final)
+   ------------------------------------------------------------
+   Objectif :
+   - Fluidifier l’ensemble de l’interface
+   ============================================================ */
+* {
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+
+
+/* ============================================================
+   FINITIONS SUR LES PANNEAUX (effet brûlé)
+   ------------------------------------------------------------
+   Objectif :
+   - Renforcer l’effet parchemin brûlé
+   ============================================================ */
+.panel,
+.box,
+.encart-rp,
+.journal-entry,
+.taverne-box {
+    outline: 1px solid rgba(60,40,20,0.35);
+    outline-offset: -4px;
+}
+
+
+
+/* ============================================================
+   FINITIONS SUR LES TITRES (effet encre)
+   ------------------------------------------------------------
+   Objectif :
+   - Donner un léger grain aux titres RP
+   ============================================================ */
+.title-main,
+.title-modo,
+h3,
+.title-rp {
+    filter: saturate(0.95);
 }
