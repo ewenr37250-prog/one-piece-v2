@@ -1,287 +1,461 @@
-// Connexion socket (si tu utilises Socket.IO côté serveur)
-const socket = io();
+/* ============================================================
+   MAIN.JS — SECTION 1
+   INITIALISATION & GESTION DU THÈME ACTIF
+   ------------------------------------------------------------
+   Objectif :
+   - Charger le thème sauvegardé (Marine / Pirate / Révo / Login)
+   - L’appliquer au <body>
+   - Préparer des helpers pour la suite (onglets, modo, etc.)
+   ============================================================ */
 
-/* ===========================
-   AUTH
-=========================== */
 
-function register() {
-    const name = document.getElementById("auth-name").value.trim();
-    const pass = document.getElementById("auth-pass").value.trim();
-    const faction = document.getElementById("auth-faction").value;
-    const classe = document.getElementById("auth-class").value;
+/* ============================================================
+   HELPERS DE BASE
+   ------------------------------------------------------------
+   $  : sélectionne un seul élément
+   $$ : sélectionne plusieurs éléments
+   logRP : petit log stylé pour debug RP
+   ============================================================ */
+const $  = (selector, scope = document) => scope.querySelector(selector);
+const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
 
-    if (!name || !pass) return alert("Nom et mot de passe requis.");
+const logRP = (...args) => {
+    console.log("[ONE PIECE RP]", ...args);
+};
 
-    socket.emit("auth:register", { name, password: pass, faction, classe });
+
+/* ============================================================
+   GESTION DU THÈME ACTIF
+   ------------------------------------------------------------
+   - Le thème est stocké dans localStorage sous la clé "rp-theme"
+   - Valeurs possibles : "theme-login", "theme-marine",
+                         "theme-pirate", "theme-revo"
+   - Le thème est appliqué comme classe sur <body>
+   ============================================================ */
+
+const THEME_KEY = "rp-theme";
+
+/**
+ * Retourne le thème sauvegardé dans localStorage,
+ * ou null si aucun thème n’est encore défini.
+ */
+function getSavedTheme() {
+    try {
+        return localStorage.getItem(THEME_KEY);
+    } catch (e) {
+        logRP("Impossible de lire localStorage (mode privé ?)", e);
+        return null;
+    }
 }
 
-function login() {
-    const name = document.getElementById("auth-name").value.trim();
-    const pass = document.getElementById("auth-pass").value.trim();
-
-    if (!name || !pass) return alert("Nom et mot de passe requis.");
-
-    socket.emit("auth:login", { name, password: pass });
+/**
+ * Sauvegarde le thème dans localStorage.
+ * @param {string} themeClass - ex : "theme-marine"
+ */
+function saveTheme(themeClass) {
+    try {
+        localStorage.setItem(THEME_KEY, themeClass);
+    } catch (e) {
+        logRP("Impossible d’écrire dans localStorage", e);
+    }
 }
 
-socket.on("auth:error", (msg) => {
-    alert(msg);
-});
+/**
+ * Applique un thème au <body>.
+ * - Supprime les anciens thèmes
+ * - Ajoute la nouvelle classe
+ * - Sauvegarde le choix
+ */
+function applyTheme(themeClass) {
+    const body = document.body;
+    const themeClasses = ["theme-login", "theme-marine", "theme-pirate", "theme-revo"];
 
-socket.on("auth:success", ({ player }) => {
-    // On masque l'écran de connexion, on affiche le jeu
-    document.getElementById("auth-screen").classList.add("hidden");
-    document.getElementById("game-ui").classList.remove("hidden");
+    body.classList.remove(...themeClasses);
+    body.classList.add(themeClass);
 
-    // On applique le thème faction
-    applyFactionTheme(player.faction);
+    saveTheme(themeClass);
+    logRP("Thème appliqué :", themeClass);
+}
 
-    // On met à jour l’UI
-    updateUI(player);
-});
 
-/* ===========================
-   THEMES FACTION
-=========================== */
+/* ============================================================
+   INITIALISATION GLOBALE
+   ------------------------------------------------------------
+   - Appelée au chargement de la page
+   - Récupère le thème sauvegardé
+   - Si aucun thème → theme-login par défaut
+   ============================================================ */
 
-function applyFactionTheme(faction) {
-    // Reset classes du body
-    document.body.className = "";
+function initRPInterface() {
+    const savedTheme = getSavedTheme();
 
-    if (faction === "marine") {
-        document.body.classList.add("theme-marine");
-    } else if (faction === "pirate") {
-        document.body.classList.add("theme-pirate");
-    } else if (faction === "revolutionnaire") {
-        document.body.classList.add("theme-revo");
+    if (savedTheme && ["theme-login", "theme-marine", "theme-pirate", "theme-revo"].includes(savedTheme)) {
+        applyTheme(savedTheme);
     } else {
-        // fallback
-        document.body.classList.add("theme-login");
+        // Thème par défaut : page de login / carte du monde
+        applyTheme("theme-login");
     }
+
+    logRP("Interface RP initialisée.");
 }
 
-/* ===========================
-   UI DE BASE
-=========================== */
 
-function updateUI(p) {
-    document.getElementById("ui-name").textContent = p.name;
-    document.getElementById("ui-faction").textContent = p.faction;
-    document.getElementById("ui-class").textContent = p.classe;
-    document.getElementById("ui-level").textContent = p.level;
-    document.getElementById("ui-xp").textContent = p.xp;
-    document.getElementById("ui-berries").textContent = p.berries;
-    document.getElementById("ui-bounty").textContent = p.bounty;
-
-    if (p.skillTree) updateSkillTree(p.skillTree);
-}
-
-/* ===========================
-   TABS
-=========================== */
-
-function openTab(id, btn) {
-    document.querySelectorAll(".tab").forEach(t => t.classList.add("hidden"));
-    document.getElementById("tab-" + id).classList.remove("hidden");
-
-    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-}
-
-/* ===========================
-   ACTIONS / TRAIN
-=========================== */
-
-function doTrain() {
-    socket.emit("action:train");
-}
-
-socket.on("action:result", ({ text }) => {
-    addLog(text);
+/* ============================================================
+   LANCEMENT AU CHARGEMENT DU DOM
+   ------------------------------------------------------------
+   - On attend que le DOM soit prêt
+   - Puis on initialise l’interface RP
+   ============================================================ */
+document.addEventListener("DOMContentLoaded", () => {
+    initRPInterface();
 });
+/* ============================================================
+   MAIN.JS — SECTION 2
+   SYSTÈME D’ONGLETS RP ONE PIECE
+   ------------------------------------------------------------
+   Objectif :
+   - Gérer les clics sur les onglets
+   - Activer / désactiver les boutons
+   - Afficher le contenu correspondant
+   - Ajouter une petite animation RP
+   ============================================================ */
 
-socket.on("action:cooldown", ({ action, remaining }) => {
-    addLog(`⏳ ${action} encore ${Math.ceil(remaining / 1000)}s`);
-});
 
-/* ===========================
-   QUÊTES
-=========================== */
+/**
+ * Active un onglet donné.
+ * @param {string} tabName - ex : "profil", "quetes", "skills"
+ */
+function openTab(tabName) {
 
-function requestFactionQuest() {
-    socket.emit("quest:request_faction");
-}
+    // 1. Désactiver tous les onglets
+    $$(".tab-btn").forEach(btn => btn.classList.remove("active"));
 
-function requestClassQuest() {
-    socket.emit("quest:request_class");
-}
+    // 2. Cacher tous les contenus
+    $$(".tab").forEach(tab => tab.classList.add("hidden"));
 
-function doFactionQuest() {
-    socket.emit("action:quest_progress", { type: "faction" });
-}
+    // 3. Activer le bouton correspondant
+    const activeBtn = $(`.tab-btn[data-tab="${tabName}"]`);
+    if (activeBtn) activeBtn.classList.add("active");
 
-function doClassQuest() {
-    socket.emit("action:quest_progress", { type: "class" });
-}
+    // 4. Afficher le contenu correspondant
+    const activeTab = $(`#tab-${tabName}`);
+    if (activeTab) {
+        activeTab.classList.remove("hidden");
 
-socket.on("quest:faction_update", (q) => {
-    document.getElementById("faction-quest-info").textContent =
-        `${q.title} — ${q.description} (${q.progress}/${q.goal})`;
-});
-
-socket.on("quest:class_update", (q) => {
-    document.getElementById("class-quest-info").textContent =
-        `${q.title} — ${q.description} (${q.progress}/${q.goal})`;
-});
-
-/* ===========================
-   SKILLS
-=========================== */
-
-function updateSkillTree(tree) {
-    document.getElementById("skill-tp").textContent = tree.talentPoints;
-
-    const container = document.getElementById("skill-tree-branches");
-    container.innerHTML = "";
-
-    for (const branch in tree.branches) {
-        const lvl = tree.branches[branch];
-
-        const div = document.createElement("div");
-        div.className = "skill-branch";
-        div.innerHTML = `
-            <b>${branch}</b> : ${lvl}/${tree.maxLevel}
-            <button class="btn btn-small" onclick="upgradeSkill('${branch}')">+</button>
-        `;
-        container.appendChild(div);
+        // Petite animation RP (fade-in léger)
+        activeTab.style.opacity = 0;
+        setTimeout(() => {
+            activeTab.style.transition = "opacity 0.25s ease";
+            activeTab.style.opacity = 1;
+        }, 10);
     }
+
+    // 5. Scroll vers le haut (propre)
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    logRP("Onglet ouvert :", tabName);
 }
 
-function upgradeSkill(branch) {
-    socket.emit("skill:upgrade", { branch });
+
+
+/* ============================================================
+   INITIALISATION DES ONGLETS
+   ------------------------------------------------------------
+   - Ajoute les listeners sur tous les boutons d’onglets
+   - Active l’onglet par défaut (profil ou autre)
+   ============================================================ */
+
+function initTabs() {
+
+    // Ajouter les listeners
+    $$(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const tabName = btn.dataset.tab;
+            openTab(tabName);
+        });
+    });
+
+    // Déterminer l’onglet par défaut
+    const defaultTab = "profil"; // tu peux changer ici
+
+    openTab(defaultTab);
+
+    logRP("Système d’onglets initialisé.");
+}
+/* ============================================================
+   MAIN.JS — SECTION 3
+   SYSTÈME DE THÈMES (Marine / Pirate / Révo / Login)
+   ------------------------------------------------------------
+   Objectif :
+   - Permettre de changer de thème en un clic
+   - Appliquer la classe correspondante au <body>
+   - Sauvegarder le thème dans localStorage
+   - Mettre à jour automatiquement l’emblème watermark
+   ============================================================ */
+
+
+/**
+ * Change le thème actif.
+ * @param {string} themeName - ex : "marine", "pirate", "revo", "login"
+ */
+function setTheme(themeName) {
+    const themeClass = `theme-${themeName}`;
+
+    applyTheme(themeClass); // ← vient de la SECTION 1
+
+    updateEmblem(); // ← watermark dynamique
+
+    logRP("Thème changé :", themeClass);
 }
 
-socket.on("skill:update", (tree) => {
-    updateSkillTree(tree);
-});
 
-socket.on("skill:error", (msg) => {
-    addLog(msg);
-});
 
-/* ===========================
-   CHAT
-=========================== */
+/* ============================================================
+   MISE À JOUR DU WATERMARK
+   ------------------------------------------------------------
+   Objectif :
+   - Forcer le rafraîchissement de l’emblème
+   - (le CSS gère l’image selon la classe du body)
+   ============================================================ */
+function updateEmblem() {
+    const emblem = $("#faction-emblem");
+    if (!emblem) return;
 
-function sendChat() {
-    const input = document.getElementById("chat-input");
+    // Petite astuce : on force un "reflow" pour relancer l’animation
+    emblem.style.animation = "none";
+    void emblem.offsetWidth; // reset
+    emblem.style.animation = "";
+}
+
+
+
+/* ============================================================
+   INITIALISATION DES BOUTONS DE THÈME
+   ------------------------------------------------------------
+   - Tous les boutons doivent avoir data-theme="marine" etc.
+   - Exemple HTML :
+       <button class="btn-theme" data-theme="pirate">Pirate</button>
+   ============================================================ */
+function initThemeButtons() {
+    $$(".btn-theme").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const theme = btn.dataset.theme;
+            setTheme(theme);
+        });
+    });
+
+    logRP("Boutons de thème initialisés.");
+}
+/* ============================================================
+   MAIN.JS — SECTION 4
+   PANEL MODO (PANTHÉON)
+   ------------------------------------------------------------
+   Objectif :
+   - Gérer l’ouverture du panel modo
+   - Vérifier le code modo
+   - Afficher / cacher la fenêtre modale
+   - Préparer les hooks pour les actions modo
+   ============================================================ */
+
+
+/* ============================================================
+   CODE MODO (à synchroniser avec ton server.js)
+   ------------------------------------------------------------
+   IMPORTANT :
+   - Ce code n’est PAS une sécurité réelle
+   - C’est juste un accès client RP
+   - La vraie sécurité doit être côté serveur
+   ============================================================ */
+const MODO_CODE = "PANTHEON_OP"; // même que dans server.js
+
+
+
+/* ============================================================
+   OUVERTURE DU PANEL MODO
+   ------------------------------------------------------------
+   - Demande un code via prompt RP
+   - Vérifie le code
+   - Affiche la fenêtre modale
+   ============================================================ */
+function openModoPanel() {
+
+    const userCode = prompt("🔱 Entrez le code du Panthéon :");
+
+    if (!userCode) {
+        logRP("Accès modo annulé.");
+        return;
+    }
+
+    if (userCode !== MODO_CODE) {
+        alert("❌ Code incorrect. L’accès au Panthéon est refusé.");
+        logRP("Tentative d’accès modo refusée.");
+        return;
+    }
+
+    // Code correct → on ouvre le panel
+    const panel = $("#panel-modo");
+    if (!panel) return;
+
+    panel.classList.remove("hidden");
+
+    // Animation RP (reset)
+    panel.style.animation = "none";
+    void panel.offsetWidth;
+    panel.style.animation = "";
+
+    logRP("Accès modo accordé.");
+}
+
+
+
+/* ============================================================
+   FERMETURE DU PANEL MODO
+   ------------------------------------------------------------
+   - Cache la fenêtre modale
+   ============================================================ */
+function closeModoPanel() {
+    const panel = $("#panel-modo");
+    if (!panel) return;
+
+    panel.classList.add("hidden");
+    logRP("Panel modo fermé.");
+}
+
+
+
+/* ============================================================
+   INITIALISATION DES BOUTONS MODO
+   ------------------------------------------------------------
+   - Bouton d’ouverture : .btn-open-modo
+   - Bouton de fermeture : .btn-close
+   ============================================================ */
+function initModoButtons() {
+
+    // Bouton d’ouverture
+    const openBtn = $(".btn-open-modo");
+    if (openBtn) {
+        openBtn.addEventListener("click", openModoPanel);
+    }
+
+    // Bouton de fermeture dans le panel
+    const closeBtn = $("#panel-modo .btn-close");
+    if (closeBtn) {
+        closeBtn.addEventListener("click", closeModoPanel);
+    }
+
+    logRP("Boutons du Panthéon initialisés.");
+}
+/* ============================================================
+   MAIN.JS — SECTION 5
+   CHAT RP ONE PIECE
+   ------------------------------------------------------------
+   Objectif :
+   - Gérer l’envoi de messages
+   - Ajouter les messages dans la chat-box
+   - Auto-scroll
+   - Typage RP (RP, système, faction, narration)
+   ============================================================ */
+
+
+/* ============================================================
+   AJOUT D’UN MESSAGE DANS LA CHAT-BOX
+   ------------------------------------------------------------
+   @param {string} text - contenu du message
+   @param {string} type - "rp", "system", "faction", "narration"
+   ============================================================ */
+function addChatMessage(text, type = "rp") {
+
+    const chatBox = $(".chat-box");
+    if (!chatBox) return;
+
+    // Création du conteneur
+    const msg = document.createElement("div");
+    msg.classList.add("chat-message");
+
+    // Ajout du type RP
+    if (type === "system") msg.classList.add("chat-system");
+    if (type === "faction") msg.classList.add("chat-faction");
+    if (type === "narration") msg.classList.add("chat-narration");
+
+    // Contenu
+    msg.textContent = text;
+
+    // Ajout dans la box
+    chatBox.appendChild(msg);
+
+    // Auto-scroll
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    logRP("Message ajouté :", text);
+}
+
+
+
+/* ============================================================
+   ENVOI D’UN MESSAGE (depuis l’input)
+   ------------------------------------------------------------
+   - Récupère le texte
+   - Détermine le type (RP par défaut)
+   - Ajoute le message
+   - Vide l’input
+   ============================================================ */
+function sendChatMessage() {
+
+    const input = $(".chat-input");
+    if (!input) return;
+
     const text = input.value.trim();
-    if (!text) return;
+    if (text === "") return;
 
-    socket.emit("chat:send", { text });
+    // Détection du type RP via préfixes (optionnel)
+    let type = "rp";
+
+    if (text.startsWith("/sys ")) {
+        type = "system";
+        text = text.replace("/sys ", "");
+    }
+    else if (text.startsWith("/faction ")) {
+        type = "faction";
+        text = text.replace("/faction ", "");
+    }
+    else if (text.startsWith("/nar ")) {
+        type = "narration";
+        text = text.replace("/nar ", "");
+    }
+
+    addChatMessage(text, type);
+
     input.value = "";
 }
 
-socket.on("chat:message", ({ author, text }) => {
-    const box = document.getElementById("chat-box");
-    box.innerHTML += `<div><b>${author} :</b> ${text}</div>`;
-    box.scrollTop = box.scrollHeight;
-});
 
-/* ===========================
-   EVENTS
-=========================== */
 
-socket.on("events:current", (ev) => {
-    const box = document.getElementById("current-event");
-    if (!ev) {
-        box.textContent = "Aucun événement actif.";
+/* ============================================================
+   INITIALISATION DU CHAT
+   ------------------------------------------------------------
+   - Bouton envoyer
+   - Envoi avec Entrée
+   ============================================================ */
+function initChat() {
+
+    const input = $(".chat-input");
+    const sendBtn = $(".chat-send-btn");
+
+    if (!input || !sendBtn) {
+        logRP("Chat non trouvé dans le DOM.");
         return;
     }
-    box.textContent = `${ev.title} — ${ev.text}`;
-});
 
-socket.on("events:history", (list) => {
-    const box = document.getElementById("event-history");
-    box.innerHTML = "";
-    list.forEach(e => {
-        box.innerHTML += `<div>${e.text}</div>`;
+    // Clic sur le bouton envoyer
+    sendBtn.addEventListener("click", sendChatMessage);
+
+    // Touche Entrée
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            sendChatMessage();
+        }
     });
-});
 
-/* ===========================
-   JOURNAL / LOGS
-=========================== */
-
-function addLog(text) {
-    const box = document.getElementById("log-box");
-    box.innerHTML += `<div>• ${text}</div>`;
-    box.scrollTop = box.scrollHeight;
-
-    const journal = document.getElementById("journal-box");
-    journal.innerHTML += `<div>${text}</div>`;
+    logRP("Chat RP initialisé.");
 }
-
-/* ===========================
-   MODO / ADMIN
-=========================== */
-
-function askModoCode() {
-    const code = prompt("Code Modo ?");
-    if (code) socket.emit("modo:login", code);
-}
-
-socket.on("modo:success", () => {
-    document.getElementById("modo-panel").classList.remove("hidden");
-});
-
-socket.on("modo:fail", () => {
-    addLog("❌ Code modo incorrect.");
-});
-
-socket.on("modo:log", (msg) => {
-    const box = document.getElementById("modo-log");
-    box.innerHTML += `<div>${msg}</div>`;
-    box.scrollTop = box.scrollHeight;
-});
-
-function closeModoPanel() {
-    document.getElementById("modo-panel").classList.add("hidden");
-}
-
-function adminSetGrade() {
-    const target = document.getElementById("admin-grade-target").value;
-    const grade = document.getElementById("admin-grade-value").value;
-    socket.emit("admin:set_grade", { target, grade });
-}
-
-function adminCreateQuest() {
-    const type = document.getElementById("admin-quest-type").value;
-    const title = document.getElementById("admin-quest-title").value;
-    const desc = document.getElementById("admin-quest-desc").value;
-    const goal = parseInt(document.getElementById("admin-quest-goal").value);
-    const rewardXP = parseInt(document.getElementById("admin-quest-reward-xp").value);
-    const rewardBerries = parseInt(document.getElementById("admin-quest-reward-berries").value);
-    const rewardTalent = parseInt(document.getElementById("admin-quest-reward-talent").value);
-
-    socket.emit("admin:create_quest", {
-        type, title, desc, goal, rewardXP, rewardBerries, rewardTalent
-    });
-}
-
-function adminStartEvent() {
-    const title = document.getElementById("admin-event-title").value;
-    const desc = document.getElementById("admin-event-desc").value;
-    socket.emit("admin:start_event", { title, desc });
-}
-
-function adminStopEvent() {
-    socket.emit("admin:stop_event");
-}
-
-socket.on("admin:info", (msg) => {
-    const box = document.getElementById("modo-log");
-    box.innerHTML += `<div>${msg}</div>`;
-    box.scrollTop = box.scrollHeight;
-});
