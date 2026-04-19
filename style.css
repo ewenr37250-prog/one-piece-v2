@@ -1,19 +1,99 @@
 /* ===========================
-   FOND GLOBAL
+   RESET SIMPLE
 =========================== */
+
+* {
+    box-sizing: border-box;
+}
 
 body {
     margin: 0;
     padding: 0;
     font-family: "Special Elite", serif;
-
-    /* Fond RP discret */
-    background: var(--bg) url("assets/textures/parchment-soft.png");
-    background-size: cover;
-    background-attachment: fixed;
-
     color: var(--text);
+    background-color: #05070b;
     transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* ===========================
+   FOND GLOBAL RP
+=========================== */
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 55%),
+        url("assets/backgrounds/grandline-sea.jpg") center/cover no-repeat;
+    opacity: 0.35;
+    z-index: -3;
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: url("assets/textures/parchment-soft.png") center/cover repeat;
+    mix-blend-mode: multiply;
+    opacity: 0.55;
+    z-index: -2;
+}
+
+/* ===========================
+   STRUCTURE GLOBALE
+=========================== */
+
+#auth-screen,
+#game-ui,
+#modo-panel {
+    position: relative;
+    z-index: 1;
+}
+
+/* ===========================
+   TITRES
+=========================== */
+
+.title-main {
+    text-align: center;
+    font-family: "Cinzel", serif;
+    font-size: 2.4rem;
+    letter-spacing: 4px;
+    margin: 20px 0 10px;
+    text-shadow: 0 0 8px rgba(0,0,0,0.7);
+}
+
+.title-modo {
+    font-family: "Cinzel", serif;
+    text-align: center;
+    margin-top: 0;
+}
+
+/* ===========================
+   FORMULAIRE AUTH
+=========================== */
+
+#auth-screen {
+    max-width: 420px;
+    margin: 40px auto;
+    padding: 18px 20px 22px;
+    background: rgba(10, 10, 10, 0.82);
+    border: 2px solid rgba(230, 210, 150, 0.9);
+    border-radius: 10px;
+    box-shadow: 0 0 22px rgba(0,0,0,0.7);
+}
+
+#auth-screen input,
+#auth-screen select {
+    width: 100%;
+    margin: 6px 0;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(230,210,150,0.7);
+    background: rgba(15,15,15,0.9);
+    color: #f5f0e5;
+    font-family: "Special Elite", serif;
 }
 
 /* ===========================
@@ -21,16 +101,13 @@ body {
 =========================== */
 
 .box {
-    background: var(--panel) url("assets/textures/paper-fine.png");
-    background-size: cover;
-
-    border: 2px solid var(--border);
+    background: rgba(15, 12, 8, 0.92);
+    border: 2px solid rgba(230, 210, 150, 0.9);
     padding: 12px;
     margin: 10px 0;
     border-radius: 6px;
-
-    /* Ombre RP douce */
-    box-shadow: 0 0 14px rgba(0,0,0,0.45);
+    box-shadow: 0 0 14px rgba(0,0,0,0.6);
+    backdrop-filter: blur(2px);
 }
 
 .box-modo {
@@ -43,30 +120,28 @@ body {
 =========================== */
 
 .btn {
-    background: var(--accent);
-    border: 2px solid var(--border);
-
+    background: var(--accent, #e0c97f);
+    border: 2px solid var(--border, #b89b4b);
     padding: 8px 14px;
     border-radius: 6px;
     cursor: pointer;
-
     font-family: "Cinzel", serif;
-    color: #000;
-    margin: 4px 0;
-
-    /* Effet bouton RP */
-    box-shadow: 0 0 8px rgba(0,0,0,0.35);
-    transition: transform 0.1s ease, background 0.2s ease, box-shadow 0.2s ease;
+    color: #1a1205;
+    margin: 4px 4px 4px 0;
+    box-shadow: 0 0 8px rgba(0,0,0,0.45);
+    transition: transform 0.1s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
 .btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 12px rgba(0,0,0,0.55);
+    transform: translateY(-1px);
+    box-shadow: 0 0 12px rgba(0,0,0,0.7);
+    filter: brightness(1.05);
 }
 
 .btn-secondary {
-    background: #444;
-    color: #eee;
+    background: #3a3a3a;
+    border-color: #555;
+    color: #f0f0f0;
 }
 
 /* ===========================
@@ -76,29 +151,26 @@ body {
 #tabs {
     display: flex;
     gap: 6px;
-    margin-bottom: 10px;
+    margin: 10px 0 12px;
+    flex-wrap: wrap;
 }
 
 .tab-btn {
-    background: var(--panel) url("assets/textures/paper-fine.png");
-    background-size: cover;
-
-    border: 2px solid var(--border);
+    background: rgba(15, 12, 8, 0.9);
+    border: 2px solid rgba(230, 210, 150, 0.7);
     padding: 6px 12px;
     border-radius: 6px;
     cursor: pointer;
-
     font-family: "Cinzel", serif;
-    color: var(--text);
+    color: var(--text, #f5f0e5);
     position: relative;
-
-    box-shadow: 0 0 8px rgba(0,0,0,0.35);
+    box-shadow: 0 0 8px rgba(0,0,0,0.45);
 }
 
 .tab-btn.active {
-    background: var(--accent);
-    color: #000;
-    box-shadow: 0 0 12px rgba(0,0,0,0.55);
+    background: var(--accent, #e0c97f);
+    color: #1a1205;
+    box-shadow: 0 0 12px rgba(0,0,0,0.7);
 }
 
 .tab {
@@ -114,17 +186,14 @@ body {
 =========================== */
 
 .stats-bar {
-    background: var(--panel) url("assets/textures/paper-fine.png");
-    background-size: cover;
-
-    border-bottom: 2px solid var(--border);
-    padding: 10px;
-
+    background: rgba(10, 8, 5, 0.95);
+    border-bottom: 2px solid rgba(230, 210, 150, 0.9);
+    padding: 10px 12px;
     display: flex;
     justify-content: space-between;
-
+    gap: 10px;
     font-family: "Cinzel", serif;
-    box-shadow: 0 0 12px rgba(0,0,0,0.45);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.7);
 }
 
 /* ===========================
@@ -134,13 +203,11 @@ body {
 .chat-input {
     width: 100%;
     padding: 8px;
-
-    border: 2px solid var(--border);
-    background: var(--panel) url("assets/textures/paper-fine.png");
-    background-size: cover;
-
-    color: var(--text);
+    border: 2px solid rgba(230, 210, 150, 0.8);
+    background: rgba(15, 12, 8, 0.95);
+    color: #f5f0e5;
     border-radius: 6px;
+    font-family: "Special Elite", serif;
 }
 
 /* ===========================
@@ -151,18 +218,27 @@ body {
     position: fixed;
     top: 50%;
     left: 50%;
-    width: 420px;
+    width: 440px;
     transform: translate(-50%, -50%);
-
-    background: var(--panel) url("assets/textures/paper-fine.png");
-    background-size: cover;
-
-    border: 3px solid var(--border);
+    background: rgba(10, 8, 5, 0.96);
+    border: 3px solid rgba(230, 210, 150, 0.95);
     padding: 20px;
     border-radius: 10px;
     z-index: 999;
+    box-shadow: 0 0 28px rgba(0,0,0,0.85);
+    backdrop-filter: blur(3px);
+}
 
-    box-shadow: 0 0 25px rgba(0,0,0,0.55);
+.panel-modo input,
+.panel-modo select {
+    width: 100%;
+    margin: 4px 0;
+    padding: 6px 8px;
+    border-radius: 5px;
+    border: 1px solid rgba(200, 180, 120, 0.8);
+    background: rgba(18, 14, 9, 0.95);
+    color: #f5f0e5;
+    font-family: "Special Elite", serif;
 }
 
 .btn-close {
@@ -181,20 +257,15 @@ body {
     left: 50%;
     width: 420px;
     height: 420px;
-
     transform: translate(-50%, -50%) scale(0.8);
     opacity: 0;
-
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-
     pointer-events: none;
     z-index: -1;
-
     animation: emblemFadeIn 1.8s ease-out forwards;
-
-    filter: drop-shadow(0 0 6px rgba(0,0,0,0.4));
+    filter: drop-shadow(0 0 6px rgba(0,0,0,0.6));
 }
 
 @keyframes emblemFadeIn {
@@ -221,8 +292,8 @@ body {
 
 /* MARINE */
 .theme-marine {
-    --bg: #0d1b2a;
-    --panel: #1b263b;
+    --bg: #07121f;
+    --panel: #101c2b;
     --border: #e0c97f;
     --accent: #e0c97f;
     --text: #f2f2e9;
@@ -234,11 +305,11 @@ body {
 
 /* PIRATE */
 .theme-pirate {
-    --bg: #1a0d0d;
-    --panel: #2a1313;
-    --border: #5c1f1f;
-    --accent: #b33939;
-    --text: #f8e6e6;
+    --bg: #120707;
+    --panel: #221010;
+    --border: #7a2a2a;
+    --accent: #c74444;
+    --text: #fbe6e0;
 }
 
 .theme-pirate #faction-emblem {
@@ -247,8 +318,8 @@ body {
 
 /* RÉVOLUTIONNAIRE */
 .theme-revo {
-    --bg: #0f1f14;
-    --panel: #1c3324;
+    --bg: #07140b;
+    --panel: #112219;
     --border: #6b8f71;
     --accent: #9ccfa3;
     --text: #e8ffe8;
@@ -256,4 +327,12 @@ body {
 
 .theme-revo #faction-emblem {
     background-image: url("assets/emblems/revo.png");
+}
+
+/* ===========================
+   UTILITAIRES
+=========================== */
+
+.hidden {
+    display: none !important;
 }
