@@ -101,18 +101,38 @@
     </div>
 </div>
 
+<!-- PANEL ADMIN / MODO -->
 <div id="modo-panel" class="hidden panel-modo">
     <button class="btn btn-close" onclick="closeModoPanel()">X</button>
-    <h2 class="title-modo">PANTHÉON — PANEL MODO</h2>
+    <h2 class="title-modo">PANTHÉON — PANEL ADMIN</h2>
 
-    <h3>Donner des Berries</h3>
-    <input id="modo-target" placeholder="Nom du joueur">
-    <input id="modo-amount" placeholder="Montant">
-    <button class="btn" onclick="modoGiveBerries()">DONNER</button>
+    <h3>Grades & permissions</h3>
+    <input id="admin-grade-target" placeholder="Nom du joueur">
+    <select id="admin-grade-value">
+        <option value="player">Joueur</option>
+        <option value="modo">Modo</option>
+        <option value="admin">Admin</option>
+    </select>
+    <button class="btn" onclick="adminSetGrade()">Appliquer le grade</button>
 
-    <h3>Kick joueur</h3>
-    <input id="modo-kick-target" placeholder="Nom du joueur">
-    <button class="btn" onclick="modoKick()">KICK</button>
+    <h3>Quêtes</h3>
+    <select id="admin-quest-type">
+        <option value="faction">Quête de faction</option>
+        <option value="class">Quête de classe</option>
+    </select>
+    <input id="admin-quest-title" placeholder="Titre de la quête">
+    <input id="admin-quest-desc" placeholder="Description">
+    <input id="admin-quest-goal" placeholder="Objectif (nombre)">
+    <input id="admin-quest-reward-xp" placeholder="XP">
+    <input id="admin-quest-reward-berries" placeholder="Berries">
+    <input id="admin-quest-reward-talent" placeholder="Talent Points">
+    <button class="btn" onclick="adminCreateQuest()">Créer / Remplacer la quête</button>
+
+    <h3>Événements</h3>
+    <input id="admin-event-title" placeholder="Titre de l'événement">
+    <input id="admin-event-desc" placeholder="Description RP">
+    <button class="btn" onclick="adminStartEvent()">Lancer l'événement</button>
+    <button class="btn" onclick="adminStopEvent()">Arrêter l'événement</button>
 
     <h3>Logs</h3>
     <div id="modo-log" class="box box-modo"></div>
