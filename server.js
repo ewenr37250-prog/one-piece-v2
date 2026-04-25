@@ -1,4 +1,5 @@
-// server.js
+// server.js — Bloc 1/5 : Core + Données + Utilitaires
+
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -10,46 +11,54 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 
-// ----------------- SERVE STATIC -----------------
+/* ============================================================
+   SERVE STATIC
+   ============================================================ */
 app.use(express.static(path.join(__dirname, ".")));
 
-// ----------------- DATA STRUCTURES -----------------
+/* ============================================================
+   STRUCTURES DE DONNÉES
+   ============================================================ */
 
-// users enregistrés (simple, en mémoire)
+// Utilisateurs enregistrés
 const users = new Map(); // name -> { name, password, faction, classe }
 
-// joueurs connectés
+// Joueurs connectés
 const playersBySocket = new Map(); // socket.id -> player
 const playersByName = new Map();   // name -> player
 
-// grades : playerName -> "player" | "modo" | "admin"
+// Grades : "player" | "modo" | "admin"
 const GRADES = {};
 
-// quêtes globales
+// Quêtes globales
 let currentFactionQuest = null;
 let currentClassQuest = null;
 
-// événements
+// Événements RP
 let currentEvent = null;
 let eventsHistory = [];
 
-// cooldowns actions (par joueur)
-const actionCooldowns = {}; // key: playerName + ":" + action -> timestamp
+// Cooldowns
+const actionCooldowns = {}; // "name:action" -> timestamp
 
-// code modo de base
-const MODO_CODE = "PANTHEON_OP";
+// Code modo RP
+const DEN_DEN_MODO_KEY = "PANTHEON_OP";
 
-// ----------------- HELPERS -----------------
+/* ============================================================
+   PLAYER MODEL
+   ============================================================ */
 
-function createNewPlayer(userData) {
+function createPlayer(userData) {
     return {
         name: userData.name,
         faction: userData.faction,
         classe: userData.classe,
+
         level: 1,
         xp: 0,
         berries: 0,
         bounty: 0,
+
         skillTree: {
             talentPoints: 0,
             maxLevel: 5,
@@ -60,10 +69,15 @@ function createNewPlayer(userData) {
                 Haki: 0
             }
         },
+
         factionQuest: null,
         classQuest: null
     };
 }
+
+/* ============================================================
+   UTILITAIRES GLOBAUX
+   ============================================================ */
 
 function giveXP(player, amount) {
     player.xp += amount;
@@ -75,81 +89,120 @@ function giveXP(player, amount) {
 }
 
 function isOnCooldown(player, action, ms) {
-    const key = player.name + ":" + action;
+    const key = `${player.name}:${action}`;
     const now = Date.now();
     const last = actionCooldowns[key] || 0;
+
     if (now - last < ms) {
         return ms - (now - last);
     }
+
     actionCooldowns[key] = now;
     return 0;
 }
 
 function isAdmin(player) {
-    const g = GRADES[player.name];
-    return g === "admin";
+    return GRADES[player.name] === "admin";
 }
 
-function isModoOrAdmin(player) {
+function isModo(player) {
     const g = GRADES[player.name];
-    return g === "admin" || g === "modo";
+    return g === "modo" || g === "admin";
 }
 
-function broadcastPlayerUpdate(player) {
-    // on retrouve tous les sockets de ce joueur
+function findSocket(name) {
+    for (const [sid, p] of playersBySocket.entries()) {
+        if (p.name === name) return io.sockets.sockets.get(sid);
+    }
+    return null;
+}
+
+function broadcastPlayer(player) {
     for (const [sid, p] of playersBySocket.entries()) {
         if (p.name === player.name) {
             io.to(sid).emit("player:update", player);
         }
     }
 }
-
-// ----------------- SOCKET.IO -----------------
+// server.js — Bloc 2/5 : Auth + Connexion + Déconnexion
 
 io.on("connection", (socket) => {
-    console.log("Client connecté:", socket.id);
+    console.log(`📡 Nouveau Den-Den connecté : ${socket.id}`);
 
-    // -------- AUTH --------
-
+    /* ============================================================
+       AUTH — REGISTER
+       ============================================================ */
     socket.on("auth:register", ({ name, password, faction, classe }) => {
-        if (!name || !password) {
-            socket.emit("auth:error", "Nom ou mot de passe manquant.");
-            return;
+
+        if (!name?.trim() || !password) {
+            return socket.emit("auth:error", "Nom ou mot de passe manquant.");
         }
+
         if (users.has(name)) {
-            socket.emit("auth:error", "Ce nom est déjà pris.");
-            return;
+            return socket.emit("auth:error", "Ce nom est déjà pris.");
         }
-        const userData = { name, password, faction, classe };
+
+        const userData = {
+            name: name.trim(),
+            password,
+            faction: faction || "pirate",
+            classe: classe || "novice"
+        };
+
         users.set(name, userData);
 
-        const player = createNewPlayer(userData);
+        const player = createPlayer(userData);
         playersBySocket.set(socket.id, player);
         playersByName.set(name, player);
+
         if (!GRADES[name]) GRADES[name] = "player";
 
         socket.emit("auth:success", { player });
-        console.log(`Inscription: ${name}`);
+        console.log(`🆕 Inscription : ${name}`);
     });
 
+    /* ============================================================
+       AUTH — LOGIN
+       ============================================================ */
     socket.on("auth:login", ({ name, password }) => {
         const userData = users.get(name);
+
         if (!userData || userData.password !== password) {
-            socket.emit("auth:error", "Identifiants invalides.");
-            return;
+            return socket.emit("auth:error", "Identifiants invalides.");
         }
+
         let player = playersByName.get(name);
         if (!player) {
-            player = createNewPlayer(userData);
+            player = createPlayer(userData);
             playersByName.set(name, player);
         }
+
         playersBySocket.set(socket.id, player);
 
         socket.emit("auth:success", { player });
-        console.log(`Connexion: ${name}`);
+        console.log(`🔓 Connexion : ${name}`);
     });
 
-    // -------- ACTIONS --------
+    /* ============================================================
+       ENVOI DES EVENTS À LA CONNEXION
+       ============================================================ */
+    socket.emit("events:current", currentEvent || null);
+    socket.emit("events:history", eventsHistory);
+
+    /* ============================================================
+       DÉCONNEXION
+       ============================================================ */
+    socket.on("disconnect", () => {
+        playersBySocket.delete(socket.id);
+        console.log(`❌ Déconnexion : ${socket.id}`);
+    });
+});
+// server.js — Bloc 3/5 : Gameplay (XP, Skills, Quêtes)
+
+/* ============================================================
+   ACTION : TRAIN
+   ============================================================ */
+io.on("connection", (socket) => {
 
     socket.on("action:train", () => {
         const player = playersBySocket.get(socket.id);
@@ -157,72 +210,98 @@ io.on("connection", (socket) => {
 
         const remaining = isOnCooldown(player, "train", 5000);
         if (remaining > 0) {
-            socket.emit("action:cooldown", { action: "train", remaining });
-            return;
+            return socket.emit("action:cooldown", {
+                action: "train",
+                remaining
+            });
         }
 
         const xpGain = 10;
         giveXP(player, xpGain);
         player.berries += 5;
 
-        socket.emit("action:result", { text: `Tu t'entraînes et gagnes ${xpGain} XP et 5 ฿.` });
-        broadcastPlayerUpdate(player);
+        socket.emit("action:result", {
+            text: `💪 Tu t'entraînes et gagnes ${xpGain} XP et 5 ฿.`
+        });
+
+        broadcastPlayer(player);
     });
 
+    /* ============================================================
+       PROGRESSION DES QUÊTES
+       ============================================================ */
     socket.on("action:quest_progress", ({ type }) => {
         const player = playersBySocket.get(socket.id);
         if (!player) return;
 
+        /* ------------------ QUÊTE DE FACTION ------------------ */
         if (type === "faction" && player.factionQuest && currentFactionQuest) {
+
             player.factionQuest.progress = Math.min(
                 player.factionQuest.progress + 1,
                 player.factionQuest.goal
             );
+
             if (player.factionQuest.progress >= player.factionQuest.goal) {
+
                 giveXP(player, currentFactionQuest.rewardXP || 0);
                 player.berries += currentFactionQuest.rewardBerries || 0;
+
                 socket.emit("action:result", {
-                    text: `Quête de faction terminée ! +${currentFactionQuest.rewardXP || 0} XP, +${currentFactionQuest.rewardBerries || 0} ฿`
+                    text: `🏴‍☠️ Quête de faction terminée ! +${currentFactionQuest.rewardXP || 0} XP, +${currentFactionQuest.rewardBerries || 0} ฿`
                 });
+
                 player.factionQuest = null;
+
             } else {
                 socket.emit("action:result", {
-                    text: `Progression quête faction : ${player.factionQuest.progress}/${player.factionQuest.goal}`
+                    text: `Progression : ${player.factionQuest.progress}/${player.factionQuest.goal}`
                 });
             }
-            broadcastPlayerUpdate(player);
+
+            return broadcastPlayer(player);
         }
 
+        /* ------------------ QUÊTE DE CLASSE ------------------ */
         if (type === "class" && player.classQuest && currentClassQuest) {
+
             player.classQuest.progress = Math.min(
                 player.classQuest.progress + 1,
                 player.classQuest.goal
             );
+
             if (player.classQuest.progress >= player.classQuest.goal) {
+
                 giveXP(player, currentClassQuest.rewardXP || 0);
                 player.skillTree.talentPoints += currentClassQuest.rewardTalent || 0;
+
                 socket.emit("action:result", {
-                    text: `Quête de classe terminée ! +${currentClassQuest.rewardXP || 0} XP, +${currentClassQuest.rewardTalent || 0} PT`
+                    text: `🎓 Quête de classe terminée ! +${currentClassQuest.rewardXP || 0} XP, +${currentClassQuest.rewardTalent || 0} PT`
                 });
+
                 player.classQuest = null;
+
             } else {
                 socket.emit("action:result", {
-                    text: `Progression quête classe : ${player.classQuest.progress}/${player.classQuest.goal}`
+                    text: `Progression : ${player.classQuest.progress}/${player.classQuest.goal}`
                 });
             }
-            broadcastPlayerUpdate(player);
+
+            return broadcastPlayer(player);
         }
     });
 
-    // -------- QUÊTES --------
-
+    /* ============================================================
+       DEMANDE DE QUÊTE DE FACTION
+       ============================================================ */
     socket.on("quest:request_faction", () => {
         const player = playersBySocket.get(socket.id);
         if (!player) return;
 
         if (!currentFactionQuest) {
-            socket.emit("action:result", { text: "Aucune quête de faction définie pour le moment." });
-            return;
+            return socket.emit("action:result", {
+                text: "Aucune quête de faction n'est active."
+            });
         }
 
         if (!player.factionQuest) {
@@ -237,16 +316,21 @@ io.on("connection", (socket) => {
             ...currentFactionQuest,
             progress: player.factionQuest.progress
         });
-        broadcastPlayerUpdate(player);
+
+        broadcastPlayer(player);
     });
 
+    /* ============================================================
+       DEMANDE DE QUÊTE DE CLASSE
+       ============================================================ */
     socket.on("quest:request_class", () => {
         const player = playersBySocket.get(socket.id);
         if (!player) return;
 
         if (!currentClassQuest) {
-            socket.emit("action:result", { text: "Aucune quête de classe définie pour le moment." });
-            return;
+            return socket.emit("action:result", {
+                text: "Aucune quête de classe n'est active."
+            });
         }
 
         if (!player.classQuest) {
@@ -261,171 +345,185 @@ io.on("connection", (socket) => {
             ...currentClassQuest,
             progress: player.classQuest.progress
         });
-        broadcastPlayerUpdate(player);
+
+        broadcastPlayer(player);
     });
 
-    // -------- SKILLS --------
-
+    /* ============================================================
+       SKILLS / TALENT TREE
+       ============================================================ */
     socket.on("skill:upgrade", ({ branch }) => {
         const player = playersBySocket.get(socket.id);
         if (!player) return;
+
         const tree = player.skillTree;
-        if (!tree.branches[branch]) return;
+
+        if (!(branch in tree.branches)) {
+            return socket.emit("skill:error", "Branche invalide.");
+        }
+
         if (tree.talentPoints <= 0) {
-            socket.emit("skill:error", "Pas assez de points de talent.");
-            return;
+            return socket.emit("skill:error", "Pas assez de points de talent.");
         }
+
         if (tree.branches[branch] >= tree.maxLevel) {
-            socket.emit("skill:error", "Cette branche est déjà au niveau maximum.");
-            return;
+            return socket.emit("skill:error", "Niveau maximum atteint.");
         }
+
         tree.branches[branch] += 1;
         tree.talentPoints -= 1;
+
         socket.emit("skill:update", tree);
-        broadcastPlayerUpdate(player);
+        broadcastPlayer(player);
     });
 
-    // -------- CHAT --------
+});
+// server.js — Bloc 4/5 : Escargophone (Faction / Privé / HRP)
 
-    socket.on("chat:send", ({ text }) => {
-        const player = playersBySocket.get(socket.id);
-        if (!player || !text) return;
-        io.emit("chat:message", { author: player.name, text });
-    });
+/* ============================================================
+   HISTORIQUE ESCARGOPHONE
+   ============================================================ */
 
-    // -------- EVENTS --------
+const chatHistory = {
+    faction: {},   // faction -> [ { author, text, ts } ]
+    prive: {},     // "A__B" -> [ { author, text, ts } ]
+    hrp: []        // global HRP
+};
 
-    // envoyer l'historique et l'event courant à la connexion
-    if (currentEvent) {
-        socket.emit("events:current", currentEvent);
-    } else {
-        socket.emit("events:current", null);
+const MAX_HISTORY = 50;
+
+/* Génère une clé unique pour un canal privé */
+function privKey(a, b) {
+    return [a, b].sort().join("__");
+}
+
+/* Ajoute un message dans l’historique */
+function pushHistory(type, key, msg) {
+    if (type === "faction") {
+        if (!chatHistory.faction[key]) chatHistory.faction[key] = [];
+        chatHistory.faction[key].push(msg);
+        if (chatHistory.faction[key].length > MAX_HISTORY)
+            chatHistory.faction[key].shift();
     }
-    socket.emit("events:history", eventsHistory);
 
-    // -------- MODO LOGIN --------
+    else if (type === "prive") {
+        if (!chatHistory.prive[key]) chatHistory.prive[key] = [];
+        chatHistory.prive[key].push(msg);
+        if (chatHistory.prive[key].length > MAX_HISTORY)
+            chatHistory.prive[key].shift();
+    }
 
-    socket.on("modo:login", (code) => {
+    else if (type === "hrp") {
+        chatHistory.hrp.push(msg);
+        if (chatHistory.hrp.length > MAX_HISTORY)
+            chatHistory.hrp.shift();
+    }
+}
+
+/* ============================================================
+   ESCARGOPHONE — FACTION
+   ============================================================ */
+
+io.on("connection", (socket) => {
+
+    socket.on("esc:faction:send", ({ text }) => {
         const player = playersBySocket.get(socket.id);
-        if (!player) return;
-        if (code === MODO_CODE) {
-            GRADES[player.name] = "admin"; // ou "modo" si tu veux
-            socket.emit("modo:success");
-            socket.emit("modo:log", `Accès modo accordé à ${player.name}`);
-        } else {
-            socket.emit("modo:fail");
-        }
-    });
+        if (!player || !text?.trim()) return;
 
-    // -------- MODO ACTIONS --------
+        const msg = {
+            author: player.name,
+            faction: player.faction,
+            text: text.trim(),
+            ts: Date.now()
+        };
 
-    socket.on("modo:give_berries", ({ target, amount }) => {
-        const player = playersBySocket.get(socket.id);
-        if (!player || !isModoOrAdmin(player)) return;
-        const targetPlayer = playersByName.get(target);
-        if (!targetPlayer) {
-            socket.emit("modo:log", `Joueur introuvable: ${target}`);
-            return;
-        }
-        targetPlayer.berries += amount;
-        broadcastPlayerUpdate(targetPlayer);
-        socket.emit("modo:log", `+${amount} ฿ donnés à ${target}`);
-    });
+        pushHistory("faction", player.faction, msg);
 
-    socket.on("modo:kick", ({ target }) => {
-        const player = playersBySocket.get(socket.id);
-        if (!player || !isModoOrAdmin(player)) return;
-
+        // Envoi uniquement aux membres de la même faction
         for (const [sid, p] of playersBySocket.entries()) {
-            if (p.name === target) {
-                io.to(sid).emit("auth:error", "Vous avez été expulsé par un modérateur.");
-                io.sockets.sockets.get(sid)?.disconnect(true);
-                playersBySocket.delete(sid);
-                break;
+            if (p.faction === player.faction) {
+                io.to(sid).emit("esc:faction:message", msg);
             }
         }
-        socket.emit("modo:log", `Joueur kick: ${target}`);
     });
 
-    // -------- ADMIN / PANTHÉON --------
+    /* ============================================================
+       ESCARGOPHONE — PRIVÉ (APPELS + MESSAGES)
+       ============================================================ */
 
-    socket.on("admin:set_grade", ({ target, grade }) => {
+    // Appel entrant
+    socket.on("esc:prive:call", ({ target }) => {
         const player = playersBySocket.get(socket.id);
-        if (!player || !isAdmin(player)) return;
-        GRADES[target] = grade;
-        socket.emit("admin:info", `Grade de ${target} défini sur ${grade}`);
-    });
+        if (!player) return;
 
-    socket.on("admin:create_quest", (q) => {
-        const player = playersBySocket.get(socket.id);
-        if (!player || !isAdmin(player)) return;
-
-        if (q.type === "faction") {
-            currentFactionQuest = {
-                title: q.title,
-                description: q.desc,
-                goal: q.goal,
-                rewardXP: q.rewardXP,
-                rewardBerries: q.rewardBerries
-            };
-            io.emit("quest:faction_update", {
-                ...currentFactionQuest,
-                progress: 0
-            });
-            socket.emit("admin:info", `Quête de faction définie : ${q.title}`);
-        } else if (q.type === "class") {
-            currentClassQuest = {
-                title: q.title,
-                description: q.desc,
-                goal: q.goal,
-                rewardXP: q.rewardXP,
-                rewardTalent: q.rewardTalent
-            };
-            io.emit("quest:class_update", {
-                ...currentClassQuest,
-                progress: 0
-            });
-            socket.emit("admin:info", `Quête de classe définie : ${q.title}`);
+        const targetSocket = findSocket(target);
+        if (!targetSocket) {
+            return socket.emit("esc:prive:unavailable", { target });
         }
+
+        targetSocket.emit("esc:prive:incoming", { from: player.name });
+        socket.emit("esc:prive:calling", { target });
     });
 
-    socket.on("admin:start_event", ({ title, desc }) => {
+    // Acceptation d’appel
+    socket.on("esc:prive:accept", ({ from }) => {
         const player = playersBySocket.get(socket.id);
-        if (!player || !isAdmin(player)) return;
+        if (!player) return;
 
-        currentEvent = {
-            title,
-            text: desc,
-            startedAt: Date.now()
+        const callerSocket = findSocket(from);
+        if (!callerSocket) return;
+
+        const key = privKey(player.name, from);
+        const history = chatHistory.prive[key] || [];
+
+        socket.emit("esc:prive:connected", { with: from, history });
+        callerSocket.emit("esc:prive:connected", { with: player.name, history });
+    });
+
+    // Envoi de message privé
+    socket.on("esc:prive:send", ({ to, text }) => {
+        const player = playersBySocket.get(socket.id);
+        if (!player || !text?.trim()) return;
+
+        const msg = {
+            author: player.name,
+            text: text.trim(),
+            ts: Date.now()
         };
-        eventsHistory.push({ text: `[EVENT] ${title} : ${desc}` });
-        io.emit("events:current", currentEvent);
-        io.emit("events:history", eventsHistory);
-        socket.emit("admin:info", `Événement lancé : ${title}`);
+
+        const key = privKey(player.name, to);
+        pushHistory("prive", key, msg);
+
+        socket.emit("esc:prive:message", msg);
+        findSocket(to)?.emit("esc:prive:message", msg);
     });
 
-    socket.on("admin:stop_event", () => {
+    // Raccrocher
+    socket.on("esc:prive:hangup", ({ with: other }) => {
         const player = playersBySocket.get(socket.id);
-        if (!player || !isAdmin(player)) return;
+        if (!player) return;
 
-        if (currentEvent) {
-            eventsHistory.push({ text: `[EVENT FIN] ${currentEvent.title}` });
-        }
-        currentEvent = null;
-        io.emit("events:current", null);
-        io.emit("events:history", eventsHistory);
-        socket.emit("admin:info", "Événement arrêté.");
+        findSocket(other)?.emit("esc:prive:hangup", { by: player.name });
+        socket.emit("esc:prive:hangup", { by: player.name });
     });
 
-    // -------- DISCONNECT --------
+    /* ============================================================
+       ESCARGOPHONE — HRP (GLOBAL)
+       ============================================================ */
 
-    socket.on("disconnect", () => {
-        playersBySocket.delete(socket.id);
-        console.log("Client déconnecté:", socket.id);
+    socket.on("esc:hrp:send", ({ text }) => {
+        const player = playersBySocket.get(socket.id);
+        if (!player || !text?.trim()) return;
+
+        const msg = {
+            author: player.name,
+            faction: player.faction,
+            text: text.trim(),
+            ts: Date.now()
+        };
+
+        pushHistory("hrp", null, msg);
+        io.emit("esc:hrp:message", msg);
     });
-});
 
-// ----------------- START SERVER -----------------
-server.listen(PORT, () => {
-    console.log("Server listening on port", PORT);
 });
