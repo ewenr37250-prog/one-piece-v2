@@ -1,174 +1,180 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>One Piece RP — Interface</title>
-
-    <!-- Feuille de style principale -->
+    <title>One Piece RP — Den-Den Online</title>
     <link rel="stylesheet" href="style.css">
 </head>
+<body>
+<div id="app">
 
-<!-- Le thème sera appliqué dynamiquement via JS -->
-<body class="theme-login fade-in">
+    <!-- AUTH -->
+    <section id="auth">
+        <h1>⚓ One Piece RP</h1>
 
-    <div class="main-wrapper">
+        <div class="auth-forms">
+            <div class="card">
+                <h2>Inscription</h2>
+                <input id="reg-name" placeholder="Nom">
+                <input id="reg-pass" type="password" placeholder="Mot de passe">
+                <input id="reg-faction" placeholder="Faction (pirate, marine...)" />
+                <input id="reg-classe" placeholder="Classe (épéiste, sniper...)" />
+                <button id="btn-register">S'inscrire</button>
+            </div>
 
-        <!-- ============================
-             HEADER / TITRE PRINCIPAL
-        ============================= -->
-        <div class="panel halo marine">
-            <div class="panel-content">
-                <h1 class="panel-title dramatic">One Piece — Interface RP</h1>
-                <p class="encre-soft">Bienvenue dans l’univers RP dynamique.</p>
+            <div class="card">
+                <h2>Connexion</h2>
+                <input id="log-name" placeholder="Nom">
+                <input id="log-pass" type="password" placeholder="Mot de passe">
+                <button id="btn-login">Se connecter</button>
             </div>
         </div>
 
-        <!-- ============================
-             ONGLET DE NAVIGATION
-        ============================= -->
-        <div class="tabs">
-            <div class="tab active" data-tab="profil">Profil</div>
-            <div class="tab" data-tab="chat">Chat</div>
-            <div class="tab" data-tab="stats">Statistiques</div>
-            <div class="tab" data-tab="modo">Modération</div>
-        </div>
+        <div id="auth-error" class="error"></div>
+    </section>
 
-        <!-- ============================
-             CONTENU DES ONGLET
-        ============================= -->
+    <!-- MAIN UI -->
+    <section id="game" class="hidden">
 
-        <!-- PROFIL -->
-        <div class="panel tab-content" id="profil" style="display:block;">
-            <div class="panel-content">
+        <!-- HEADER -->
+        <header>
+            <div id="player-info"></div>
+            <div id="grade-info"></div>
+        </header>
 
-                <h2 class="section-title">Informations du joueur</h2>
-
-                <div class="layout-columns">
-
-                    <!-- Colonne gauche -->
-                    <div class="flex-col gap">
-
-                        <div class="block-rp mb-3">
-                            <h3 class="section-title">Identité</h3>
-
-                            <label>Nom :</label>
-                            <input type="text" placeholder="Monkey D. Luffy">
-
-                            <label class="mt-2">Faction :</label>
-                            <select id="select-faction">
-                                <option value="marine">Marine</option>
-                                <option value="pirate">Pirate</option>
-                                <option value="revo">Révolutionnaire</option>
-                            </select>
-
-                            <label class="mt-2">Grade :</label>
-                            <select id="select-grade">
-                                <option value="recrue">Recrue</option>
-                                <option value="capitaine">Capitaine</option>
-                                <option value="amiral">Amiral</option>
-                            </select>
-
-                            <button class="btn mt-3 sound-click" id="apply-theme">
-                                Appliquer le thème
-                            </button>
-                        </div>
-
-                    </div>
-
-                    <!-- Colonne droite -->
-                    <div class="flex-col">
-                        <div class="portrait shadow-strong"
-                             style="background-image:url('assets/portraits/default.jpg');">
-                        </div>
-                    </div>
-
+        <main>
+            <!-- LEFT: PLAYER / ACTIONS -->
+            <section class="column">
+                <div class="card">
+                    <h2>👤 Profil</h2>
+                    <div id="player-stats"></div>
                 </div>
 
-            </div>
-        </div>
-
-        <!-- CHAT -->
-        <div class="panel tab-content" id="chat" style="display:none;">
-            <div class="panel-content">
-
-                <h2 class="section-title">Chat RP</h2>
-
-                <div class="chat-box mb-3" id="chat-box">
-                    <!-- Messages générés par JS -->
+                <div class="card">
+                    <h2>💪 Actions</h2>
+                    <button id="btn-train">S'entraîner</button>
+                    <div id="action-result"></div>
                 </div>
 
-                <div class="flex-between">
-                    <input type="text" id="chat-input" placeholder="Écrire un message RP...">
-                    <button class="btn sound-click" id="send-message">Envoyer</button>
+                <div class="card">
+                    <h2>🎯 Quêtes</h2>
+                    <button id="btn-quest-faction">Quête de faction</button>
+                    <button id="btn-quest-class">Quête de classe</button>
+                    <div id="quest-info"></div>
                 </div>
 
-            </div>
-        </div>
+                <div class="card">
+                    <h2>🌳 Talent Tree</h2>
+                    <div id="skills"></div>
+                </div>
+            </section>
 
-        <!-- STATISTIQUES -->
-        <div class="panel tab-content" id="stats" style="display:none;">
-            <div class="panel-content">
-
-                <h2 class="section-title">Statistiques du joueur</h2>
-
-                <div class="grid-3 mt-2">
-
-                    <div class="block-rp text-center">
-                        <h3 class="section-title">Prime</h3>
-                        <p class="encre-dark">320 000 000 B</p>
+            <!-- CENTER: ESCARGOPHONE -->
+            <section class="column">
+                <div class="card">
+                    <h2>🐌 Escargophone — Faction</h2>
+                    <div id="esc-faction-log" class="chat-log"></div>
+                    <div class="chat-input">
+                        <input id="esc-faction-text" placeholder="Message RP de faction...">
+                        <button id="esc-faction-send">Envoyer</button>
                     </div>
-
-                    <div class="block-rp text-center">
-                        <h3 class="section-title">Niveau</h3>
-                        <p class="encre-dark">47</p>
-                    </div>
-
-                    <div class="block-rp text-center">
-                        <h3 class="section-title">Réputation</h3>
-                        <p class="encre-dark">Respecté</p>
-                    </div>
-
                 </div>
 
-            </div>
-        </div>
-
-        <!-- MODÉRATION -->
-        <div class="panel-modo tab-content" id="modo" style="display:none;">
-            <div class="panel-content">
-
-                <h2 class="panel-title">Panneau de Modération</h2>
-
-                <div class="block-rp mb-3">
-                    <label>Message global :</label>
-                    <textarea rows="3" placeholder="Annonce RP..."></textarea>
-                    <button class="btn mt-2 sound-alert">Envoyer l’annonce</button>
+                <div class="card">
+                    <h2>🐌 Escargophone — Privé</h2>
+                    <div class="row">
+                        <input id="esc-prive-target" placeholder="Cibler un joueur...">
+                        <button id="esc-prive-call">Appeler</button>
+                    </div>
+                    <div id="esc-prive-status"></div>
+                    <div id="esc-prive-log" class="chat-log"></div>
+                    <div class="chat-input">
+                        <input id="esc-prive-text" placeholder="Message privé...">
+                        <button id="esc-prive-send">Envoyer</button>
+                    </div>
                 </div>
 
-                <div class="block-rp">
-                    <label>Sanction :</label>
-                    <select>
-                        <option>Avertissement</option>
-                        <option>Mute 10 min</option>
-                        <option>Mute 1h</option>
-                        <option>Ban 24h</option>
+                <div class="card">
+                    <h2>💬 Escargophone — HRP</h2>
+                    <div id="esc-hrp-log" class="chat-log"></div>
+                    <div class="chat-input">
+                        <input id="esc-hrp-text" placeholder="Message HRP...">
+                        <button id="esc-hrp-send">Envoyer</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT: MODO / ADMIN / EVENTS -->
+            <section class="column">
+                <div class="card">
+                    <h2>🔱 Panthéon</h2>
+                    <input id="modo-code" placeholder="Code Den-Den Modo">
+                    <button id="btn-modo-login">Activer Modo</button>
+                    <div id="modo-log" class="log"></div>
+                </div>
+
+                <div class="card">
+                    <h2>🛠️ Outils Modo</h2>
+                    <input id="modo-target" placeholder="Cible">
+                    <input id="modo-berries" type="number" placeholder="Berries">
+                    <button id="btn-modo-give">Give ฿</button>
+                    <button id="btn-modo-mute">Mute</button>
+                    <button id="btn-modo-unmute">Unmute</button>
+                    <button id="btn-modo-kick">Kick</button>
+                    <textarea id="modo-announce-text" placeholder="Annonce globale..."></textarea>
+                    <button id="btn-modo-announce">Annoncer</button>
+                </div>
+
+                <div class="card">
+                    <h2>👑 Outils Admin</h2>
+                    <input id="admin-target" placeholder="Cible">
+                    <select id="admin-grade">
+                        <option value="player">player</option>
+                        <option value="modo">modo</option>
+                        <option value="admin">admin</option>
                     </select>
+                    <button id="btn-admin-set-grade">Set grade</button>
 
-                    <label class="mt-2">Cible :</label>
-                    <input type="text" placeholder="Nom du joueur">
+                    <h3>Quête Faction</h3>
+                    <input id="qf-title" placeholder="Titre">
+                    <input id="qf-desc" placeholder="Description">
+                    <input id="qf-goal" type="number" placeholder="Objectif">
+                    <input id="qf-rxp" type="number" placeholder="XP">
+                    <input id="qf-rb" type="number" placeholder="Berries">
+                    <button id="btn-admin-qf">Créer quête faction</button>
 
-                    <button class="btn mt-3 sound-alert">Appliquer</button>
+                    <h3>Quête Classe</h3>
+                    <input id="qc-title" placeholder="Titre">
+                    <input id="qc-desc" placeholder="Description">
+                    <input id="qc-goal" type="number" placeholder="Objectif">
+                    <input id="qc-rxp" type="number" placeholder="XP">
+                    <input id="qc-rt" type="number" placeholder="Talent Points">
+                    <button id="btn-admin-qc">Créer quête classe</button>
+
+                    <h3>Events</h3>
+                    <input id="ev-title" placeholder="Titre event">
+                    <input id="ev-desc" placeholder="Description">
+                    <button id="btn-admin-start-event">Lancer event</button>
+                    <button id="btn-admin-stop-event">Stop event</button>
+
+                    <h3>Reset joueur</h3>
+                    <input id="admin-reset-target" placeholder="Cible">
+                    <button id="btn-admin-reset">Reset</button>
+
+                    <div id="admin-log" class="log"></div>
                 </div>
 
-            </div>
-        </div>
+                <div class="card">
+                    <h2>📜 Events</h2>
+                    <div id="event-current"></div>
+                    <div id="event-history" class="log"></div>
+                </div>
+            </section>
+        </main>
+    </section>
+</div>
 
-    </div>
-
-    <!-- Script principal -->
-    <script src="main.js"></script>
-
+<script src="/socket.io/socket.io.js"></script>
+<script src="main.js"></script>
 </body>
 </html>
