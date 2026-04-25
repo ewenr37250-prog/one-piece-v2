@@ -5,186 +5,173 @@
     <title>One Piece RP — Den-Den Online</title>
     <link rel="stylesheet" href="style.css">
 </head>
+<body>
+<div id="app">
 
-<body class="theme-login">
-<div class="main-wrapper">
+    <!-- AUTH -->
+    <section id="auth">
+        <h1>⚓ One Piece RP</h1>
 
-    <!-- ============================
-         AUTH PANEL (RP)
-    ============================ -->
-    <div id="auth" class="panel">
-        <div class="panel-content">
-            <h1 class="panel-title">⚓ Accès au Monde</h1>
-
-            <div class="tabs">
-                <div class="tab active" id="tab-login">Connexion</div>
-                <div class="tab" id="tab-register">Inscription</div>
-            </div>
-
-            <!-- LOGIN -->
-            <div id="login-panel">
-                <input id="log-name" placeholder="Nom">
-                <input id="log-pass" type="password" placeholder="Mot de passe">
-                <button class="btn" id="btn-login">Entrer</button>
-            </div>
-
-            <!-- REGISTER -->
-            <div id="register-panel" class="hidden">
+        <div class="auth-forms">
+            <div class="card">
+                <h2>Inscription</h2>
                 <input id="reg-name" placeholder="Nom">
                 <input id="reg-pass" type="password" placeholder="Mot de passe">
-                <input id="reg-faction" placeholder="Faction (pirate, marine, revo)">
-                <input id="reg-classe" placeholder="Classe (épéiste, sniper...)">
-                <button class="btn" id="btn-register">Créer un personnage</button>
+                <input id="reg-faction" placeholder="Faction (pirate, marine...)" />
+                <input id="reg-classe" placeholder="Classe (épéiste, sniper...)" />
+                <button id="btn-register">S'inscrire</button>
             </div>
 
-            <div id="auth-error" class="error"></div>
-        </div>
-    </div>
-
-    <!-- ============================
-         GAME UI (RP)
-    ============================ -->
-    <div id="game" class="hidden layout-columns">
-
-        <!-- LEFT COLUMN -->
-        <div class="panel">
-            <div class="panel-content">
-
-                <h2 class="panel-title">👤 Profil</h2>
-                <div id="player-info"></div>
-                <div id="player-stats"></div>
-
-                <h2 class="panel-title">💪 Actions</h2>
-                <button class="btn" id="btn-train">S'entraîner</button>
-                <div id="action-result"></div>
-
-                <h2 class="panel-title">🎯 Quêtes</h2>
-                <button class="btn" id="btn-quest-faction">Quête de faction</button>
-                <button class="btn" id="btn-quest-class">Quête de classe</button>
-                <div id="quest-info"></div>
-
-                <h2 class="panel-title">🌳 Talent Tree</h2>
-                <div id="skills"></div>
-
+            <div class="card">
+                <h2>Connexion</h2>
+                <input id="log-name" placeholder="Nom">
+                <input id="log-pass" type="password" placeholder="Mot de passe">
+                <button id="btn-login">Se connecter</button>
             </div>
         </div>
 
-        <!-- CENTER COLUMN — ESCARGOPHONE -->
-        <div class="panel">
-            <div class="panel-content">
+        <div id="auth-error" class="error"></div>
+    </section>
 
-                <h2 class="panel-title">🐌 Escargophone</h2>
+    <!-- MAIN UI -->
+    <section id="game" class="hidden">
 
-                <div class="tabs">
-                    <div class="tab active" id="tab-faction">Faction</div>
-                    <div class="tab" id="tab-prive">Privé</div>
-                    <div class="tab" id="tab-hrp">HRP</div>
+        <!-- HEADER -->
+        <header>
+            <div id="player-info"></div>
+            <div id="grade-info"></div>
+        </header>
+
+        <main>
+            <!-- LEFT: PLAYER / ACTIONS -->
+            <section class="column">
+                <div class="card">
+                    <h2>👤 Profil</h2>
+                    <div id="player-stats"></div>
                 </div>
 
-                <!-- FACTION CHAT -->
-                <div id="esc-faction" class="chat-box">
-                    <div id="esc-faction-log"></div>
-                </div>
-                <div class="chat-input">
-                    <input id="esc-faction-text" placeholder="Message RP de faction...">
-                    <button class="btn" id="esc-faction-send">Envoyer</button>
+                <div class="card">
+                    <h2>💪 Actions</h2>
+                    <button id="btn-train">S'entraîner</button>
+                    <div id="action-result"></div>
                 </div>
 
-                <!-- PRIVÉ -->
-                <div id="esc-prive" class="hidden">
-                    <input id="esc-prive-target" placeholder="Cibler un joueur...">
-                    <button class="btn" id="esc-prive-call">Appeler</button>
-                    <div id="esc-prive-status"></div>
+                <div class="card">
+                    <h2>🎯 Quêtes</h2>
+                    <button id="btn-quest-faction">Quête de faction</button>
+                    <button id="btn-quest-class">Quête de classe</button>
+                    <div id="quest-info"></div>
+                </div>
 
-                    <div class="chat-box">
-                        <div id="esc-prive-log"></div>
+                <div class="card">
+                    <h2>🌳 Talent Tree</h2>
+                    <div id="skills"></div>
+                </div>
+            </section>
+
+            <!-- CENTER: ESCARGOPHONE -->
+            <section class="column">
+                <div class="card">
+                    <h2>🐌 Escargophone — Faction</h2>
+                    <div id="esc-faction-log" class="chat-log"></div>
+                    <div class="chat-input">
+                        <input id="esc-faction-text" placeholder="Message RP de faction...">
+                        <button id="esc-faction-send">Envoyer</button>
                     </div>
+                </div>
 
+                <div class="card">
+                    <h2>🐌 Escargophone — Privé</h2>
+                    <div class="row">
+                        <input id="esc-prive-target" placeholder="Cibler un joueur...">
+                        <button id="esc-prive-call">Appeler</button>
+                    </div>
+                    <div id="esc-prive-status"></div>
+                    <div id="esc-prive-log" class="chat-log"></div>
                     <div class="chat-input">
                         <input id="esc-prive-text" placeholder="Message privé...">
-                        <button class="btn" id="esc-prive-send">Envoyer</button>
+                        <button id="esc-prive-send">Envoyer</button>
                     </div>
                 </div>
 
-                <!-- HRP -->
-                <div id="esc-hrp" class="hidden">
-                    <div class="chat-box">
-                        <div id="esc-hrp-log"></div>
-                    </div>
-
+                <div class="card">
+                    <h2>💬 Escargophone — HRP</h2>
+                    <div id="esc-hrp-log" class="chat-log"></div>
                     <div class="chat-input">
                         <input id="esc-hrp-text" placeholder="Message HRP...">
-                        <button class="btn" id="esc-hrp-send">Envoyer</button>
+                        <button id="esc-hrp-send">Envoyer</button>
                     </div>
                 </div>
+            </section>
 
-            </div>
-        </div>
+            <!-- RIGHT: MODO / ADMIN / EVENTS -->
+            <section class="column">
+                <div class="card">
+                    <h2>🔱 Panthéon</h2>
+                    <input id="modo-code" placeholder="Code Den-Den Modo">
+                    <button id="btn-modo-login">Activer Modo</button>
+                    <div id="modo-log" class="log"></div>
+                </div>
 
-        <!-- RIGHT COLUMN — MODO / ADMIN -->
-        <div class="panel panel-modo">
-            <div class="panel-content">
+                <div class="card">
+                    <h2>🛠️ Outils Modo</h2>
+                    <input id="modo-target" placeholder="Cible">
+                    <input id="modo-berries" type="number" placeholder="Berries">
+                    <button id="btn-modo-give">Give ฿</button>
+                    <button id="btn-modo-mute">Mute</button>
+                    <button id="btn-modo-unmute">Unmute</button>
+                    <button id="btn-modo-kick">Kick</button>
+                    <textarea id="modo-announce-text" placeholder="Annonce globale..."></textarea>
+                    <button id="btn-modo-announce">Annoncer</button>
+                </div>
 
-                <h2 class="panel-title">🔱 Panthéon</h2>
-                <input id="modo-code" placeholder="Code Den-Den Modo">
-                <button class="btn" id="btn-modo-login">Activer Modo</button>
-                <div id="modo-log" class="log"></div>
+                <div class="card">
+                    <h2>👑 Outils Admin</h2>
+                    <input id="admin-target" placeholder="Cible">
+                    <select id="admin-grade">
+                        <option value="player">player</option>
+                        <option value="modo">modo</option>
+                        <option value="admin">admin</option>
+                    </select>
+                    <button id="btn-admin-set-grade">Set grade</button>
 
-                <h2 class="panel-title">🛠️ Outils Modo</h2>
-                <input id="modo-target" placeholder="Cible">
-                <input id="modo-berries" type="number" placeholder="Berries">
-                <button class="btn" id="btn-modo-give">Give ฿</button>
-                <button class="btn" id="btn-modo-mute">Mute</button>
-                <button class="btn" id="btn-modo-unmute">Unmute</button>
-                <button class="btn" id="btn-modo-kick">Kick</button>
-                <textarea id="modo-announce-text" placeholder="Annonce globale..."></textarea>
-                <button class="btn" id="btn-modo-announce">Annoncer</button>
+                    <h3>Quête Faction</h3>
+                    <input id="qf-title" placeholder="Titre">
+                    <input id="qf-desc" placeholder="Description">
+                    <input id="qf-goal" type="number" placeholder="Objectif">
+                    <input id="qf-rxp" type="number" placeholder="XP">
+                    <input id="qf-rb" type="number" placeholder="Berries">
+                    <button id="btn-admin-qf">Créer quête faction</button>
 
-                <h2 class="panel-title">👑 Outils Admin</h2>
-                <input id="admin-target" placeholder="Cible">
-                <select id="admin-grade">
-                    <option value="player">player</option>
-                    <option value="modo">modo</option>
-                    <option value="admin">admin</option>
-                </select>
-                <button class="btn" id="btn-admin-set-grade">Set grade</button>
+                    <h3>Quête Classe</h3>
+                    <input id="qc-title" placeholder="Titre">
+                    <input id="qc-desc" placeholder="Description">
+                    <input id="qc-goal" type="number" placeholder="Objectif">
+                    <input id="qc-rxp" type="number" placeholder="XP">
+                    <input id="qc-rt" type="number" placeholder="Talent Points">
+                    <button id="btn-admin-qc">Créer quête classe</button>
 
-                <h3 class="section-title">Quête Faction</h3>
-                <input id="qf-title" placeholder="Titre">
-                <input id="qf-desc" placeholder="Description">
-                <input id="qf-goal" type="number" placeholder="Objectif">
-                <input id="qf-rxp" type="number" placeholder="XP">
-                <input id="qf-rb" type="number" placeholder="Berries">
-                <button class="btn" id="btn-admin-qf">Créer</button>
+                    <h3>Events</h3>
+                    <input id="ev-title" placeholder="Titre event">
+                    <input id="ev-desc" placeholder="Description">
+                    <button id="btn-admin-start-event">Lancer event</button>
+                    <button id="btn-admin-stop-event">Stop event</button>
 
-                <h3 class="section-title">Quête Classe</h3>
-                <input id="qc-title" placeholder="Titre">
-                <input id="qc-desc" placeholder="Description">
-                <input id="qc-goal" type="number" placeholder="Objectif">
-                <input id="qc-rxp" type="number" placeholder="XP">
-                <input id="qc-rt" type="number" placeholder="Talent Points">
-                <button class="btn" id="btn-admin-qc">Créer</button>
+                    <h3>Reset joueur</h3>
+                    <input id="admin-reset-target" placeholder="Cible">
+                    <button id="btn-admin-reset">Reset</button>
 
-                <h3 class="section-title">Events</h3>
-                <input id="ev-title" placeholder="Titre event">
-                <input id="ev-desc" placeholder="Description">
-                <button class="btn" id="btn-admin-start-event">Lancer</button>
-                <button class="btn" id="btn-admin-stop-event">Stop</button>
+                    <div id="admin-log" class="log"></div>
+                </div>
 
-                <h3 class="section-title">Reset joueur</h3>
-                <input id="admin-reset-target" placeholder="Cible">
-                <button class="btn" id="btn-admin-reset">Reset</button>
-
-                <div id="admin-log" class="log"></div>
-
-                <h2 class="panel-title">📜 Events</h2>
-                <div id="event-current"></div>
-                <div id="event-history" class="log"></div>
-
-            </div>
-        </div>
-
-    </div>
+                <div class="card">
+                    <h2>📜 Events</h2>
+                    <div id="event-current"></div>
+                    <div id="event-history" class="log"></div>
+                </div>
+            </section>
+        </main>
+    </section>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
