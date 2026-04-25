@@ -1,181 +1,318 @@
-/* ============================================================
-   MAIN.JS — INTERFACE RP ONE PIECE
-   Compatible avec ton nouvel index.html
-   ============================================================ */
+// main.js
 
+const socket = io();
 
-/* ============================================================
-   HELPERS
-   ============================================================ */
-const $  = (sel, scope = document) => scope.querySelector(sel);
-const $$ = (sel, scope = document) => Array.from(scope.querySelectorAll(sel));
+let currentPlayer = null;
+let currentGrade = "player";
 
-function logRP(...args) {
-    console.log("[ONE PIECE RP]", ...args);
+// ---------- DOM HELPERS ----------
+const $ = (id) => document.getElementById(id);
+const show = (el) => el.classList.remove("hidden");
+const hide = (el) => el.classList.add("hidden");
+
+// ---------- AUTH ----------
+const authError = $("auth-error");
+
+$("btn-register").onclick = () => {
+    socket.emit("auth:register", {
+        name: $("reg-name").value,
+        password: $("reg-pass").value,
+        faction: $("reg-faction").value,
+        classe: $("reg-classe").value
+    });
+};
+
+$("btn-login").onclick = () => {
+    socket.emit("auth:login", {
+        name: $("log-name").value,
+        password: $("log-pass").value
+    });
+};
+
+socket.on("auth:error", (msg) => {
+    authError.textContent = msg;
+});
+
+socket.on("auth:success", ({ player }) => {
+    currentPlayer = player;
+    authError.textContent = "";
+    hide($("auth"));
+    show($("game"));
+    renderPlayer();
+    renderSkills();
+});
+
+// ---------- PLAYER RENDER ----------
+function renderPlayer() {
+    if (!currentPlayer) return;
+    $("player-info").textContent =
+        `${currentPlayer.name} — ${currentPlayer.faction} / ${currentPlayer.classe}`;
+
+    $("player-stats").innerHTML = `
+        Niveau : ${currentPlayer.level}<br>
+        XP : ${currentPlayer.xp}<br>
+        Berries : ${currentPlayer.berries} ฿<br>
+        Prime : ${currentPlayer.bounty} ฿<br>
+        Points de talent : ${currentPlayer.skillTree.talentPoints}
+    `;
 }
 
-
-/* ============================================================
-   SECTION 1 — GESTION DES THÈMES (Faction + Grade)
-   ============================================================ */
-
-/**
- * Supprime toutes les classes theme-* du body
- */
-function clearAllThemes() {
-    document.body.className = document.body.className
-        .split(" ")
-        .filter(c => !c.startsWith("theme-"))
-        .join(" ")
-        .trim();
-}
-
-/**
- * Applique un thème complet :
- * - theme-faction
- * - theme-faction-grade-grade
- */
-function applyTheme(faction, grade) {
-    clearAllThemes();
-
-    // Classe de base (couleurs, ambiance)
-    document.body.classList.add(`theme-${faction}`);
-
-    // Classe de grade (fond évolutif)
-    if (grade) {
-        document.body.classList.add(`theme-${faction}-grade-${grade}`);
+socket.on("player:update", (player) => {
+    if (currentPlayer && player.name === currentPlayer.name) {
+        currentPlayer = player;
+        renderPlayer();
+        renderSkills();
     }
+});
 
-    logRP(`Thème appliqué : faction=${faction}, grade=${grade}`);
-}
+// ---------- ACTIONS ----------
+$("btn-train").onclick = () => {
+    socket.emit("action:train");
+};
 
-/**
- * Récupère les valeurs des selects et applique le thème
- */
-function handleApplyTheme() {
-    const faction = $("#select-faction").value;
-    const grade   = $("#select-grade").value;
+socket.on("action:result", ({ text }) => {
+    $("action-result").textContent = text;
+});
 
-    applyTheme(faction, grade);
+socket.on("action:cooldown", ({ remaining }) => {
+    $("action-result").textContent =
+        `Encore ${Math.ceil(remaining / 1000)}s avant de pouvoir t'entraîner.`;
+});
 
-    // Micro animation RP
-    const btn = $("#apply-theme");
-    btn.classList.add("micro-impact");
-    setTimeout(() => btn.classList.remove("micro-impact"), 150);
-}
+// ---------- QUÊTES ----------
+$("btn-quest-faction").onclick = () => {
+    socket.emit("quest:request_faction");
+};
 
+$("btn-quest-class").onclick = () => {
+    socket.emit("quest:request_class");
+};
 
-/* ============================================================
-   SECTION 2 — ONGLET NAVIGATION
-   ============================================================ */
+socket.on("quest:faction_update", (q) => {
+    $("quest-info").innerHTML = `
+        <b>Quête Faction :</b> ${q.title}<br>
+        Objectif : ${q.goal}<br>
+        Progression : ${q.progress ?? 0}
+    `;
+});
 
-function showTab(tabName) {
-    // Cacher tous les contenus
-    $$(".tab-content").forEach(tab => {
-        tab.style.display = "none";
+socket.on("quest:class_update", (q) => {
+    $("quest-info").innerHTML += `
+        <hr>
+        <b>Quête Classe :</b> ${q.title}<br>
+        Objectif : ${q.goal}<br>
+        Progression : ${q.progress ?? 0}
+    `;
+});
+
+// ---------- SKILLS ----------
+function renderSkills() {
+    if (!currentPlayer) return;
+    const tree = currentPlayer.skillTree;
+    const container = $("skills");
+    container.innerHTML = "";
+
+    Object.entries(tree.branches).forEach(([branch, level]) => {
+        const btn = document.createElement("button");
+        btn.textContent = `${branch} (${level}/${tree.maxLevel})`;
+        btn.onclick = () => {
+            socket.emit("skill:upgrade", { branch });
+        };
+        container.appendChild(btn);
     });
+}
 
-    // Désactiver tous les onglets
-    $$(".tab").forEach(t => t.classList.remove("active"));
+socket.on("skill:update", (tree) => {
+    if (!currentPlayer) return;
+    currentPlayer.skillTree = tree;
+    renderPlayer();
+    renderSkills();
+});
 
-    // Activer l’onglet cliqué
-    const activeTab = $(`.tab[data-tab="${tabName}"]`);
-    if (activeTab) activeTab.classList.add("active");
+socket.on("skill:error", (msg) => {
+    $("action-result").textContent = msg;
+});
 
-    // Afficher le contenu correspondant
-    const content = $(`#${tabName}`);
-    if (content) {
-        content.style.display = "block";
-        content.classList.add("fade-in");
-        setTimeout(() => content.classList.remove("fade-in"), 400);
+// ---------- EVENTS ----------
+socket.on("events:current", (ev) => {
+    if (!ev) {
+        $("event-current").textContent = "Aucun événement en cours.";
+        return;
     }
+    $("event-current").textContent = `🔥 ${ev.title} — ${ev.text}`;
+});
 
-    logRP("Onglet ouvert :", tabName);
-}
+socket.on("events:history", (history) => {
+    $("event-history").innerHTML = history
+        .map((e) => e.text)
+        .join("<br>");
+});
 
-function initTabs() {
-    $$(".tab").forEach(tab => {
-        tab.addEventListener("click", () => {
-            showTab(tab.dataset.tab);
-        });
+// ---------- ESCARGOPHONE FACTION ----------
+$("esc-faction-send").onclick = () => {
+    const text = $("esc-faction-text").value;
+    $("esc-faction-text").value = "";
+    socket.emit("esc:faction:send", { text });
+};
+
+socket.on("esc:faction:message", (msg) => {
+    const log = $("esc-faction-log");
+    log.innerHTML += `<div><b>${msg.author}</b> : ${msg.text}</div>`;
+    log.scrollTop = log.scrollHeight;
+});
+
+// ---------- ESCARGOPHONE HRP ----------
+$("esc-hrp-send").onclick = () => {
+    const text = $("esc-hrp-text").value;
+    $("esc-hrp-text").value = "";
+    socket.emit("esc:hrp:send", { text });
+};
+
+socket.on("esc:hrp:message", (msg) => {
+    const log = $("esc-hrp-log");
+    log.innerHTML += `<div><b>${msg.author}</b> : ${msg.text}</div>`;
+    log.scrollTop = log.scrollHeight;
+});
+
+// ---------- ESCARGOPHONE PRIVÉ ----------
+$("esc-prive-call").onclick = () => {
+    const target = $("esc-prive-target").value;
+    socket.emit("esc:prive:call", { target });
+};
+
+$("esc-prive-send").onclick = () => {
+    const text = $("esc-prive-text").value;
+    const target = $("esc-prive-target").value;
+    $("esc-prive-text").value = "";
+    socket.emit("esc:prive:send", { to: target, text });
+};
+
+socket.on("esc:prive:incoming", ({ from }) => {
+    $("esc-prive-status").textContent = `📡 Appel entrant de ${from}`;
+    // auto-accept pour simplifier
+    socket.emit("esc:prive:accept", { from });
+});
+
+socket.on("esc:prive:calling", ({ target }) => {
+    $("esc-prive-status").textContent = `📡 Appel vers ${target}...`;
+});
+
+socket.on("esc:prive:connected", ({ with: other, history }) => {
+    $("esc-prive-status").textContent = `✅ Connecté avec ${other}`;
+    const log = $("esc-prive-log");
+    log.innerHTML = "";
+    history.forEach((m) => {
+        log.innerHTML += `<div><b>${m.author}</b> : ${m.text}</div>`;
     });
+});
 
-    // Onglet par défaut
-    showTab("profil");
+socket.on("esc:prive:message", (msg) => {
+    const log = $("esc-prive-log");
+    log.innerHTML += `<div><b>${msg.author}</b> : ${msg.text}</div>`;
+    log.scrollTop = log.scrollHeight;
+});
+
+// ---------- MODO / ADMIN ----------
+$("btn-modo-login").onclick = () => {
+    const code = $("modo-code").value;
+    socket.emit("modo:login", code);
+};
+
+socket.on("modo:success", ({ grade, message }) => {
+    currentGrade = grade;
+    $("grade-info").textContent = `Grade : ${grade}`;
+    appendModoLog(message);
+});
+
+socket.on("modo:fail", ({ message }) => {
+    appendModoLog(message || "Code refusé.");
+});
+
+socket.on("modo:log", (text) => appendModoLog(text));
+socket.on("admin:info", (text) => appendAdminLog(text));
+socket.on("admin:grade_update", ({ grade }) => {
+    currentGrade = grade;
+    $("grade-info").textContent = `Grade : ${grade}`;
+});
+
+function appendModoLog(text) {
+    $("modo-log").innerHTML += `<div>${text}</div>`;
 }
 
-
-/* ============================================================
-   SECTION 3 — CHAT RP
-   ============================================================ */
-
-function addChatMessage(author, text) {
-    const box = $("#chat-box");
-    if (!box) return;
-
-    const msg = document.createElement("div");
-    msg.className = "message";
-
-    const avatar = document.createElement("div");
-    avatar.className = "message-avatar";
-    avatar.style.backgroundImage = "url('assets/portraits/default.jpg')";
-
-    const content = document.createElement("div");
-    content.className = "message-content";
-
-    const authorEl = document.createElement("div");
-    authorEl.className = "message-author";
-    authorEl.textContent = author;
-
-    const textEl = document.createElement("div");
-    textEl.className = "message-text";
-    textEl.textContent = text;
-
-    content.appendChild(authorEl);
-    content.appendChild(textEl);
-
-    msg.appendChild(avatar);
-    msg.appendChild(content);
-
-    box.appendChild(msg);
-    box.scrollTop = box.scrollHeight;
+function appendAdminLog(text) {
+    $("admin-log").innerHTML += `<div>${text}</div>`;
 }
 
-function sendChatMessage() {
-    const input = $("#chat-input");
-    const text = input.value.trim();
-    if (!text) return;
-
-    addChatMessage("Vous", text);
-    input.value = "";
-}
-
-function initChat() {
-    $("#send-message").addEventListener("click", sendChatMessage);
-
-    $("#chat-input").addEventListener("keydown", e => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            sendChatMessage();
-        }
+// Modo actions
+$("btn-modo-give").onclick = () => {
+    socket.emit("modo:give_berries", {
+        target: $("modo-target").value,
+        amount: Number($("modo-berries").value)
     });
+};
 
-    // Message d’accueil
-    addChatMessage("Système", "Bienvenue dans le chat RP.");
-}
+$("btn-modo-mute").onclick = () => {
+    socket.emit("modo:mute", { target: $("modo-target").value });
+};
 
+$("btn-modo-unmute").onclick = () => {
+    socket.emit("modo:unmute", { target: $("modo-target").value });
+};
 
-/* ============================================================
-   SECTION 4 — INITIALISATION GLOBALE
-   ============================================================ */
+$("btn-modo-kick").onclick = () => {
+    socket.emit("modo:kick", { target: $("modo-target").value });
+};
 
-function initRP() {
-    initTabs();
-    initChat();
+$("btn-modo-announce").onclick = () => {
+    socket.emit("modo:announce", {
+        text: $("modo-announce-text").value
+    });
+    $("modo-announce-text").value = "";
+};
 
-    $("#apply-theme").addEventListener("click", handleApplyTheme);
+// Admin actions
+$("btn-admin-set-grade").onclick = () => {
+    socket.emit("admin:set_grade", {
+        target: $("admin-target").value,
+        grade: $("admin-grade").value
+    });
+};
 
-    logRP("Interface RP initialisée.");
-}
+$("btn-admin-qf").onclick = () => {
+    socket.emit("admin:create_quest", {
+        type: "faction",
+        title: $("qf-title").value,
+        desc: $("qf-desc").value,
+        goal: Number($("qf-goal").value),
+        rewardXP: Number($("qf-rxp").value),
+        rewardBerries: Number($("qf-rb").value)
+    });
+};
 
-document.addEventListener("DOMContentLoaded", initRP);
+$("btn-admin-qc").onclick = () => {
+    socket.emit("admin:create_quest", {
+        type: "class",
+        title: $("qc-title").value,
+        desc: $("qc-desc").value,
+        goal: Number($("qc-goal").value),
+        rewardXP: Number($("qc-rxp").value),
+        rewardTalent: Number($("qc-rt").value)
+    });
+};
+
+$("btn-admin-start-event").onclick = () => {
+    socket.emit("admin:start_event", {
+        title: $("ev-title").value,
+        desc: $("ev-desc").value
+    });
+};
+
+$("btn-admin-stop-event").onclick = () => {
+    socket.emit("admin:stop_event");
+};
+
+$("btn-admin-reset").onclick = () => {
+    socket.emit("admin:reset_player", {
+        target: $("admin-reset-target").value
+    });
+};
