@@ -527,3 +527,236 @@ io.on("connection", (socket) => {
     });
 
 });
+// server.js — Bloc 5/5 : Modo/Admin + Events + Finalisation
+
+io.on("connection", (socket) => {
+
+    /* ============================================================
+       MODO LOGIN — ACCÈS PANTHÉON (RP)
+       ============================================================ */
+    socket.on("modo:login", (code) => {
+        const player = playersBySocket.get(socket.id);
+        if (!player) return;
+
+        if (code === DEN_DEN_MODO_KEY) {
+
+            // Si pas admin, devient modo
+            if (GRADES[player.name] !== "admin") {
+                GRADES[player.name] = "modo";
+            }
+
+            socket.emit("modo:success", {
+                grade: GRADES[player.name],
+                message: `📡 Accès Panthéon accordé à ${player.name}.`
+            });
+
+            socket.emit("modo:log",
+                `🔱 [PANTHÉON] Canal sécurisé ouvert par ${player.name}.`
+            );
+
+        } else {
+            socket.emit("modo:fail", {
+                message: "❌ Code Den-Den refusé."
+            });
+        }
+    });
+
+    /* ============================================================
+       MODO : GIVE BERRIES
+       ============================================================ */
+    socket.on("modo:give_berries", ({ target, amount }) => {
+        const player = playersBySocket.get(socket.id);
+        if (!player || !isModo(player)) return;
+
+        const tp = playersByName.get(target);
+        if (!tp) {
+            return socket.emit("modo:log", `Introuvable : ${target}`);
+        }
+
+        tp.berries += Number(amount) || 0;
+        broadcastPlayer(tp);
+
+        socket.emit("modo:log", `💰 +${amount} ฿ donnés à ${target}`);
+    });
+
+    /* ============================================================
+       MODO : MUTE / UNMUTE
+       ============================================================ */
+    const mutedPlayers = new Set();
+
+    socket.on("modo:mute", ({ target }) => {
+        const player = playersBySocket.get(socket.id);
+        if (!player || !isModo(player)) return;
+
+        mutedPlayers.add(target);
+        findSocket(target)?.emit("esc:error", "🔇 Vous avez été réduit au silence par un modérateur.");
+
+        socket.emit("modo:log", `${target} est maintenant muet.`);
+    });
+
+    socket.on("modo:unmute", ({ target }) => {
+        const player = playersBySocket.get(socket.id);
+        if (!player || !isModo(player)) return;
+
+        mutedPlayers.delete(target);
+        socket.emit("modo:log", `${target} peut de nouveau parler.`);
+    });
+
+    /* ============================================================
+       MODO : KICK
+       ============================================================ */
+    socket.on("modo:kick", ({ target }) => {
+        const player = playersBySocket.get(socket.id);
+        if (!player || !isModo(player)) return;
+
+        const s = findSocket(target);
+        if (s) {
+            s.emit("auth:error", "🚫 Vous avez été expulsé par un modérateur.");
+            s.disconnect(true);
+        }
+
+        playersByName.delete(target);
+        socket.emit("modo:log", `👢 ${target} expulsé.`);
+    });
+
+    /* ============================================================
+       MODO : ANNONCE GLOBALE
+       ============================================================ */
+    socket.on("modo:announce", ({ text }) => {
+        const player = playersBySocket.get(socket.id);
+        if (!player || !isModo(player) || !text?.trim()) return;
+
+        io.emit("modo:announce", {
+            text: text.trim(),
+            author: player.name
+        });
+    });
+
+    /* ============================================================
+       ADMIN : SET GRADE
+       ============================================================ */
+    socket.on("admin:set_grade", ({ target, grade }) => {
+        const player = playersBySocket.get(socket.id);
+        if (!player || !isAdmin(player)) return;
+
+        if (!["player", "modo", "admin"].includes(grade)) return;
+
+        GRADES[target] = grade;
+
+        socket.emit("admin:info", `🎖️ Grade de ${target} → ${grade}`);
+        findSocket(target)?.emit("admin:grade_update", { grade });
+    });
+
+    /* ============================================================
+       ADMIN : CREATE QUEST
+       ============================================================ */
+    socket.on("admin:create_quest", (q) => {
+        const player = playersBySocket.get(socket.id);
+        if (!player || !isAdmin(player)) return;
+
+        if (q.type === "faction") {
+            currentFactionQuest = {
+                title: q.title,
+                description: q.desc,
+                goal: q.goal,
+                rewardXP: q.rewardXP,
+                rewardBerries: q.rewardBerries
+            };
+
+            io.emit("quest:faction_update", { ...currentFactionQuest, progress: 0 });
+            socket.emit("admin:info", `🏴‍☠️ Quête faction définie : ${q.title}`);
+        }
+
+        if (q.type === "class") {
+            currentClassQuest = {
+                title: q.title,
+                description: q.desc,
+                goal: q.goal,
+                rewardXP: q.rewardXP,
+                rewardTalent: q.rewardTalent
+            };
+
+            io.emit("quest:class_update", { ...currentClassQuest, progress: 0 });
+            socket.emit("admin:info", `🎓 Quête classe définie : ${q.title}`);
+        }
+    });
+
+    /* ============================================================
+       ADMIN : START EVENT
+       ============================================================ */
+    socket.on("admin:start_event", ({ title, desc }) => {
+        const player = playersBySocket.get(socket.id);
+        if (!player || !isAdmin(player)) return;
+
+        currentEvent = {
+            title,
+            text: desc,
+            startedAt: Date.now()
+        };
+
+        eventsHistory.push({ text: `[EVENT] ${title} : ${desc}` });
+
+        io.emit("events:current", currentEvent);
+        io.emit("events:history", eventsHistory);
+
+        socket.emit("admin:info", `🔥 Événement lancé : ${title}`);
+    });
+
+    /* ============================================================
+       ADMIN : STOP EVENT
+       ============================================================ */
+    socket.on("admin:stop_event", () => {
+        const player = playersBySocket.get(socket.id);
+        if (!player || !isAdmin(player)) return;
+
+        if (currentEvent) {
+            eventsHistory.push({ text: `[FIN] ${currentEvent.title}` });
+        }
+
+        currentEvent = null;
+
+        io.emit("events:current", null);
+        io.emit("events:history", eventsHistory);
+
+        socket.emit("admin:info", "🛑 Événement arrêté.");
+    });
+
+    /* ============================================================
+       ADMIN : RESET PLAYER
+       ============================================================ */
+    socket.on("admin:reset_player", ({ target }) => {
+        const player = playersBySocket.get(socket.id);
+        if (!player || !isAdmin(player)) return;
+
+        const tp = playersByName.get(target);
+        if (!tp) {
+            return socket.emit("admin:info", `Introuvable : ${target}`);
+        }
+
+        tp.level = 1;
+        tp.xp = 0;
+        tp.berries = 0;
+        tp.bounty = 0;
+
+        tp.skillTree = {
+            talentPoints: 0,
+            maxLevel: 5,
+            branches: { Force: 0, Agilité: 0, Endurance: 0, Haki: 0 }
+        };
+
+        tp.factionQuest = null;
+        tp.classQuest = null;
+
+        broadcastPlayer(tp);
+
+        socket.emit("admin:info", `🔄 Stats de ${target} réinitialisées.`);
+    });
+
+});
+
+/* ============================================================
+   START SERVER
+   ============================================================ */
+server.listen(PORT, () => {
+    console.log(`🚀 Serveur lancé sur le port ${PORT}`);
+});
