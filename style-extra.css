@@ -1,0 +1,65 @@
+/* ============================================================
+   STYLE EXTRA — Le Cheuvreuil
+   Complément minimal pour aligner index.html avec ton style.css
+   (Sans override, sans conflit, sans toucher à ta DA)
+============================================================ */
+
+/* Masquage simple */
+.hidden {
+    display: none !important;
+}
+
+/* Alignement des inputs de chat */
+.chat-input {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.chat-input input {
+    flex: 1;
+}
+
+/* Logs (modo/admin/events) */
+.log {
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 6px;
+    font-size: 0.9rem;
+    line-height: 1.3;
+}
+
+/* Ajustement du texte d’erreur */
+.error {
+    margin-top: 10px;
+    color: #b00020;
+    font-weight: bold;
+}
+
+/* Espacement des sections du panneau profil */
+#player-info {
+    margin-bottom: 8px;
+}
+
+#player-stats {
+    margin-bottom: 12px;
+}
+
+/* Chat global */
+#chat-log {
+    height: 260px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* Events */
+#event-history {
+    max-height: 140px;
+    overflow-y: auto;
+}
+
+/* Boutons dans les panneaux étroits */
+.panel .btn {
+    width: 100%;
+    margin-top: 6px;
+}
