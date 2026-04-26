@@ -1,18 +1,34 @@
-// main.js
+// main.js — Le Cheuvreuil
 
 const socket = io();
 
 let currentPlayer = null;
 let currentGrade = "player";
 
-// ---------- DOM HELPERS ----------
 const $ = (id) => document.getElementById(id);
 const show = (el) => el.classList.remove("hidden");
 const hide = (el) => el.classList.add("hidden");
 
-// ---------- AUTH ----------
-const authError = $("auth-error");
+/* ============================================================
+   TABS AUTH
+============================================================ */
+$("tab-login").onclick = () => {
+    $("tab-login").classList.add("active");
+    $("tab-register").classList.remove("active");
+    show($("login-panel"));
+    hide($("register-panel"));
+};
 
+$("tab-register").onclick = () => {
+    $("tab-register").classList.add("active");
+    $("tab-login").classList.remove("active");
+    show($("register-panel"));
+    hide($("login-panel"));
+};
+
+/* ============================================================
+   AUTH
+============================================================ */
 $("btn-register").onclick = () => {
     socket.emit("auth:register", {
         name: $("reg-name").value,
@@ -30,23 +46,43 @@ $("btn-login").onclick = () => {
 };
 
 socket.on("auth:error", (msg) => {
-    authError.textContent = msg;
+    $("auth-error").textContent = msg;
 });
 
 socket.on("auth:success", ({ player }) => {
     currentPlayer = player;
-    authError.textContent = "";
+    $("auth-error").textContent = "";
     hide($("auth"));
     show($("game"));
+    applyFactionTheme(player.faction);
     renderPlayer();
     renderSkills();
 });
 
-// ---------- PLAYER RENDER ----------
+/* ============================================================
+   THEMES FACTION
+============================================================ */
+function applyFactionTheme(faction) {
+    const body = document.body;
+    if (!faction) {
+        body.className = "theme-login";
+        return;
+    }
+    const f = faction.toLowerCase();
+    if (f.includes("marine")) body.className = "theme-marine";
+    else if (f.includes("pirate")) body.className = "theme-pirate";
+    else if (f.includes("revo")) body.className = "theme-revo";
+    else body.className = "theme-login";
+}
+
+/* ============================================================
+   PLAYER
+============================================================ */
 function renderPlayer() {
     if (!currentPlayer) return;
-    $("player-info").textContent =
-        `${currentPlayer.name} — ${currentPlayer.faction} / ${currentPlayer.classe}`;
+
+    $("player-info").innerHTML =
+        `<b>${currentPlayer.name}</b> — ${currentPlayer.faction} / ${currentPlayer.classe}`;
 
     $("player-stats").innerHTML = `
         Niveau : ${currentPlayer.level}<br>
@@ -65,7 +101,9 @@ socket.on("player:update", (player) => {
     }
 });
 
-// ---------- ACTIONS ----------
+/* ============================================================
+   ACTIONS
+============================================================ */
 $("btn-train").onclick = () => {
     socket.emit("action:train");
 };
@@ -79,7 +117,9 @@ socket.on("action:cooldown", ({ remaining }) => {
         `Encore ${Math.ceil(remaining / 1000)}s avant de pouvoir t'entraîner.`;
 });
 
-// ---------- QUÊTES ----------
+/* ============================================================
+   QUÊTES
+============================================================ */
 $("btn-quest-faction").onclick = () => {
     socket.emit("quest:request_faction");
 };
@@ -105,15 +145,19 @@ socket.on("quest:class_update", (q) => {
     `;
 });
 
-// ---------- SKILLS ----------
+/* ============================================================
+   SKILLS
+============================================================ */
 function renderSkills() {
     if (!currentPlayer) return;
+
     const tree = currentPlayer.skillTree;
     const container = $("skills");
     container.innerHTML = "";
 
     Object.entries(tree.branches).forEach(([branch, level]) => {
         const btn = document.createElement("button");
+        btn.className = "btn";
         btn.textContent = `${branch} (${level}/${tree.maxLevel})`;
         btn.onclick = () => {
             socket.emit("skill:upgrade", { branch });
@@ -123,7 +167,6 @@ function renderSkills() {
 }
 
 socket.on("skill:update", (tree) => {
-    if (!currentPlayer) return;
     currentPlayer.skillTree = tree;
     renderPlayer();
     renderSkills();
@@ -133,7 +176,27 @@ socket.on("skill:error", (msg) => {
     $("action-result").textContent = msg;
 });
 
-// ---------- EVENTS ----------
+/* ============================================================
+   CHAT GLOBAL
+============================================================ */
+$("chat-send").onclick = () => {
+    const text = $("chat-text").value.trim();
+    if (!text) return;
+    socket.emit("chat:send", { text });
+    $("chat-text").value = "";
+};
+
+socket.on("chat:message", ({ author, text }) => {
+    const log = $("chat-log");
+    const line = document.createElement("div");
+    line.innerHTML = `<b>${author}</b> : ${text}`;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+});
+
+/* ============================================================
+   EVENTS
+============================================================ */
 socket.on("events:current", (ev) => {
     if (!ev) {
         $("event-current").textContent = "Aucun événement en cours.";
@@ -148,102 +211,43 @@ socket.on("events:history", (history) => {
         .join("<br>");
 });
 
-// ---------- ESCARGOPHONE FACTION ----------
-$("esc-faction-send").onclick = () => {
-    const text = $("esc-faction-text").value;
-    $("esc-faction-text").value = "";
-    socket.emit("esc:faction:send", { text });
-};
-
-socket.on("esc:faction:message", (msg) => {
-    const log = $("esc-faction-log");
-    log.innerHTML += `<div><b>${msg.author}</b> : ${msg.text}</div>`;
-    log.scrollTop = log.scrollHeight;
-});
-
-// ---------- ESCARGOPHONE HRP ----------
-$("esc-hrp-send").onclick = () => {
-    const text = $("esc-hrp-text").value;
-    $("esc-hrp-text").value = "";
-    socket.emit("esc:hrp:send", { text });
-};
-
-socket.on("esc:hrp:message", (msg) => {
-    const log = $("esc-hrp-log");
-    log.innerHTML += `<div><b>${msg.author}</b> : ${msg.text}</div>`;
-    log.scrollTop = log.scrollHeight;
-});
-
-// ---------- ESCARGOPHONE PRIVÉ ----------
-$("esc-prive-call").onclick = () => {
-    const target = $("esc-prive-target").value;
-    socket.emit("esc:prive:call", { target });
-};
-
-$("esc-prive-send").onclick = () => {
-    const text = $("esc-prive-text").value;
-    const target = $("esc-prive-target").value;
-    $("esc-prive-text").value = "";
-    socket.emit("esc:prive:send", { to: target, text });
-};
-
-socket.on("esc:prive:incoming", ({ from }) => {
-    $("esc-prive-status").textContent = `📡 Appel entrant de ${from}`;
-    // auto-accept pour simplifier
-    socket.emit("esc:prive:accept", { from });
-});
-
-socket.on("esc:prive:calling", ({ target }) => {
-    $("esc-prive-status").textContent = `📡 Appel vers ${target}...`;
-});
-
-socket.on("esc:prive:connected", ({ with: other, history }) => {
-    $("esc-prive-status").textContent = `✅ Connecté avec ${other}`;
-    const log = $("esc-prive-log");
-    log.innerHTML = "";
-    history.forEach((m) => {
-        log.innerHTML += `<div><b>${m.author}</b> : ${m.text}</div>`;
-    });
-});
-
-socket.on("esc:prive:message", (msg) => {
-    const log = $("esc-prive-log");
-    log.innerHTML += `<div><b>${msg.author}</b> : ${msg.text}</div>`;
-    log.scrollTop = log.scrollHeight;
-});
-
-// ---------- MODO / ADMIN ----------
+/* ============================================================
+   MODO / ADMIN
+============================================================ */
 $("btn-modo-login").onclick = () => {
-    const code = $("modo-code").value;
-    socket.emit("modo:login", code);
+    socket.emit("modo:login", $("modo-code").value);
 };
 
-socket.on("modo:success", ({ grade, message }) => {
-    currentGrade = grade;
-    $("grade-info").textContent = `Grade : ${grade}`;
-    appendModoLog(message);
+socket.on("modo:success", () => {
+    currentGrade = "modo";
+    $("grade-info").textContent = `Grade : ${currentGrade}`;
+    appendModoLog("Accès modo accordé.");
 });
 
-socket.on("modo:fail", ({ message }) => {
-    appendModoLog(message || "Code refusé.");
+socket.on("modo:fail", () => {
+    appendModoLog("Code modo refusé.");
 });
 
 socket.on("modo:log", (text) => appendModoLog(text));
 socket.on("admin:info", (text) => appendAdminLog(text));
-socket.on("admin:grade_update", ({ grade }) => {
-    currentGrade = grade;
-    $("grade-info").textContent = `Grade : ${grade}`;
-});
 
 function appendModoLog(text) {
-    $("modo-log").innerHTML += `<div>${text}</div>`;
+    const log = $("modo-log");
+    const line = document.createElement("div");
+    line.textContent = text;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
 }
 
 function appendAdminLog(text) {
-    $("admin-log").innerHTML += `<div>${text}</div>`;
+    const log = $("admin-log");
+    const line = document.createElement("div");
+    line.textContent = text;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
 }
 
-// Modo actions
+/* Modo actions */
 $("btn-modo-give").onclick = () => {
     socket.emit("modo:give_berries", {
         target: $("modo-target").value,
@@ -251,26 +255,13 @@ $("btn-modo-give").onclick = () => {
     });
 };
 
-$("btn-modo-mute").onclick = () => {
-    socket.emit("modo:mute", { target: $("modo-target").value });
-};
-
-$("btn-modo-unmute").onclick = () => {
-    socket.emit("modo:unmute", { target: $("modo-target").value });
-};
-
 $("btn-modo-kick").onclick = () => {
-    socket.emit("modo:kick", { target: $("modo-target").value });
-};
-
-$("btn-modo-announce").onclick = () => {
-    socket.emit("modo:announce", {
-        text: $("modo-announce-text").value
+    socket.emit("modo:kick", {
+        target: $("modo-target").value
     });
-    $("modo-announce-text").value = "";
 };
 
-// Admin actions
+/* Admin actions */
 $("btn-admin-set-grade").onclick = () => {
     socket.emit("admin:set_grade", {
         target: $("admin-target").value,
