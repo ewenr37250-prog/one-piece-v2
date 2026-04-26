@@ -2,160 +2,80 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Le Cheuvreuil — Panel RP</title>
-
-    <!-- Style principal (ton énorme style.css) -->
+    <title>Le Chevreuil - Private RPG</title>
     <link rel="stylesheet" href="style.css">
-
-    <!-- Petit complément pour ajuster le layout -->
     <link rel="stylesheet" href="style-extra.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Metamorphic&display=swap" rel="stylesheet">
 </head>
-
-<body class="theme-login">
-<div class="main-wrapper">
-
-    <!-- ============================
-         PANEL AUTHENTIFICATION
-    ============================ -->
-    <div id="auth" class="panel">
-        <div class="panel-content">
-
-            <h1 class="panel-title">🦌 Le Cheuvreuil</h1>
-
-            <div class="tabs">
-                <div class="tab active" id="tab-login">Connexion</div>
-                <div class="tab" id="tab-register">Inscription</div>
+<body>
+    <div class="game-ui">
+        <header class="top-nav">
+            <div class="header-left">14:32<br><span>Grand Line</span></div>
+            <nav class="menu-tabs">
+                <button>ACCUEIL</button><button>PERSONNAGE</button><button>INVENTAIRE</button><button>QUÊTES</button>
+            </nav>
+            <div class="main-logo">
+                <div class="logo-title">LE CHEVREUIL</div>
             </div>
+            <nav class="menu-tabs">
+                <button>ÉQUIPAGE</button><button>CARTE</button><button>RANGS</button><button>BOUTIQUE</button>
+            </nav>
+            <div class="header-right">PRIME GLOBALE<br><span class="gold">1,250,000,000 ฿</span></div>
+        </header>
 
-            <!-- LOGIN -->
-            <div id="login-panel">
-                <input id="log-name" placeholder="Nom">
-                <input id="log-pass" type="password" placeholder="Mot de passe">
-                <button class="btn" id="btn-login">Entrer</button>
-            </div>
-
-            <!-- REGISTER -->
-            <div id="register-panel" class="hidden">
-                <input id="reg-name" placeholder="Nom">
-                <input id="reg-pass" type="password" placeholder="Mot de passe">
-                <input id="reg-faction" placeholder="Faction (pirate, marine, revo)">
-                <input id="reg-classe" placeholder="Classe (épéiste, sniper...)">
-                <button class="btn" id="btn-register">Créer un personnage</button>
-            </div>
-
-            <div id="auth-error" class="error"></div>
-        </div>
-    </div>
-
-    <!-- ============================
-         PANEL PRINCIPAL DU JEU
-    ============================ -->
-    <div id="game" class="hidden layout-columns">
-
-        <!-- COLONNE 1 : Profil / Actions / Quêtes / Skills -->
-        <div class="panel">
-            <div class="panel-content">
-
-                <h2 class="panel-title">👤 Profil</h2>
-                <div id="player-info"></div>
-                <div id="player-stats"></div>
-
-                <h2 class="panel-title">💪 Actions</h2>
-                <button class="btn" id="btn-train">S'entraîner</button>
-                <div id="action-result"></div>
-
-                <h2 class="panel-title">🎯 Quêtes</h2>
-                <button class="btn" id="btn-quest-faction">Quête de faction</button>
-                <button class="btn" id="btn-quest-class">Quête de classe</button>
-                <div id="quest-info"></div>
-
-                <h2 class="panel-title">🌳 Talent Tree</h2>
-                <div id="skills"></div>
-
-            </div>
-        </div>
-
-        <!-- COLONNE 2 : Chat Global + Events -->
-        <div class="panel">
-            <div class="panel-content">
-
-                <h2 class="panel-title">💬 Taverne du Cheuvreuil</h2>
-
-                <div class="chat-box" id="chat-log"></div>
-
-                <div class="chat-input">
-                    <input id="chat-text" placeholder="Message...">
-                    <button class="btn" id="chat-send">Envoyer</button>
+        <div class="content-grid">
+            <aside class="sidebar-panel">
+                <div class="profile-section">
+                    <h3>Monkey D. Chevreuil</h3>
+                    <p>Niveau 42</p>
+                    <div class="bar-wrap hp"><span>HP 1250/1250</span><div class="fill"></div></div>
+                    <div class="bar-wrap xp"><span>XP 3580/7200</span><div class="fill" style="width: 50%;"></div></div>
+                    <div class="stats-list">
+                        <div>Berries: 87,500 ฿</div>
+                        <div>Talent: 12</div>
+                        <div class="rep">Réputation: 315 (Respecté)</div>
+                    </div>
                 </div>
+                <div class="quick-actions">
+                    <p class="section-title">ACTIONS RAPIDES</p>
+                    <button class="btn-action">S'entraîner</button>
+                    <button class="btn-action">Travailler</button>
+                    <button class="btn-action">Chercher un combat</button>
+                    <button class="btn-action">Explorer</button>
+                </div>
+            </aside>
 
-                <h2 class="panel-title">📜 Événements</h2>
-                <div id="event-current"></div>
-                <div id="event-history" class="log"></div>
+            <main class="parchment-area">
+                <div class="parchment-texture"></div>
+            </main>
 
-            </div>
+            <aside class="sidebar-panel">
+                <div class="quests-section">
+                    <p class="section-title">QUÊTES EN COURS</p>
+                    <div class="quest-box">
+                        <p>La Volonté du Capitaine</p>
+                        <div class="mini-progress"><div class="fill" style="width: 60%;"></div></div>
+                    </div>
+                </div>
+                <div class="chat-section">
+                    <p class="section-title">CHAT MONDE</p>
+                    <div id="chat-messages" class="chat-box"></div>
+                    <input type="text" class="chat-input" placeholder="Écrire un message...">
+                </div>
+            </aside>
         </div>
 
-        <!-- COLONNE 3 : Panthéon / Modo / Admin -->
-        <div class="panel panel-modo">
-            <div class="panel-content">
-
-                <h2 class="panel-title">🔱 Panthéon</h2>
-                <div id="grade-info"></div>
-
-                <input id="modo-code" placeholder="Code Modo">
-                <button class="btn" id="btn-modo-login">Activer Modo</button>
-                <div id="modo-log" class="log"></div>
-
-                <h2 class="panel-title">🛠️ Outils Modo</h2>
-                <input id="modo-target" placeholder="Cible">
-                <input id="modo-berries" type="number" placeholder="Berries">
-                <button class="btn" id="btn-modo-give">Give ฿</button>
-                <button class="btn" id="btn-modo-kick">Kick</button>
-
-                <h2 class="panel-title">👑 Outils Admin</h2>
-                <input id="admin-target" placeholder="Cible">
-                <select id="admin-grade">
-                    <option value="player">player</option>
-                    <option value="modo">modo</option>
-                    <option value="admin">admin</option>
-                </select>
-                <button class="btn" id="btn-admin-set-grade">Set grade</button>
-
-                <h3 class="section-title">Quête Faction</h3>
-                <input id="qf-title" placeholder="Titre">
-                <input id="qf-desc" placeholder="Description">
-                <input id="qf-goal" type="number" placeholder="Objectif">
-                <input id="qf-rxp" type="number" placeholder="XP">
-                <input id="qf-rb" type="number" placeholder="Berries">
-                <button class="btn" id="btn-admin-qf">Créer</button>
-
-                <h3 class="section-title">Quête Classe</h3>
-                <input id="qc-title" placeholder="Titre">
-                <input id="qc-desc" placeholder="Description">
-                <input id="qc-goal" type="number" placeholder="Objectif">
-                <input id="qc-rxp" type="number" placeholder="XP">
-                <input id="qc-rt" type="number" placeholder="Talent Points">
-                <button class="btn" id="btn-admin-qc">Créer</button>
-
-                <h3 class="section-title">Événements</h3>
-                <input id="ev-title" placeholder="Titre event">
-                <input id="ev-desc" placeholder="Description">
-                <button class="btn" id="btn-admin-start-event">Lancer</button>
-                <button class="btn" id="btn-admin-stop-event">Stop</button>
-
-                <h3 class="section-title">Reset joueur</h3>
-                <input id="admin-reset-target" placeholder="Cible">
-                <button class="btn" id="btn-admin-reset">Reset</button>
-
-                <div id="admin-log" class="log"></div>
-
+        <footer class="bottom-bar">
+            <div class="event-tag">Double XP Week-end !</div>
+            <div class="icon-nav">
+                <div class="nav-item">PROFIL</div>
+                <div class="nav-item">ÉQUIPAGE</div>
+                <div class="nav-item">COMPÉTENCES</div>
+                <div class="nav-item">INVENTAIRE</div>
             </div>
-        </div>
-
+            <div class="announcements">Un nouveau boss est apparu sur Dressrosa !</div>
+        </footer>
     </div>
-</div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="main.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
