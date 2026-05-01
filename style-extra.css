@@ -1,65 +1,128 @@
 /* ============================================================
-   STYLE EXTRA — Le Cheuvreuil
-   Complément minimal pour aligner index.html avec ton style.css
-   (Sans override, sans conflit, sans toucher à ta DA)
+   THÈMES DE FACTIONS (Appliqués sur le body)
 ============================================================ */
 
-/* Masquage simple */
-.hidden {
-    display: none !important;
+/* Thème Marine : Bleu et Blanc, Ordre et Justice */
+.theme-marine {
+    --panel-bg: #1a2a3a;
+    --border-color: #2b4b7a;
+    --gold: #00d4ff; /* Un bleu cyan brillant pour remplacer l'or */
+}
+.theme-marine .top-nav { border-bottom: 3px solid #0056b3; box-shadow: inset 0 0 20px #003366; }
+.theme-marine .hp .fill { background: linear-gradient(to bottom, #0056b3, #002244); }
+
+/* Thème Pirate : Sombre et Sang, Chaos et Liberté */
+.theme-pirate {
+    --panel-bg: #2b1212;
+    --border-color: #5a1a1a;
+    --gold: #ffcc00;
+}
+.theme-pirate .top-nav { border-bottom: 3px solid #8b0000; box-shadow: inset 0 0 20px #440000; }
+.theme-pirate .hp .fill { background: linear-gradient(to bottom, #cc0000, #660000); }
+
+/* Thème Révolutionnaire : Vert et Terre, Discrétion */
+.theme-revo {
+    --panel-bg: #152015;
+    --border-color: #2d442d;
+    --gold: #a2ff00;
+}
+.theme-revo .top-nav { border-bottom: 3px solid #2e4d23; box-shadow: inset 0 0 20px #1a2a1a; }
+
+/* ============================================================
+   QUÊTES ET PROGRESSION
+============================================================ */
+.quest-box {
+    background: rgba(0, 0, 0, 0.4);
+    border-left: 3px solid var(--gold);
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+    position: relative;
+    transition: transform 0.2s;
 }
 
-/* Alignement des inputs de chat */
-.chat-input {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
+.quest-box:hover {
+    transform: translateX(5px);
+    background: rgba(0, 0, 0, 0.6);
 }
 
-.chat-input input {
-    flex: 1;
+.quest-box p { margin: 0 0 8px 0; font-weight: bold; }
+
+/* Mini barre de progression pour les quêtes */
+.mini-progress {
+    background: #111;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
 }
 
-/* Logs (modo/admin/events) */
-.log {
-    max-height: 160px;
-    overflow-y: auto;
-    padding: 6px;
-    font-size: 0.9rem;
-    line-height: 1.3;
+.mini-progress .fill {
+    height: 100%;
+    background: var(--gold);
+    width: 0%;
+    transition: width 0.8s ease-in-out;
 }
 
-/* Ajustement du texte d’erreur */
-.error {
-    margin-top: 10px;
-    color: #b00020;
-    font-weight: bold;
+.btn-small {
+    background: #3d2b1f;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 3px 8px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    margin-right: 5px;
 }
 
-/* Espacement des sections du panneau profil */
-#player-info {
-    margin-bottom: 8px;
+.btn-small:hover { background: var(--gold); color: #000; }
+
+/* ============================================================
+   ANIMATIONS ET EFFETS
+============================================================ */
+
+/* Feedback lors d'une action (Entraînement, etc.) */
+.action-feedback {
+    text-align: center;
+    font-family: 'Pirata One';
+    font-size: 1.5rem;
+    color: #3d2b1f; /* Sur le parchemin */
+    margin-top: 20px;
+    animation: fadeInOut 2s forwards;
 }
 
-#player-stats {
-    margin-bottom: 12px;
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(10px); }
+    20% { opacity: 1; transform: translateY(0px); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
 }
 
-/* Chat global */
-#chat-log {
-    height: 260px;
-    overflow-y: auto;
-    padding-right: 4px;
+/* Effet de pulsation sur les événements importants */
+.event-tag {
+    animation: pulse 2s infinite;
 }
 
-/* Events */
-#event-history {
-    max-height: 140px;
-    overflow-y: auto;
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0px rgba(212, 175, 55, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+    100% { box-shadow: 0 0 0 0px rgba(212, 175, 55, 0); }
 }
 
-/* Boutons dans les panneaux étroits */
-.panel .btn {
-    width: 100%;
-    margin-top: 6px;
+/* Custom Scrollbar (Pour Chrome/Edge/Safari) */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #1a110a; }
+::-webkit-scrollbar-thumb { background: #3d2b1f; border: 1px solid var(--border-color); }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* ============================================================
+   CHAT LOG ET MESSAGES
+============================================================ */
+.chat-line {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 3px 0;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
 }
