@@ -1,341 +1,144 @@
-// server.js — Bloc 1/5 : Core + Données + Utilitaires
-
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const path = require("path");
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const PORT = process.env.PORT || 3000;
+app.use(express.static(__dirname + '/public')); // Assure-toi que tes fichiers sont dans un dossier 'public'
 
-app.use(express.static(path.join(__dirname, ".")));
-
-// --- DATA ---
-const users = new Map();
-const playersBySocket = new Map();
-const playersByName = new Map();
-const GRADES = {};
-
-let currentFactionQuest = null;
-let currentClassQuest = null;
-
+// ==========================================
+// CONFIGURATION DU JEU
+// ==========================================
+const MODO_PASSWORD = "LE_CHEVREUIL_2024"; // Ton code secret pour devenir modo
+let players = {}; // Base de données temporaire
 let currentEvent = null;
-let eventsHistory = [];
 
-const actionCooldowns = {};
-const DEN_DEN_MODO_KEY = "PANTHEON_OP";
+// ==========================================
+// LOGIQUE SOCKET.IO
+// ==========================================
+io.on('connection', (socket) => {
+    console.log(`⚓ Nouveau pirate en vue : ${socket.id}`);
 
-// --- PLAYER MODEL ---
-function createPlayer(userData) {
+    // --- AUTHENTIFICATION ---
+    socket.on('auth:login', ({ name, password }) => {
+        // Logique simplifiée : on crée ou on récupère le joueur
+        if (!players[name]) {
+            players[name] = createNewPlayer(name);
+        }
+        socket.playerName = name;
+        socket.join('world-chat');
+        socket.emit('auth:success', { player: players[name] });
+        io.emit('chat:message', { author: "SYSTÈME", text: `${name} vient de monter à bord !` });
+    });
+
+    // --- ACTIONS DE GAMEPLAY ---
+    socket.on('action:train', () => {
+        let p = players[socket.playerName];
+        if (!p) return;
+        
+        p.xp += 50;
+        p.hp = Math.max(0, p.hp - 10);
+        checkLevelUp(p);
+        
+        socket.emit('player:update', p);
+        socket.emit('action:result', { text: "Tu t'es entraîné dur ! +50 XP" });
+    });
+
+    socket.on('action:work', () => {
+        let p = players[socket.playerName];
+        if (!p) return;
+        
+        const gain = 150;
+        p.berries += gain;
+        socket.emit('player:update', p);
+        socket.emit('action:result', { text: `Tu as travaillé au port. +${gain} ฿` });
+    });
+
+    // --- SYSTÈME DE MODÉRATION ---
+    socket.on('modo:login', (code) => {
+        if (code === MODO_PASSWORD) {
+            socket.isAdmin = true;
+            socket.emit('modo:success');
+            console.log(`⭐ ${socket.playerName} est maintenant MODÉRATEUR.`);
+        } else {
+            socket.emit('modo:fail');
+        }
+    });
+
+    socket.on('modo:give_berries', ({ target, amount }) => {
+        if (!socket.isAdmin) return;
+        if (players[target]) {
+            players[target].berries += amount;
+            updatePlayerByName(target);
+            socket.emit('modo:log', `${amount} ฿ donnés à ${target}`);
+        }
+    });
+
+    socket.on('modo:kick', ({ target }) => {
+        if (!socket.isAdmin) return;
+        const targetSocket = findSocketByPlayerName(target);
+        if (targetSocket) {
+            targetSocket.disconnect();
+            io.emit('chat:message', { author: "MARINE", text: `${target} a été jeté par-dessus bord !` });
+        }
+    });
+
+    // --- CHAT ---
+    socket.on('chat:send', ({ text }) => {
+        if (!socket.playerName) return;
+        io.emit('chat:message', { author: socket.playerName, text });
+    });
+
+    socket.on('disconnect', () => {
+        console.log(`🏃 Un pirate a quitté le navire : ${socket.id}`);
+    });
+});
+
+// ==========================================
+// FONCTIONS UTILITAIRES
+// ==========================================
+function createNewPlayer(name) {
     return {
-        name: userData.name,
-        faction: userData.faction,
-        classe: userData.classe,
+        name: name,
         level: 1,
         xp: 0,
-        berries: 0,
+        xpNext: 1000,
+        hp: 100,
+        hpMax: 100,
+        berries: 500,
         bounty: 0,
+        reputation: 0,
         skillTree: {
-            talentPoints: 0,
-            maxLevel: 5,
-            branches: { Force: 0, Agilité: 0, Endurance: 0, Haki: 0 }
-        },
-        factionQuest: null,
-        classQuest: null
+            talentPoints: 1,
+            maxLevel: 10,
+            branches: { "Force": 1, "Agilité": 1, "Haki": 0 }
+        }
     };
 }
 
-// --- UTILS ---
-function giveXP(player, amount) {
-    player.xp += amount;
-    while (player.xp >= 100) {
-        player.xp -= 100;
-        player.level++;
-        player.skillTree.talentPoints++;
+function checkLevelUp(p) {
+    if (p.xp >= p.xpNext) {
+        p.level++;
+        p.xp = 0;
+        p.xpNext = Math.floor(p.xpNext * 1.5);
+        p.skillTree.talentPoints += 1;
     }
 }
 
-function isOnCooldown(player, action, ms) {
-    const key = `${player.name}:${action}`;
-    const now = Date.now();
-    const last = actionCooldowns[key] || 0;
-    if (now - last < ms) return ms - (now - last);
-    actionCooldowns[key] = now;
-    return 0;
+function updatePlayerByName(name) {
+    const s = findSocketByPlayerName(name);
+    if (s) s.emit('player:update', players[name]);
 }
 
-function isAdmin(p) { return GRADES[p.name] === "admin"; }
-function isModo(p) { return GRADES[p.name] === "modo" || GRADES[p.name] === "admin"; }
-
-function findSocket(name) {
-    for (const [sid, p] of playersBySocket.entries()) {
-        if (p.name === name) return io.sockets.sockets.get(sid);
+function findSocketByPlayerName(name) {
+    for (let [id, socket] of io.of("/").sockets) {
+        if (socket.playerName === name) return socket;
     }
     return null;
 }
 
-function broadcastPlayer(player) {
-    for (const [sid, p] of playersBySocket.entries()) {
-        if (p.name === player.name) io.to(sid).emit("player:update", player);
-    }
-}
-// server.js — Bloc 2/5 : Auth + Connexion + Déconnexion
-
-io.on("connection", (socket) => {
-
-    socket.on("auth:register", ({ name, password, faction, classe }) => {
-        if (!name || !password) return socket.emit("auth:error", "Nom ou mot de passe manquant.");
-        if (users.has(name)) return socket.emit("auth:error", "Ce nom est déjà pris.");
-
-        const userData = { name, password, faction, classe };
-        users.set(name, userData);
-
-        const player = createPlayer(userData);
-        playersBySocket.set(socket.id, player);
-        playersByName.set(name, player);
-        GRADES[name] = "player";
-
-        socket.emit("auth:success", { player });
-    });
-
-    socket.on("auth:login", ({ name, password }) => {
-        const userData = users.get(name);
-        if (!userData || userData.password !== password)
-            return socket.emit("auth:error", "Identifiants invalides.");
-
-        let player = playersByName.get(name);
-        if (!player) {
-            player = createPlayer(userData);
-            playersByName.set(name, player);
-        }
-
-        playersBySocket.set(socket.id, player);
-        socket.emit("auth:success", { player });
-    });
-
-    socket.emit("events:current", currentEvent || null);
-    socket.emit("events:history", eventsHistory);
-
-    socket.on("disconnect", () => {
-        playersBySocket.delete(socket.id);
-    });
-});
-// server.js — Bloc 3/5 : Gameplay
-
-io.on("connection", (socket) => {
-
-    socket.on("action:train", () => {
-        const p = playersBySocket.get(socket.id);
-        if (!p) return;
-
-        const cd = isOnCooldown(p, "train", 5000);
-        if (cd > 0) return socket.emit("action:cooldown", { remaining: cd });
-
-        giveXP(p, 10);
-        p.berries += 5;
-
-        socket.emit("action:result", { text: "Tu t'entraînes et gagnes 10 XP et 5 ฿." });
-        broadcastPlayer(p);
-    });
-
-    socket.on("quest:request_faction", () => {
-        const p = playersBySocket.get(socket.id);
-        if (!p) return;
-
-        if (!currentFactionQuest)
-            return socket.emit("action:result", { text: "Aucune quête de faction active." });
-
-        if (!p.factionQuest)
-            p.factionQuest = { title: currentFactionQuest.title, goal: currentFactionQuest.goal, progress: 0 };
-
-        socket.emit("quest:faction_update", { ...currentFactionQuest, progress: p.factionQuest.progress });
-        broadcastPlayer(p);
-    });
-
-    socket.on("quest:request_class", () => {
-        const p = playersBySocket.get(socket.id);
-        if (!p) return;
-
-        if (!currentClassQuest)
-            return socket.emit("action:result", { text: "Aucune quête de classe active." });
-
-        if (!p.classQuest)
-            p.classQuest = { title: currentClassQuest.title, goal: currentClassQuest.goal, progress: 0 };
-
-        socket.emit("quest:class_update", { ...currentClassQuest, progress: p.classQuest.progress });
-        broadcastPlayer(p);
-    });
-
-    socket.on("action:quest_progress", ({ type }) => {
-        const p = playersBySocket.get(socket.id);
-        if (!p) return;
-
-        if (type === "faction" && p.factionQuest && currentFactionQuest) {
-            p.factionQuest.progress++;
-            if (p.factionQuest.progress >= p.factionQuest.goal) {
-                giveXP(p, currentFactionQuest.rewardXP || 0);
-                p.berries += currentFactionQuest.rewardBerries || 0;
-                p.factionQuest = null;
-            }
-            broadcastPlayer(p);
-        }
-
-        if (type === "class" && p.classQuest && currentClassQuest) {
-            p.classQuest.progress++;
-            if (p.classQuest.progress >= p.classQuest.goal) {
-                giveXP(p, currentClassQuest.rewardXP || 0);
-                p.skillTree.talentPoints += currentClassQuest.rewardTalent || 0;
-                p.classQuest = null;
-            }
-            broadcastPlayer(p);
-        }
-    });
-
-    socket.on("skill:upgrade", ({ branch }) => {
-        const p = playersBySocket.get(socket.id);
-        if (!p) return;
-
-        const tree = p.skillTree;
-        if (!(branch in tree.branches)) return;
-        if (tree.talentPoints <= 0) return socket.emit("skill:error", "Pas assez de points.");
-        if (tree.branches[branch] >= tree.maxLevel) return socket.emit("skill:error", "Niveau max.");
-
-        tree.branches[branch]++;
-        tree.talentPoints--;
-        socket.emit("skill:update", tree);
-        broadcastPlayer(p);
-    });
-});
-// server.js — Bloc 4/5 : Chat Global
-
-io.on("connection", (socket) => {
-
-    socket.on("chat:send", ({ text }) => {
-        const p = playersBySocket.get(socket.id);
-        if (!p || !text) return;
-
-        io.emit("chat:message", { author: p.name, text });
-    });
-
-});
-// server.js — Bloc 5/5 : Modo / Admin / Events
-
-io.on("connection", (socket) => {
-
-    socket.on("modo:login", (code) => {
-        const p = playersBySocket.get(socket.id);
-        if (!p) return;
-
-        if (code === DEN_DEN_MODO_KEY) {
-            if (GRADES[p.name] !== "admin") GRADES[p.name] = "modo";
-            socket.emit("modo:success");
-            socket.emit("modo:log", `Accès modo accordé à ${p.name}`);
-        } else {
-            socket.emit("modo:fail");
-        }
-    });
-
-    socket.on("modo:give_berries", ({ target, amount }) => {
-        const p = playersBySocket.get(socket.id);
-        if (!p || !isModo(p)) return;
-
-        const tp = playersByName.get(target);
-        if (!tp) return socket.emit("modo:log", "Joueur introuvable.");
-
-        tp.berries += Number(amount);
-        broadcastPlayer(tp);
-        socket.emit("modo:log", `+${amount} ฿ donnés à ${target}`);
-    });
-
-    socket.on("modo:kick", ({ target }) => {
-        const p = playersBySocket.get(socket.id);
-        if (!p || !isModo(p)) return;
-
-        const s = findSocket(target);
-        if (s) {
-            s.emit("auth:error", "Vous avez été expulsé.");
-            s.disconnect(true);
-        }
-        socket.emit("modo:log", `${target} expulsé.`);
-    });
-
-    socket.on("admin:set_grade", ({ target, grade }) => {
-        const p = playersBySocket.get(socket.id);
-        if (!p || !isAdmin(p)) return;
-
-        GRADES[target] = grade;
-        socket.emit("admin:info", `Grade de ${target} → ${grade}`);
-        findSocket(target)?.emit("admin:grade_update", { grade });
-    });
-
-    socket.on("admin:create_quest", (q) => {
-        const p = playersBySocket.get(socket.id);
-        if (!p || !isAdmin(p)) return;
-
-        if (q.type === "faction") {
-            currentFactionQuest = q;
-            io.emit("quest:faction_update", { ...q, progress: 0 });
-        }
-        if (q.type === "class") {
-            currentClassQuest = q;
-            io.emit("quest:class_update", { ...q, progress: 0 });
-        }
-
-        socket.emit("admin:info", `Quête ${q.type} définie : ${q.title}`);
-    });
-
-    socket.on("admin:start_event", ({ title, desc }) => {
-        const p = playersBySocket.get(socket.id);
-        if (!p || !isAdmin(p)) return;
-
-        currentEvent = { title, text: desc, startedAt: Date.now() };
-        eventsHistory.push({ text: `[EVENT] ${title} : ${desc}` });
-
-        io.emit("events:current", currentEvent);
-        io.emit("events:history", eventsHistory);
-    });
-
-    socket.on("admin:stop_event", () => {
-        const p = playersBySocket.get(socket.id);
-        if (!p || !isAdmin(p)) return;
-
-        if (currentEvent)
-            eventsHistory.push({ text: `[FIN] ${currentEvent.title}` });
-
-        currentEvent = null;
-
-        io.emit("events:current", null);
-        io.emit("events:history", eventsHistory);
-    });
-
-    socket.on("admin:reset_player", ({ target }) => {
-        const p = playersBySocket.get(socket.id);
-        if (!p || !isAdmin(p)) return;
-
-        const tp = playersByName.get(target);
-        if (!tp) return socket.emit("admin:info", "Introuvable.");
-
-        tp.level = 1;
-        tp.xp = 0;
-        tp.berries = 0;
-        tp.bounty = 0;
-        tp.skillTree = {
-            talentPoints: 0,
-            maxLevel: 5,
-            branches: { Force: 0, Agilité: 0, Endurance: 0, Haki: 0 }
-        };
-        tp.factionQuest = null;
-        tp.classQuest = null;
-
-        broadcastPlayer(tp);
-        socket.emit("admin:info", `Stats de ${target} réinitialisées.`);
-    });
-
-});
-
-server.listen(PORT, () => {
-    console.log("Serveur Le Cheuvreuil lancé sur le port", PORT);
+server.listen(3000, () => {
+    console.log('🚢 Serveur lancé sur http://localhost:3000');
 });
