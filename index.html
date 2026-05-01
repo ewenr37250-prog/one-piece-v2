@@ -4,31 +4,31 @@
     <meta charset="UTF-8">
     <title>Le Chevreuil - Private RPG</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="style-extra.css">
     <link rel="stylesheet" href="admin.css">
     <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Metamorphic&display=swap" rel="stylesheet">
 </head>
-<body class="theme-login">
+<body>
 
     <div id="auth" class="auth-container">
         <div class="auth-box">
             <h2 class="gold" style="text-align: center;">LOG-IN</h2>
             <div id="login-panel">
                 <input type="text" id="log-name" placeholder="Nom de pirate...">
-                <input type="password" id="log-pass" placeholder="Mot de passe...">
+                <select id="log-faction">
+                    <option value="Pirate">Pirate</option>
+                    <option value="Marine">Marine</option>
+                    <option value="Révolutionnaire">Révolutionnaire</option>
+                </select>
                 <button id="btn-login" class="btn-action">Prendre la mer</button>
             </div>
-            <p id="auth-error" style="color: #ff4b4b; text-align: center; margin-top: 10px;"></p>
         </div>
     </div>
 
     <div id="game" class="game-ui hidden">
         <header class="top-nav">
-            <div class="header-left">Grand Line</div>
             <nav class="menu-tabs">
                 <button data-target="view-accueil">ACCUEIL</button>
-                <button data-target="view-personnage">PERSONNAGE</button>
-                <button data-target="view-inventaire">INVENTAIRE</button>
+                <button data-target="view-personnage">STATS</button>
                 <button id="btn-open-admin" class="btn-secret">📞 MODO</button>
             </nav>
             <div class="main-logo">LE CHEVREUIL</div>
@@ -39,42 +39,28 @@
             <aside class="sidebar-panel">
                 <div class="profile-section">
                     <h3 id="player-name">---</h3>
-                    <p id="player-level">Niv 0</p>
                     <div class="bar-wrap hp"><span id="hp-text">HP 0/0</span><div id="hp-fill" class="fill"></div></div>
                     <div class="bar-wrap xp"><span id="xp-text">XP 0/0</span><div id="xp-fill" class="fill"></div></div>
-                    <div id="stat-berries">Berries: 0 ฿</div>
+                    <p id="stat-berries">Berries: 0 ฿</p>
                 </div>
-                <div class="quick-actions">
-                    <button id="btn-train" class="btn-action">S'entraîner</button>
-                    <button id="btn-work" class="btn-action">Travailler</button>
-                </div>
+                <button id="btn-train" class="btn-action">S'entraîner</button>
             </aside>
 
             <main class="parchment-area">
                 <div class="parchment-texture"></div>
                 <div id="action-result" class="action-feedback"></div>
                 <div id="view-accueil" class="parchment-view active">
-                    <h2>Bienvenue à bord !</h2>
-                    <p>Utilise le menu pour naviguer.</p>
-                </div>
-                <div id="view-personnage" class="parchment-view hidden">
-                    <h2 class="gold">Compétences</h2>
-                    <div id="skills" class="skills-container"></div>
-                </div>
-                <div id="view-inventaire" class="parchment-view hidden">
-                    <h2>Inventaire</h2>
-                    <p>Vide.</p>
+                    <h2 class="gold">Journal de bord</h2>
+                    <p>Bienvenue à bord du Chevreuil. Naviguez avec les onglets.</p>
                 </div>
             </main>
 
             <aside class="sidebar-panel">
-                <div class="chat-section">
-                    <p class="section-title">CHAT</p>
-                    <div id="chat-messages" class="chat-box"></div>
-                    <div class="chat-input-wrap">
-                        <input type="text" id="chat-text">
-                        <button id="chat-send">➤</button>
-                    </div>
+                <p class="section-title">CHAT MONDE</p>
+                <div id="chat-messages" class="chat-box"></div>
+                <div class="chat-input-wrap">
+                    <input type="text" id="chat-text" placeholder="...">
+                    <button id="chat-send">➤</button>
                 </div>
             </aside>
         </div>
@@ -83,14 +69,20 @@
     <div id="admin-modal" class="admin-modal hidden">
         <div class="admin-box">
             <button id="btn-close-admin" class="close-btn">✖</button>
-            <h3>Accès Modérateur</h3>
+            <h2 class="gold">QG MODÉRATION</h2>
             <div id="admin-login-section">
                 <input type="password" id="modo-code" placeholder="Code secret...">
-                <button id="btn-modo-login" class="btn-action">Vérifier</button>
+                <button id="btn-modo-login" class="btn-action">Accéder</button>
             </div>
             <div id="admin-tools-section" class="hidden">
-                <p style="color: lime;">Accès autorisé !</p>
-                <div id="modo-log" class="log-box"></div>
+                <div class="admin-grid">
+                    <div class="admin-panel">
+                        <input type="text" id="modo-target" placeholder="Joueur cible...">
+                        <input type="number" id="modo-berries" placeholder="Montant Berries...">
+                        <button id="btn-modo-give" class="btn-action">Donner</button>
+                    </div>
+                    <div id="modo-log" class="log-box"></div>
+                </div>
             </div>
         </div>
     </div>
