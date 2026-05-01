@@ -2,80 +2,167 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Le Chevreuil - Private RPG</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="style-extra.css">
     <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Metamorphic&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="game-ui">
+<body class="theme-login">
+
+    <div id="auth" class="auth-container">
+        <div class="auth-box">
+            <div class="auth-tabs">
+                <button id="tab-login" class="active">CONNEXION</button>
+                <button id="tab-register">REJOINDRE L'ÉQUIPAGE</button>
+            </div>
+
+            <div id="login-panel">
+                <input type="text" id="log-name" placeholder="Nom de pirate...">
+                <input type="password" id="log-pass" placeholder="Mot de passe...">
+                <button id="btn-login" class="btn-action">Prendre la mer</button>
+            </div>
+
+            <div id="register-panel" class="hidden">
+                <input type="text" id="reg-name" placeholder="Nom de pirate...">
+                <input type="password" id="reg-pass" placeholder="Mot de passe...">
+                <select id="reg-faction">
+                    <option value="Pirate">Pirate</option>
+                    <option value="Marine">Marine</option>
+                    <option value="Révolutionnaire">Révolutionnaire</option>
+                </select>
+                <select id="reg-classe">
+                    <option value="Sabreur">Sabreur</option>
+                    <option value="Tireur">Tireur</option>
+                    <option value="Cuisinier">Cuisinier</option>
+                </select>
+                <button id="btn-register" class="btn-action">Signer le contrat</button>
+            </div>
+            
+            <p id="auth-error" style="color: #ff4b4b; text-align: center; margin-top: 10px;"></p>
+        </div>
+    </div>
+
+    <div id="game" class="game-ui hidden">
+        
         <header class="top-nav">
-            <div class="header-left">14:32<br><span>Grand Line</span></div>
+            <div class="header-left">
+                <span id="game-time">14:32</span><br>
+                <span class="location">Grand Line</span>
+            </div>
+            
             <nav class="menu-tabs">
-                <button>ACCUEIL</button><button>PERSONNAGE</button><button>INVENTAIRE</button><button>QUÊTES</button>
+                <button>ACCUEIL</button>
+                <button>PERSONNAGE</button>
+                <button>INVENTAIRE</button>
+                <button>QUÊTES</button>
             </nav>
+
             <div class="main-logo">
                 <div class="logo-title">LE CHEVREUIL</div>
+                <div class="logo-sub">PRIVATE RPG</div>
             </div>
+
             <nav class="menu-tabs">
-                <button>ÉQUIPAGE</button><button>CARTE</button><button>RANGS</button><button>BOUTIQUE</button>
+                <button>ÉQUIPAGE</button>
+                <button>CARTE</button>
+                <button>RANGS</button>
+                <button>BOUTIQUE</button>
             </nav>
-            <div class="header-right">PRIME GLOBALE<br><span class="gold">1,250,000,000 ฿</span></div>
+
+            <div class="header-right">
+                PRIME GLOBALE<br>
+                <span id="bounty-value" class="gold">0 ฿</span>
+            </div>
         </header>
 
         <div class="content-grid">
+            
             <aside class="sidebar-panel">
                 <div class="profile-section">
-                    <h3>Monkey D. Chevreuil</h3>
-                    <p>Niveau 42</p>
-                    <div class="bar-wrap hp"><span>HP 1250/1250</span><div class="fill"></div></div>
-                    <div class="bar-wrap xp"><span>XP 3580/7200</span><div class="fill" style="width: 50%;"></div></div>
+                    <h3 id="player-name">---</h3>
+                    <p id="player-level">Niveau 0</p>
+                    
+                    <div class="bar-wrap hp">
+                        <span id="hp-text">HP 0/0</span>
+                        <div id="hp-fill" class="fill" style="width: 100%;"></div>
+                    </div>
+                    
+                    <div class="bar-wrap xp">
+                        <span id="xp-text">XP 0/0</span>
+                        <div id="xp-fill" class="fill" style="width: 0%;"></div>
+                    </div>
+
                     <div class="stats-list">
-                        <div>Berries: 87,500 ฿</div>
-                        <div>Talent: 12</div>
-                        <div class="rep">Réputation: 315 (Respecté)</div>
+                        <div id="stat-berries">Berries: 0 ฿</div>
+                        <div id="stat-talent">Points de talent: 0</div>
+                        <div id="stat-reputation" class="rep">Réputation: Neutre</div>
                     </div>
                 </div>
+
                 <div class="quick-actions">
                     <p class="section-title">ACTIONS RAPIDES</p>
-                    <button class="btn-action">S'entraîner</button>
+                    <button id="btn-train" class="btn-action">S'entraîner</button>
                     <button class="btn-action">Travailler</button>
                     <button class="btn-action">Chercher un combat</button>
                     <button class="btn-action">Explorer</button>
+                    <button class="btn-action">Pêcher</button>
+                    <button class="btn-action">Marché Noir</button>
                 </div>
             </aside>
 
             <main class="parchment-area">
                 <div class="parchment-texture"></div>
+                <div id="action-result" class="action-feedback"></div>
+                <div id="skills" class="skills-container"></div>
             </main>
 
             <aside class="sidebar-panel">
                 <div class="quests-section">
                     <p class="section-title">QUÊTES EN COURS</p>
-                    <div class="quest-box">
-                        <p>La Volonté du Capitaine</p>
-                        <div class="mini-progress"><div class="fill" style="width: 60%;"></div></div>
+                    <div id="quest-info" class="quest-container">
+                        </div>
+                    <div class="quest-admin-btns">
+                        <button id="btn-quest-faction" class="btn-small">Quête Faction</button>
+                        <button id="btn-quest-class" class="btn-small">Quête Classe</button>
                     </div>
                 </div>
+
                 <div class="chat-section">
                     <p class="section-title">CHAT MONDE</p>
-                    <div id="chat-messages" class="chat-box"></div>
-                    <input type="text" class="chat-input" placeholder="Écrire un message...">
+                    <div id="chat-messages" class="chat-box">
+                        </div>
+                    <div class="chat-input-wrap">
+                        <input type="text" id="chat-text" placeholder="Écrire un message...">
+                        <button id="chat-send">➤</button>
+                    </div>
                 </div>
             </aside>
         </div>
 
         <footer class="bottom-bar">
-            <div class="event-tag">Double XP Week-end !</div>
+            <div id="event-current" class="event-tag">
+                Chargement des événements...
+            </div>
+            
             <div class="icon-nav">
-                <div class="nav-item">PROFIL</div>
-                <div class="nav-item">ÉQUIPAGE</div>
+                <div class="nav-item">MON PROFIL</div>
+                <div class="nav-item">MON ÉQUIPAGE</div>
                 <div class="nav-item">COMPÉTENCES</div>
                 <div class="nav-item">INVENTAIRE</div>
+                <div class="nav-item">CARTE</div>
+                <div class="nav-item">RANGS</div>
             </div>
-            <div class="announcements">Un nouveau boss est apparu sur Dressrosa !</div>
+
+            <div class="announcements">
+                <span class="label">ANNONCES :</span>
+                <marquee id="announcement-text" scrollamount="4">
+                    Bienvenue sur Le Chevreuil ! Nouveau boss sur Dressrosa le 01/06 !
+                </marquee>
+            </div>
         </footer>
     </div>
+
+    <script src="/socket.io/socket.io.js"></script>
     <script src="main.js"></script>
 </body>
 </html>
