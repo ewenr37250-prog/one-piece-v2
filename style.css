@@ -19,7 +19,7 @@ body {
     color: var(--text-color);
     font-family: 'Metamorphic', serif;
     margin: 0;
-    overflow: hidden; /* Empêche le scroll de la page entière pour un effet Dashboard */
+    overflow: hidden;
 }
 
 .hidden { display: none !important; }
@@ -62,10 +62,7 @@ body {
     font-size: 1.2rem;
 }
 
-.auth-tabs button.active {
-    color: var(--gold);
-    border-bottom: 3px solid var(--gold);
-}
+.auth-tabs button.active { color: var(--gold); border-bottom: 3px solid var(--gold); }
 
 .auth-box input, .auth-box select {
     width: 100%;
@@ -79,22 +76,12 @@ body {
 /* ============================================================
    LAYOUT PRINCIPAL
 ============================================================ */
-.game-ui {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
+.game-ui { display: flex; flex-direction: column; height: 100vh; }
 
-/* Header */
 .top-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #1e120a;
-    border-bottom: 3px solid #3d2b1f;
-    padding: 10px 20px;
-    height: 80px;
-    box-shadow: inset 0 0 15px #000;
+    display: flex; justify-content: space-between; align-items: center;
+    background: #1e120a; border-bottom: 3px solid #3d2b1f;
+    padding: 10px 20px; height: 80px; box-shadow: inset 0 0 15px #000;
 }
 
 .main-logo { text-align: center; }
@@ -102,124 +89,65 @@ body {
 .logo-sub { font-size: 0.7rem; opacity: 0.6; }
 
 .menu-tabs button {
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--text-color);
-    margin: 0 5px;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: 0.3s;
+    background: transparent; border: 1px solid transparent;
+    color: var(--text-color); margin: 0 5px; padding: 5px 10px;
+    cursor: pointer; font-size: 0.85rem; transition: 0.3s;
 }
 
-.menu-tabs button:hover {
-    color: var(--gold);
-    border-color: var(--gold);
-}
+.menu-tabs button:hover { color: var(--gold); border-color: var(--gold); }
 
-/* Grille */
 .content-grid {
-    display: grid;
-    grid-template-columns: 280px 1fr 300px;
-    gap: 10px;
-    flex: 1;
-    padding: 10px;
-    overflow: hidden;
+    display: grid; grid-template-columns: 280px 1fr 300px; gap: 10px;
+    flex: 1; padding: 10px; overflow: hidden;
 }
 
 /* ============================================================
-   PANNEAUX LATERAUX
+   PANNEAUX LATERAUX & BARRES
 ============================================================ */
 .sidebar-panel {
-    background: var(--panel-bg);
-    border: 4px solid #1a110a;
-    box-shadow: inset 0 0 20px #000;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    overflow-y: auto;
+    background: var(--panel-bg); border: 4px solid #1a110a; box-shadow: inset 0 0 20px #000;
+    padding: 15px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto;
 }
 
 .section-title {
-    font-family: 'Pirata One';
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 10px;
-    color: var(--gold);
-    text-align: center;
+    font-family: 'Pirata One'; border-bottom: 1px solid var(--border-color);
+    margin-bottom: 10px; color: var(--gold); text-align: center;
 }
 
-/* Stats & Profil */
 .profile-section h3 { margin: 0; color: var(--gold); }
 .stats-list { font-size: 0.9rem; line-height: 1.6; margin-top: 10px; }
 .rep { color: #4caf50; font-weight: bold; }
 
-/* ============================================================
-   BARRES DE PROGRESSION (XP / HP)
-============================================================ */
 .bar-wrap {
-    background: #111;
-    height: 22px;
-    margin: 10px 0;
-    border: 2px solid #000;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    background: #111; height: 22px; margin: 10px 0; border: 2px solid #000;
+    position: relative; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
-.bar-wrap .fill {
-    height: 100%;
-    width: 0%;
-    transition: width 0.6s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-}
-
+.bar-wrap .fill { height: 100%; width: 0%; transition: width 0.6s ease-in-out; }
 .hp .fill { background: linear-gradient(to bottom, #b22222, #8b0000); }
 .xp .fill { background: linear-gradient(to bottom, #008080, #004d40); }
 
 .bar-wrap span {
-    position: absolute;
-    width: 100%;
-    text-align: center;
-    font-size: 11px;
-    font-weight: bold;
-    color: #fff;
-    z-index: 2;
-    line-height: 18px;
-    text-shadow: 1px 1px 2px #000;
+    position: absolute; width: 100%; text-align: center; font-size: 11px;
+    font-weight: bold; color: #fff; z-index: 2; line-height: 18px; text-shadow: 1px 1px 2px #000;
 }
 
 /* ============================================================
-   ZONE CENTRALE (PARCHEMIN)
+   ZONE CENTRALE & CHAT
 ============================================================ */
 .parchment-area {
-    background: #d4b483;
-    border: 8px solid #3d2b1f;
-    position: relative;
-    box-shadow: 0 0 30px rgba(0,0,0,0.8);
-    padding: 20px;
-    color: #3d2b1f;
-    overflow-y: auto;
+    background: #d4b483; border: 8px solid #3d2b1f; position: relative;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8); padding: 20px; color: #3d2b1f; overflow-y: auto;
 }
 
 .parchment-texture {
-    position: absolute;
-    inset: 0;
-    opacity: 0.4;
+    position: absolute; inset: 0; opacity: 0.4; pointer-events: none;
     background-image: url('https://www.transparenttextures.com/patterns/parchment.png');
-    pointer-events: none;
 }
 
-/* ============================================================
-   CHAT ET ACTIONS
-============================================================ */
 .chat-box {
-    flex: 1;
-    background: rgba(0,0,0,0.2);
-    border: 1px solid #1a110a;
-    padding: 10px;
-    font-size: 0.85rem;
-    overflow-y: auto;
-    min-height: 200px;
+    flex: 1; background: rgba(0,0,0,0.2); border: 1px solid #1a110a;
+    padding: 10px; font-size: 0.85rem; overflow-y: auto; min-height: 200px;
 }
 
 .chat-input-wrap { display: flex; margin-top: 5px; }
@@ -227,51 +155,22 @@ body {
 .chat-input-wrap button { background: var(--gold); border: none; cursor: pointer; }
 
 .btn-action {
-    background: linear-gradient(#5d4432, #4a3423);
-    color: #fff;
-    border: 1px solid #1a110a;
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 5px;
-    cursor: pointer;
-    font-family: 'Metamorphic';
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    background: linear-gradient(#5d4432, #4a3423); color: #fff; border: 1px solid #1a110a;
+    width: 100%; padding: 10px; margin-bottom: 5px; cursor: pointer;
+    font-family: 'Metamorphic'; text-transform: uppercase; font-size: 0.8rem; box-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
-
 .btn-action:hover { filter: brightness(1.2); }
 
 /* ============================================================
    FOOTER
 ============================================================ */
 .bottom-bar {
-    height: 60px;
-    background: #1e120a;
-    border-top: 3px solid #3d2b1f;
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    gap: 30px;
+    height: 60px; background: #1e120a; border-top: 3px solid #3d2b1f;
+    display: flex; align-items: center; padding: 0 20px; gap: 30px;
 }
-
-.event-tag {
-    background: #8b0000;
-    padding: 5px 15px;
-    font-size: 0.8rem;
-    border: 1px solid var(--gold);
-    white-space: nowrap;
-}
-
+.event-tag { background: #8b0000; padding: 5px 15px; font-size: 0.8rem; border: 1px solid var(--gold); white-space: nowrap; }
 .icon-nav { display: flex; gap: 20px; flex: 1; justify-content: center; }
 .nav-item { font-size: 0.75rem; cursor: pointer; opacity: 0.7; }
 .nav-item:hover { opacity: 1; color: var(--gold); }
-
 .announcements { flex: 1; font-size: 0.8rem; overflow: hidden; white-space: nowrap; }
 .announcements .label { color: var(--gold); margin-right: 10px; font-family: 'Pirata One'; }
-
-/* ============================================================
-   THEMES DE FACTION
-============================================================ */
-.theme-marine .top-nav { border-bottom-color: #004488; }
-.theme-pirate .top-nav { border-bottom-color: #880000; }
