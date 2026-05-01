@@ -2,9 +2,9 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Le Chevreuil - Private RPG</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style-extra.css">
     <link rel="stylesheet" href="admin.css">
     <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Metamorphic&display=swap" rel="stylesheet">
 </head>
@@ -12,158 +12,91 @@
 
     <div id="auth" class="auth-container">
         <div class="auth-box">
-            <div class="auth-tabs">
-                <button id="tab-login" class="active">CONNEXION</button>
-                <button id="tab-register">REJOINDRE L'ÉQUIPAGE</button>
-            </div>
-
+            <h2 class="gold" style="text-align: center;">LOG-IN</h2>
             <div id="login-panel">
                 <input type="text" id="log-name" placeholder="Nom de pirate...">
                 <input type="password" id="log-pass" placeholder="Mot de passe...">
                 <button id="btn-login" class="btn-action">Prendre la mer</button>
             </div>
-
-            <div id="register-panel" class="hidden">
-                <input type="text" id="reg-name" placeholder="Nom de pirate...">
-                <input type="password" id="reg-pass" placeholder="Mot de passe...">
-                <select id="reg-faction">
-                    <option value="Pirate">Pirate</option>
-                    <option value="Marine">Marine</option>
-                    <option value="Révolutionnaire">Révolutionnaire</option>
-                </select>
-                <select id="reg-classe">
-                    <option value="Sabreur">Sabreur</option>
-                    <option value="Tireur">Tireur</option>
-                    <option value="Cuisinier">Cuisinier</option>
-                </select>
-                <button id="btn-register" class="btn-action">Signer le contrat</button>
-            </div>
-            
             <p id="auth-error" style="color: #ff4b4b; text-align: center; margin-top: 10px;"></p>
         </div>
     </div>
 
     <div id="game" class="game-ui hidden">
-        
         <header class="top-nav">
-            <div class="header-left">
-                <span id="game-time">14:32</span><br>
-                <span class="location">Grand Line</span>
-            </div>
-            
+            <div class="header-left">Grand Line</div>
             <nav class="menu-tabs">
-                <button>ACCUEIL</button>
-                <button>PERSONNAGE</button>
-                <button>INVENTAIRE</button>
-                <button>QUÊTES</button>
+                <button data-target="view-accueil">ACCUEIL</button>
+                <button data-target="view-personnage">PERSONNAGE</button>
+                <button data-target="view-inventaire">INVENTAIRE</button>
+                <button id="btn-open-admin" class="btn-secret">📞 MODO</button>
             </nav>
-
-            <div class="main-logo">
-                <div class="logo-title">LE CHEVREUIL</div>
-                <div class="logo-sub">PRIVATE RPG</div>
-            </div>
-
-            <nav class="menu-tabs">
-                <button>ÉQUIPAGE</button>
-                <button>CARTE</button>
-                <button>RANGS</button>
-                <button>BOUTIQUE</button>
-            </nav>
-
-            <div class="header-right">
-                PRIME GLOBALE<br>
-                <span id="bounty-value" class="gold">0 ฿</span>
-            </div>
+            <div class="main-logo">LE CHEVREUIL</div>
+            <div class="header-right">PRIME: <span id="bounty-value" class="gold">0 ฿</span></div>
         </header>
 
         <div class="content-grid">
-            
             <aside class="sidebar-panel">
                 <div class="profile-section">
                     <h3 id="player-name">---</h3>
-                    <p id="player-level">Niveau 0</p>
-                    
-                    <div class="bar-wrap hp">
-                        <span id="hp-text">HP 0/0</span>
-                        <div id="hp-fill" class="fill" style="width: 100%;"></div>
-                    </div>
-                    
-                    <div class="bar-wrap xp">
-                        <span id="xp-text">XP 0/0</span>
-                        <div id="xp-fill" class="fill" style="width: 0%;"></div>
-                    </div>
-
-                    <div class="stats-list">
-                        <div id="stat-berries">Berries: 0 ฿</div>
-                        <div id="stat-talent">Points de talent: 0</div>
-                        <div id="stat-reputation" class="rep">Réputation: Neutre</div>
-                    </div>
+                    <p id="player-level">Niv 0</p>
+                    <div class="bar-wrap hp"><span id="hp-text">HP 0/0</span><div id="hp-fill" class="fill"></div></div>
+                    <div class="bar-wrap xp"><span id="xp-text">XP 0/0</span><div id="xp-fill" class="fill"></div></div>
+                    <div id="stat-berries">Berries: 0 ฿</div>
                 </div>
-
                 <div class="quick-actions">
-                    <p class="section-title">ACTIONS RAPIDES</p>
                     <button id="btn-train" class="btn-action">S'entraîner</button>
-                    <button class="btn-action">Travailler</button>
-                    <button class="btn-action">Chercher un combat</button>
-                    <button class="btn-action">Explorer</button>
-                    <button class="btn-action">Pêcher</button>
-                    <button class="btn-action">Marché Noir</button>
+                    <button id="btn-work" class="btn-action">Travailler</button>
                 </div>
             </aside>
 
             <main class="parchment-area">
                 <div class="parchment-texture"></div>
                 <div id="action-result" class="action-feedback"></div>
-                <div id="skills" class="skills-container"></div>
+                <div id="view-accueil" class="parchment-view active">
+                    <h2>Bienvenue à bord !</h2>
+                    <p>Utilise le menu pour naviguer.</p>
+                </div>
+                <div id="view-personnage" class="parchment-view hidden">
+                    <h2 class="gold">Compétences</h2>
+                    <div id="skills" class="skills-container"></div>
+                </div>
+                <div id="view-inventaire" class="parchment-view hidden">
+                    <h2>Inventaire</h2>
+                    <p>Vide.</p>
+                </div>
             </main>
 
             <aside class="sidebar-panel">
-                <div class="quests-section">
-                    <p class="section-title">QUÊTES EN COURS</p>
-                    <div id="quest-info" class="quest-container">
-                        </div>
-                    <div class="quest-admin-btns">
-                        <button id="btn-quest-faction" class="btn-small">Quête Faction</button>
-                        <button id="btn-quest-class" class="btn-small">Quête Classe</button>
-                    </div>
-                </div>
-
                 <div class="chat-section">
-                    <p class="section-title">CHAT MONDE</p>
-                    <div id="chat-messages" class="chat-box">
-                        </div>
+                    <p class="section-title">CHAT</p>
+                    <div id="chat-messages" class="chat-box"></div>
                     <div class="chat-input-wrap">
-                        <input type="text" id="chat-text" placeholder="Écrire un message...">
+                        <input type="text" id="chat-text">
                         <button id="chat-send">➤</button>
                     </div>
                 </div>
             </aside>
         </div>
+    </div>
 
-        <footer class="bottom-bar">
-            <div id="event-current" class="event-tag">
-                Chargement des événements...
+    <div id="admin-modal" class="admin-modal hidden">
+        <div class="admin-box">
+            <button id="btn-close-admin" class="close-btn">✖</button>
+            <h3>Accès Modérateur</h3>
+            <div id="admin-login-section">
+                <input type="password" id="modo-code" placeholder="Code secret...">
+                <button id="btn-modo-login" class="btn-action">Vérifier</button>
             </div>
-            
-            <div class="icon-nav">
-                <div class="nav-item">MON PROFIL</div>
-                <div class="nav-item">MON ÉQUIPAGE</div>
-                <div class="nav-item">COMPÉTENCES</div>
-                <div class="nav-item">INVENTAIRE</div>
-                <div class="nav-item">CARTE</div>
-                <div class="nav-item">RANGS</div>
+            <div id="admin-tools-section" class="hidden">
+                <p style="color: lime;">Accès autorisé !</p>
+                <div id="modo-log" class="log-box"></div>
             </div>
-
-            <div class="announcements">
-                <span class="label">ANNONCES :</span>
-                <marquee id="announcement-text" scrollamount="4">
-                    Bienvenue sur Le Chevreuil ! Nouveau boss sur Dressrosa le 01/06 !
-                </marquee>
-            </div>
-        </footer>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="main.js"></script>
+    <script src="admin.js"></script>
 </body>
 </html>
