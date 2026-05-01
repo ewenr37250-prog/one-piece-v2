@@ -1,16 +1,20 @@
-// main.js — Le Cheuvreuil
-
+/* ============================================================
+   CONFIGURATION & CONSTANTES
+============================================================ */
 const socket = io();
-
 let currentPlayer = null;
 let currentGrade = "player";
 
+// Helpers pour gagner du temps
 const $ = (id) => document.getElementById(id);
 const show = (el) => el.classList.remove("hidden");
 const hide = (el) => el.classList.add("hidden");
 
+// Formateur de nombres (ex: 1 250 000 ฿)
+const formatN = (num) => new Intl.NumberFormat('fr-FR').format(num);
+
 /* ============================================================
-   TABS AUTH
+   AUTHENTIFICATION & TABS
 ============================================================ */
 $("tab-login").onclick = () => {
     $("tab-login").classList.add("active");
@@ -26,9 +30,6 @@ $("tab-register").onclick = () => {
     hide($("login-panel"));
 };
 
-/* ============================================================
-   AUTH
-============================================================ */
 $("btn-register").onclick = () => {
     socket.emit("auth:register", {
         name: $("reg-name").value,
@@ -60,49 +61,55 @@ socket.on("auth:success", ({ player }) => {
 });
 
 /* ============================================================
-   THEMES FACTION
+   THEMES & VISUELS
 ============================================================ */
 function applyFactionTheme(faction) {
     const body = document.body;
-    if (!faction) {
-        body.className = "theme-login";
-        return;
-    }
+    if (!faction) return;
     const f = faction.toLowerCase();
     if (f.includes("marine")) body.className = "theme-marine";
     else if (f.includes("pirate")) body.className = "theme-pirate";
     else if (f.includes("revo")) body.className = "theme-revo";
-    else body.className = "theme-login";
 }
 
 /* ============================================================
-   PLAYER
+   RENDU DU JOUEUR (L'INTERFACE GRAPHIQUE)
 ============================================================ */
 function renderPlayer() {
     if (!currentPlayer) return;
 
-    $("player-info").innerHTML =
-        `<b>${currentPlayer.name}</b> — ${currentPlayer.faction} / ${currentPlayer.classe}`;
+    // Identité
+    $("player-name").innerText = currentPlayer.name;
+    $("player-level").innerText = `Niveau ${currentPlayer.level}`;
 
-    $("player-stats").innerHTML = `
-        Niveau : ${currentPlayer.level}<br>
-        XP : ${currentPlayer.xp}<br>
-        Berries : ${currentPlayer.berries} ฿<br>
-        Prime : ${currentPlayer.bounty} ฿<br>
-        Points de talent : ${currentPlayer.skillTree.talentPoints}
-    `;
+    // Barres de Progression
+    const maxHP = currentPlayer.hpMax || 1250;
+    const currentHP = currentPlayer.hp || maxHP;
+    $("hp-text").innerText = `HP ${currentHP}/${maxHP}`;
+    $("hp-fill").style.width = `${(currentHP / maxHP) * 100}%`;
+
+    const xpNext = currentPlayer.xpNext || 7200;
+    $("xp-text").innerText = `XP ${currentPlayer.xp}/${xpNext}`;
+    $("xp-fill").style.width = `${(currentPlayer.xp / xpNext) * 100}%`;
+
+    // Économie & Stats
+    $("stat-berries").innerHTML = `Berries: <span class="gold">${formatN(currentPlayer.berries)} ฿</span>`;
+    $("stat-talent").innerHTML = `Points de talent: ${currentPlayer.skillTree.talentPoints}`;
+    $("bounty-value").innerText = `${formatN(currentPlayer.bounty)} ฿`;
+    
+    // Réputation (exemple de gestion dynamique)
+    const repEl = $("stat-reputation");
+    repEl.innerText = `Réputation: ${currentPlayer.reputation || 0} (Respecté)`;
 }
 
 socket.on("player:update", (player) => {
-    if (currentPlayer && player.name === currentPlayer.name) {
-        currentPlayer = player;
-        renderPlayer();
-        renderSkills();
-    }
+    currentPlayer = player;
+    renderPlayer();
+    renderSkills();
 });
 
 /* ============================================================
-   ACTIONS
+   ACTIONS & QUÊTES
 ============================================================ */
 $("btn-train").onclick = () => {
     socket.emit("action:train");
@@ -110,200 +117,80 @@ $("btn-train").onclick = () => {
 
 socket.on("action:result", ({ text }) => {
     $("action-result").textContent = text;
+    // Disparaît après 3 secondes pour garder le parchemin propre
+    setTimeout(() => { $("action-result").textContent = ""; }, 3000);
 });
 
 socket.on("action:cooldown", ({ remaining }) => {
-    $("action-result").textContent =
-        `Encore ${Math.ceil(remaining / 1000)}s avant de pouvoir t'entraîner.`;
+    $("action-result").textContent = `Attends encore ${Math.ceil(remaining / 1000)}s...`;
 });
 
-/* ============================================================
-   QUÊTES
-============================================================ */
-$("btn-quest-faction").onclick = () => {
-    socket.emit("quest:request_faction");
-};
+// Gestion des Quêtes (Rendu en liste)
+function updateQuestUI(q, type) {
+    const container = $("quest-info");
+    const questId = `quest-${type}`;
+    let questBox = $(questId);
 
-$("btn-quest-class").onclick = () => {
-    socket.emit("quest:request_class");
-};
+    if (!questBox) {
+        questBox = document.createElement("div");
+        questBox.id = questId;
+        questBox.className = "quest-box";
+        container.appendChild(questBox);
+    }
 
-socket.on("quest:faction_update", (q) => {
-    $("quest-info").innerHTML = `
-        <b>Quête Faction :</b> ${q.title}<br>
-        Objectif : ${q.goal}<br>
-        Progression : ${q.progress ?? 0}
+    const progressPercent = q.goal > 0 ? (q.progress / q.goal) * 100 : 0;
+
+    questBox.innerHTML = `
+        <p>${type === 'faction' ? '🚩' : '⚔️'} ${q.title}</p>
+        <div class="mini-progress"><div class="fill" style="width: ${progressPercent}%"></div></div>
+        <small>${q.goal - (q.progress || 0)} restant(s)</small>
     `;
-});
-
-socket.on("quest:class_update", (q) => {
-    $("quest-info").innerHTML += `
-        <hr>
-        <b>Quête Classe :</b> ${q.title}<br>
-        Objectif : ${q.goal}<br>
-        Progression : ${q.progress ?? 0}
-    `;
-});
-
-/* ============================================================
-   SKILLS
-============================================================ */
-function renderSkills() {
-    if (!currentPlayer) return;
-
-    const tree = currentPlayer.skillTree;
-    const container = $("skills");
-    container.innerHTML = "";
-
-    Object.entries(tree.branches).forEach(([branch, level]) => {
-        const btn = document.createElement("button");
-        btn.className = "btn";
-        btn.textContent = `${branch} (${level}/${tree.maxLevel})`;
-        btn.onclick = () => {
-            socket.emit("skill:upgrade", { branch });
-        };
-        container.appendChild(btn);
-    });
 }
 
-socket.on("skill:update", (tree) => {
-    currentPlayer.skillTree = tree;
-    renderPlayer();
-    renderSkills();
-});
-
-socket.on("skill:error", (msg) => {
-    $("action-result").textContent = msg;
-});
+socket.on("quest:faction_update", (q) => updateQuestUI(q, 'faction'));
+socket.on("quest:class_update", (q) => updateQuestUI(q, 'class'));
 
 /* ============================================================
-   CHAT GLOBAL
+   CHAT MONDE
 ============================================================ */
-$("chat-send").onclick = () => {
+$("chat-send").onclick = sendMessage;
+$("chat-text").onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
+
+function sendMessage() {
     const text = $("chat-text").value.trim();
     if (!text) return;
     socket.emit("chat:send", { text });
     $("chat-text").value = "";
-};
+}
 
 socket.on("chat:message", ({ author, text }) => {
-    const log = $("chat-log");
+    const log = $("chat-messages");
     const line = document.createElement("div");
-    line.innerHTML = `<b>${author}</b> : ${text}`;
+    line.className = "chat-line";
+    line.innerHTML = `<span class="chat-author">${author}</span> : ${text}`;
     log.appendChild(line);
     log.scrollTop = log.scrollHeight;
 });
 
 /* ============================================================
-   EVENTS
+   SKILLS & EVENTS
 ============================================================ */
+function renderSkills() {
+    if (!currentPlayer) return;
+    const tree = currentPlayer.skillTree;
+    const container = $("skills");
+    container.innerHTML = "<p class='section-title'>COMPÉTENCES</p>";
+
+    Object.entries(tree.branches).forEach(([branch, level]) => {
+        const btn = document.createElement("button");
+        btn.className = "btn-action";
+        btn.textContent = `${branch} (Niv. ${level}/${tree.maxLevel})`;
+        btn.onclick = () => socket.emit("skill:upgrade", { branch });
+        container.appendChild(btn);
+    });
+}
+
 socket.on("events:current", (ev) => {
-    if (!ev) {
-        $("event-current").textContent = "Aucun événement en cours.";
-        return;
-    }
-    $("event-current").textContent = `🔥 ${ev.title} — ${ev.text}`;
+    const tag = $("event-current");
+    tag.textContent = ev ? `🔥 ${ev.title} : ${ev.text}` : "Aucun événement en cours.";
 });
-
-socket.on("events:history", (history) => {
-    $("event-history").innerHTML = history
-        .map((e) => e.text)
-        .join("<br>");
-});
-
-/* ============================================================
-   MODO / ADMIN
-============================================================ */
-$("btn-modo-login").onclick = () => {
-    socket.emit("modo:login", $("modo-code").value);
-};
-
-socket.on("modo:success", () => {
-    currentGrade = "modo";
-    $("grade-info").textContent = `Grade : ${currentGrade}`;
-    appendModoLog("Accès modo accordé.");
-});
-
-socket.on("modo:fail", () => {
-    appendModoLog("Code modo refusé.");
-});
-
-socket.on("modo:log", (text) => appendModoLog(text));
-socket.on("admin:info", (text) => appendAdminLog(text));
-
-function appendModoLog(text) {
-    const log = $("modo-log");
-    const line = document.createElement("div");
-    line.textContent = text;
-    log.appendChild(line);
-    log.scrollTop = log.scrollHeight;
-}
-
-function appendAdminLog(text) {
-    const log = $("admin-log");
-    const line = document.createElement("div");
-    line.textContent = text;
-    log.appendChild(line);
-    log.scrollTop = log.scrollHeight;
-}
-
-/* Modo actions */
-$("btn-modo-give").onclick = () => {
-    socket.emit("modo:give_berries", {
-        target: $("modo-target").value,
-        amount: Number($("modo-berries").value)
-    });
-};
-
-$("btn-modo-kick").onclick = () => {
-    socket.emit("modo:kick", {
-        target: $("modo-target").value
-    });
-};
-
-/* Admin actions */
-$("btn-admin-set-grade").onclick = () => {
-    socket.emit("admin:set_grade", {
-        target: $("admin-target").value,
-        grade: $("admin-grade").value
-    });
-};
-
-$("btn-admin-qf").onclick = () => {
-    socket.emit("admin:create_quest", {
-        type: "faction",
-        title: $("qf-title").value,
-        desc: $("qf-desc").value,
-        goal: Number($("qf-goal").value),
-        rewardXP: Number($("qf-rxp").value),
-        rewardBerries: Number($("qf-rb").value)
-    });
-};
-
-$("btn-admin-qc").onclick = () => {
-    socket.emit("admin:create_quest", {
-        type: "class",
-        title: $("qc-title").value,
-        desc: $("qc-desc").value,
-        goal: Number($("qc-goal").value),
-        rewardXP: Number($("qc-rxp").value),
-        rewardTalent: Number($("qc-rt").value)
-    });
-};
-
-$("btn-admin-start-event").onclick = () => {
-    socket.emit("admin:start_event", {
-        title: $("ev-title").value,
-        desc: $("ev-desc").value
-    });
-};
-
-$("btn-admin-stop-event").onclick = () => {
-    socket.emit("admin:stop_event");
-};
-
-$("btn-admin-reset").onclick = () => {
-    socket.emit("admin:reset_player", {
-        target: $("admin-reset-target").value
-    });
-};
