@@ -1,68 +1,10 @@
-/* ============================================================
-   THÈMES DE FACTIONS
-============================================================ */
-.theme-marine { --panel-bg: #1a2a3a; --border-color: #2b4b7a; --gold: #00d4ff; }
-.theme-marine .top-nav { border-bottom: 3px solid #0056b3; box-shadow: inset 0 0 20px #003366; }
-.theme-marine .hp .fill { background: linear-gradient(to bottom, #0056b3, #002244); }
-
-.theme-pirate { --panel-bg: #2b1212; --border-color: #5a1a1a; --gold: #ffcc00; }
-.theme-pirate .top-nav { border-bottom: 3px solid #8b0000; box-shadow: inset 0 0 20px #440000; }
-.theme-pirate .hp .fill { background: linear-gradient(to bottom, #cc0000, #660000); }
-
-.theme-revo { --panel-bg: #152015; --border-color: #2d442d; --gold: #a2ff00; }
-.theme-revo .top-nav { border-bottom: 3px solid #2e4d23; box-shadow: inset 0 0 20px #1a2a1a; }
-
-/* ============================================================
-   VUES DU PARCHEMIN (SYSTÈME D'ONGLETS)
-============================================================ */
-.parchment-view {
-    position: relative;
-    z-index: 2;
-    display: none;
-    animation: fadeViewIn 0.4s ease-out forwards;
-}
-
+.parchment-view { display: none; animation: fadeIn 0.4s forwards; }
 .parchment-view.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-@keyframes fadeViewIn {
-    0% { opacity: 0; transform: scale(0.98); }
-    100% { opacity: 1; transform: scale(1); }
-}
+.action-feedback { text-align: center; font-weight: bold; height: 30px; color: #8b0000; }
 
-.skills-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-
-/* ============================================================
-   QUÊTES & ANIMATIONS
-============================================================ */
-.quest-box {
-    background: rgba(0, 0, 0, 0.4); border-left: 3px solid var(--gold);
-    padding: 10px; margin-bottom: 15px; font-size: 0.85rem; transition: transform 0.2s;
-}
-.quest-box:hover { transform: translateX(5px); background: rgba(0, 0, 0, 0.6); }
-.quest-box p { margin: 0 0 8px 0; font-weight: bold; }
-
-.mini-progress { background: #111; height: 6px; border-radius: 3px; overflow: hidden; }
-.mini-progress .fill { height: 100%; background: var(--gold); width: 0%; transition: width 0.8s; }
-
-.btn-small {
-    background: #3d2b1f; color: var(--text-color); border: 1px solid var(--border-color);
-    padding: 3px 8px; font-size: 0.7rem; cursor: pointer; margin-right: 5px;
-}
-.btn-small:hover { background: var(--gold); color: #000; }
-
-.action-feedback {
-    text-align: center; font-family: 'Pirata One'; font-size: 1.5rem;
-    color: #3d2b1f; margin-top: 20px; animation: fadeInOut 2s forwards;
-}
-@keyframes fadeInOut { 0% { opacity: 0; transform: translateY(10px); } 20% { opacity: 1; transform: translateY(0px); } 80% { opacity: 1; } 100% { opacity: 0; } }
-
-.event-tag { animation: pulse 2s infinite; }
-@keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(212, 175, 55, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); } 100% { box-shadow: 0 0 0 0px rgba(212, 175, 55, 0); } }
-
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: #1a110a; }
-::-webkit-scrollbar-thumb { background: #3d2b1f; border: 1px solid var(--border-color); }
-::-webkit-scrollbar-thumb:hover { background: var(--gold); }
-
-.chat-line { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 3px 0; animation: slideIn 0.3s ease-out; }
-@keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+.admin-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 100; }
+.admin-box { background: #2b1d12; border: 4px solid var(--gold); padding: 20px; width: 400px; color: #fff; position: relative; }
+.close-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; background: none; border: none; color: #fff; }
+.log-box { background: #000; height: 100px; overflow-y: auto; padding: 5px; font-family: monospace; font-size: 10px; }
