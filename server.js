@@ -6,49 +6,48 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// --- CORRECTION DU "CANNOT GET /" ---
-// On dit à Express d'utiliser le dossier courant (.) pour les fichiers statiques
 app.use(express.static(__dirname));
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
-// --- VARIABLES DU JEU ---
-const MODO_PASSWORD = "CHEVA"; // Ton code secret
+// CONFIGURATION
+const MODO_PASSWORD = "CHEVA"; 
 let players = {};
 
-// --- LOGIQUE SOCKET ---
 io.on('connection', (socket) => {
-    console.log(`⚓ Nouveau pirate : ${socket.id}`);
-
-    socket.on('auth:login', ({ name, password }) => {
-        if (!players[name]) players[name] = createNewPlayer(name);
+    // Authentification & Création
+    socket.on('auth:login', ({ name, faction, classe }) => {
+        if (!players[name]) {
+            players[name] = {
+                name, 
+                faction: faction || "Pirate", 
+                classe: classe || "Sabreur", 
+                level: 1, xp: 0, xpNext: 1000,
+                hp: 1250, hpMax: 1250, berries: 5000, bounty: 0,
+                skillTree: { talentPoints: 1, branches: { "Sabre": 1, "Haki": 0, "Fruit": 0 } }
+            };
+        }
         socket.playerName = name;
         socket.emit('auth:success', { player: players[name] });
         io.emit('chat:message', { author: "SYSTÈME", text: `${name} a rejoint l'aventure !` });
     });
 
+    // Actions Gameplay
     socket.on('action:train', () => {
         let p = players[socket.playerName];
         if (!p) return;
-        p.xp += 50;
-        p.hp = Math.max(0, p.hp - 5);
-        if (p.xp >= p.xpNext) {
-            p.level++; p.xp = 0; p.xpNext *= 1.5; p.skillTree.talentPoints++;
+        p.xp += 100;
+        if(p.xp >= p.xpNext) {
+            p.level++; p.xp = 0; p.xpNext = Math.floor(p.xpNext * 1.5);
+            p.skillTree.talentPoints++;
         }
         socket.emit('player:update', p);
-        socket.emit('action:result', { text: "Entraînement réussi ! +50 XP" });
+        socket.emit('action:result', { text: "Entraînement intense terminé ! +100 XP" });
     });
 
-    socket.on('action:work', () => {
-        let p = players[socket.playerName];
-        if (!p) return;
-        p.berries += 100;
-        socket.emit('player:update', p);
-        socket.emit('action:result', { text: "Travail terminé. +100 Berries ฿" });
-    });
-
+    // Modération
     socket.on('modo:login', (code) => {
         if (code === MODO_PASSWORD) {
             socket.isAdmin = true;
@@ -58,16 +57,19 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('modo:give_berries', ({ target, amount }) => {
+        if (!socket.isAdmin) return;
+        if (players[target]) {
+            players[target].berries += parseInt(amount);
+            io.emit('modo:log', `${amount} Berries donnés à ${target}`);
+            // Update le socket du joueur cible s'il est en ligne
+            io.sockets.forEach(s => { if(s.playerName === target) s.emit('player:update', players[target]); });
+        }
+    });
+
     socket.on('chat:send', ({ text }) => {
         if (socket.playerName) io.emit('chat:message', { author: socket.playerName, text });
     });
 });
 
-function createNewPlayer(name) {
-    return {
-        name, level: 1, xp: 0, xpNext: 500, hp: 100, hpMax: 100, berries: 500, bounty: 0,
-        skillTree: { talentPoints: 0, maxLevel: 10, branches: { "Force": 1, "Agilité": 1, "Haki": 0 } }
-    };
-}
-
-server.listen(3000, () => { console.log('🚢 Navire prêt sur http://localhost:3000'); });
+server.listen(3000, () => { console.log('🚢 Serveur OP lancé sur http://localhost:3000'); });
