@@ -8,9 +8,21 @@ $("btn-modo-login").onclick = () => {
 socket.on("modo:success", () => {
     $("admin-login-section").classList.add("hidden");
     $("admin-tools-section").classList.remove("hidden");
-    const log = document.createElement("div");
-    log.innerText = "> Connecté au QG.";
-    $("modo-log").appendChild(log);
+    const line = document.createElement("div");
+    line.innerText = "> QG Connecté. Bienvenue Chevreuil.";
+    $("modo-log").appendChild(line);
 });
 
-socket.on("modo:fail", () => { alert("Code erroné !"); });
+$("btn-modo-give").onclick = () => {
+    socket.emit("modo:give_berries", { 
+        target: $("modo-target").value, 
+        amount: $("modo-berries").value 
+    });
+};
+
+socket.on("modo:log", msg => {
+    const line = document.createElement("div");
+    line.innerText = `> ${msg}`;
+    $("modo-log").appendChild(line);
+    $("modo-log").scrollTop = $("modo-log").scrollHeight;
+});
