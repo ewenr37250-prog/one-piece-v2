@@ -1,44 +1,64 @@
 const socket = io();
-let player = null;
 const $ = id => document.getElementById(id);
 
-// Login
+// --- AUTHENTIFICATION ---
 $("btn-login").onclick = () => {
-    socket.emit("auth:login", { 
-        name: $("log-name").value, 
-        faction: $("log-faction").value 
-    });
+    const name = $("log-name").value;
+    if(name.length < 3) return alert("Nom trop court !");
+    socket.emit("auth:login", { name });
 };
 
 socket.on("auth:success", data => {
-    player = data.player;
     $("auth").classList.add("hidden");
     $("game").classList.remove("hidden");
-    updateUI();
+    updateUI(data.player);
 });
 
-socket.on("player:update", p => { player = p; updateUI(); });
+// --- NAVIGATION ---
+document.querySelectorAll(".nav-item").forEach(btn => {
+    btn.onclick = () => {
+        const target = btn.getAttribute("data-target");
+        document.querySelectorAll(".view-content").forEach(v => v.classList.add("hidden"));
+        $(target).classList.remove("hidden");
+    };
+});
 
-function updateUI() {
-    if(!player) return;
-    $("player-name").innerText = player.name;
-    $("hp-text").innerText = `HP ${player.hp}/${player.hpMax}`;
-    $("hp-fill").style.width = (player.hp / player.hpMax * 100) + "%";
-    $("xp-text").innerText = `XP ${player.xp}/${player.xpNext}`;
-    $("xp-fill").style.width = (player.xp / player.xpNext * 100) + "%";
-    $("stat-berries").innerText = `Berries: ${player.berries} ฿`;
-    $("bounty-value").innerText = `${player.bounty} ฿`;
+// --- GAMEPLAY ---
+$("btn-train").onclick = () => socket.emit("action:train");
+
+socket.on("player:update", p => updateUI(p));
+
+function updateUI(p) {
+    $("player-name").innerText = p.name;
+    $("player-level").innerText = p.level;
+    $("bounty-value").innerText = `${p.bounty.toLocaleString()} ฿`;
+    
+    // Bars avec animation
+    const hpPct = (p.hp / p.hpMax) * 100;
+    const xpPct = (p.xp / p.xpNext) * 100;
+    
+    $("hp-fill").style.width = hpPct + "%";
+    $("hp-text").innerText = `${p.hp} / ${p.hpMax}`;
+    
+    $("xp-fill").style.width = xpPct + "%";
+    $("xp-text").innerText = `${Math.floor(p.xp)} / ${p.xpNext}`;
 }
 
-// Actions
-$("btn-train").onclick = () => socket.emit("action:train");
-socket.on("action:result", res => { $("action-result").innerText = res.text; });
+// --- CHAT ---
+$("chat-send").onclick = sendMessage;
+$("chat-text").onkeypress = (e) => { if(e.key === "Enter") sendMessage(); };
 
-// Chat
-$("chat-send").onclick = () => { socket.emit("chat:send", { text: $("chat-text").value }); $("chat-text").value = ""; };
+function sendMessage() {
+    const text = $("chat-text").value;
+    if(!text) return;
+    socket.emit("chat:send", { text });
+    $("chat-text").value = "";
+}
+
 socket.on("chat:message", m => {
-    const div = document.createElement("div");
-    div.innerHTML = `<b style="color:var(--gold)">${m.author}:</b> ${m.text}`;
-    $("chat-messages").appendChild(div);
+    const msgDiv = document.createElement("div");
+    msgDiv.style.marginBottom = "5px";
+    msgDiv.innerHTML = `<span style="color:#c4a04d; font-weight:bold;">${m.author}:</span> ${m.text}`;
+    $("chat-messages").appendChild(msgDiv);
     $("chat-messages").scrollTop = $("chat-messages").scrollHeight;
 });
