@@ -1,82 +1,142 @@
 :root {
-    --gold: #d4af37;
-    --wood: #2b1d12;
-    --wood-dark: #1a110a;
+    --gold: #c4a04d;
+    --gold-bright: #f0d58e;
+    --wood-dark: #110b07;
+    --wood-light: #2b1d12;
     --text: #e0c8a0;
+    --bg-dark: #050302;
+    --ink: #3d2b1f;
 }
 
 body {
-    background: #0d0907;
-    color: var(--text);
+    background: var(--bg-dark);
+    margin: 0; 
     font-family: 'Metamorphic', serif;
-    margin: 0; overflow: hidden;
+    color: var(--text); 
+    overflow: hidden;
 }
 
 .hidden { display: none !important; }
 
-/* HEADER */
-.game-header {
-    height: 100px;
-    background: var(--wood-dark) url('https://www.transparenttextures.com/patterns/dark-wood.png');
-    border-bottom: 4px solid var(--gold);
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0 40px; box-shadow: 0 5px 20px #000;
+/* --- CONNEXION --- */
+.auth-overlay {
+    height: 100vh; width: 100vw;
+    background: #000 url('https://www.transparenttextures.com/patterns/wood-pattern.png');
+    display: flex; align-items: center; justify-content: center;
 }
 
-.gold-text { font-family: 'Pirata One'; color: var(--gold); text-shadow: 2px 2px 4px #000; }
-
-/* LAYOUT */
-.main-content {
-    display: grid; grid-template-columns: 300px 1fr 320px;
-    height: calc(100vh - 200px); gap: 15px; padding: 15px;
+.wood-card {
+    background: #0a0705;
+    padding: 50px;
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 50px rgba(0,0,0,0.9), inset 0 0 20px #000;
+    text-align: center;
 }
 
-.sidebar {
-    background: var(--wood-dark) url('https://www.transparenttextures.com/patterns/black-thread.png');
-    border: 4px solid #3d2b1f; padding: 15px; box-shadow: inset 0 0 20px #000;
+.title-gold {
+    font-family: 'Pirata One'; font-size: 3rem; 
+    color: var(--gold); text-shadow: 2px 2px 5px #000;
+    margin: 0 0 10px 0;
 }
 
-/* PARCHEMIN */
-.parchment-container {
+.gold-divider { height: 2px; width: 80%; background: var(--gold); margin: 0 auto 30px; opacity: 0.5; }
+
+.gold-input {
+    background: transparent; border: 1px solid var(--gold);
+    color: var(--text); padding: 10px; width: 80%;
+    margin-bottom: 20px; text-align: center; font-family: 'Metamorphic';
+}
+
+.btn-rect-gold {
+    background: linear-gradient(to bottom, #d4af37, #8b6508);
+    border: 2px solid #000; color: #000; font-family: 'Pirata One';
+    font-size: 1.5rem; padding: 10px 30px; cursor: pointer;
+    box-shadow: 0 4px 6px #000; transition: 0.2s;
+}
+.btn-rect-gold:hover { filter: brightness(1.2); transform: scale(1.05); }
+
+/* --- HEADER --- */
+.game-container { display: flex; flex-direction: column; height: 100vh; }
+
+.main-header {
+    height: 70px; background: var(--wood-dark) url('https://www.transparenttextures.com/patterns/wood-pattern.png');
+    border-bottom: 4px solid #000;
+    display: flex; justify-content: space-between; align-items: center; padding: 0 30px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.8); z-index: 10;
+}
+
+.header-nav { display: flex; gap: 10px; }
+.nav-btn {
+    background: #fff; color: #000; border: 1px solid #000;
+    padding: 5px 15px; font-size: 0.8rem; font-weight: bold; cursor: pointer;
+}
+.nav-btn.active { box-shadow: inset 0 0 5px #000; }
+
+.title-container {
+    background: linear-gradient(to bottom, #f0d58e, #c4a04d);
+    padding: 10px 40px; border-radius: 0 0 20px 20px; border: 2px solid #000;
+    border-top: none; box-shadow: 0 5px 10px #000;
+}
+.title-main { font-family: 'Pirata One'; color: #000; margin: 0; font-size: 2rem; text-shadow: 1px 1px 0px rgba(255,255,255,0.5); }
+
+.prime-box { color: var(--gold); font-size: 0.9rem; }
+.gear-icon { background: #fff; color: #000; padding: 3px; margin-left: 10px; cursor: pointer; }
+
+/* --- LAYOUT DU JEU --- */
+.layout { display: grid; grid-template-columns: 300px 1fr 300px; gap: 20px; padding: 20px; flex-grow: 1; }
+
+.panel {
+    background: #110b07 url('https://www.transparenttextures.com/patterns/black-thread.png');
+    border: 5px solid #2b1d12; box-shadow: inset 0 0 20px #000, 0 5px 15px #000;
+    padding: 20px; display: flex; flex-direction: column; position: relative;
+}
+.panel::before { /* Cadre intérieur doré */
+    content: ''; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px;
+    border: 1px solid rgba(196, 160, 77, 0.2); pointer-events: none;
+}
+
+/* --- STATS ET BARRES --- */
+.player-name { font-family: 'Pirata One'; color: var(--gold); font-size: 2rem; margin: 0 0 5px 0; }
+.level-text { font-size: 0.8rem; margin: 0 0 20px 0; border-bottom: 1px solid rgba(196,160,77,0.3); padding-bottom: 10px;}
+
+.stats-bars { margin-bottom: 20px; }
+.stat-icon { margin-bottom: 5px; }
+.bar-track {
+    background: #000; height: 12px; border: 1px solid #333;
+    border-radius: 10px; overflow: hidden; margin-bottom: 5px;
+}
+.bar-fill { height: 100%; transition: width 0.3s; }
+.hp-color { background: linear-gradient(to right, #600, #b22222); }
+.xp-color { background: linear-gradient(to right, #004d40, #00a86b); }
+.stat-values { font-size: 0.7rem; color: #aaa; text-align: left; margin-bottom: 15px; }
+
+/* --- BOUTONS ORBES --- */
+.actions { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: auto; }
+.action-orb {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #3d2b1f, #0a0705);
+    border: 2px solid var(--gold); color: var(--gold);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; box-shadow: 0 5px 10px #000; transition: 0.2s;
+}
+.action-orb i { font-size: 1.5rem; margin-bottom: 5px; }
+.action-orb span { font-size: 0.6rem; font-weight: bold; }
+.action-orb:hover { border-color: var(--gold-bright); color: var(--gold-bright); }
+.action-orb:active { transform: scale(0.95); box-shadow: 0 2px 5px #000; }
+
+/* --- PARCHEMIN --- */
+.parchment-area {
     background: #c2a172 url('https://www.transparenttextures.com/patterns/old-map.png');
+    padding: 50px; color: var(--ink);
     box-shadow: 10px 10px 30px #000;
     clip-path: polygon(2% 1%, 98% 0%, 100% 4%, 99% 96%, 97% 100%, 3% 99%, 0% 95%, 1% 4%);
-    padding: 50px; color: #3d2b1f;
 }
+.parchment-title { font-family: 'Pirata One'; font-size: 3.5rem; text-align: center; margin: 0; }
+.parchment-text { text-align: center; font-size: 1.1rem; margin-top: 20px; }
 
-.ink-line { height: 2px; background: #3d2b1f; width: 60%; margin: 10px auto; opacity: 0.4; }
-
-/* BARS */
-.bar { background: #000; height: 12px; border: 1px solid #4a3423; border-radius: 10px; margin: 5px 0 15px; overflow: hidden; }
-.fill { height: 100%; transition: 0.5s; }
-.hp .fill { background: linear-gradient(to right, #8b0000, #ff4b4b); box-shadow: 0 0 10px red; }
-.xp .fill { background: linear-gradient(to right, #004d40, #00ffcc); box-shadow: 0 0 10px cyan; }
-
-/* BUTTONS */
-.gold-btn {
-    background: linear-gradient(to bottom, #f0d58e, #c4a04d);
-    border: 2px solid #1a110a; color: #1a110a;
-    padding: 10px 20px; font-family: 'Pirata One'; font-size: 1.2rem; cursor: pointer;
-}
-
-.btn-rect {
-    width: 100%; background: rgba(255,255,255,0.05);
-    border: 1px solid #4a3423; color: var(--text);
-    padding: 10px; margin-top: 10px; cursor: pointer; text-align: left;
-}
-.btn-rect:hover { border-color: var(--gold); background: rgba(212, 175, 55, 0.1); }
-
-/* FOOTER */
-.game-footer {
-    height: 100px; background: var(--wood-dark);
-    border-top: 4px solid var(--gold);
-    display: flex; justify-content: center; align-items: center; gap: 40px;
-}
-
-.foot-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; opacity: 0.5; }
-.foot-item.active, .foot-item:hover { opacity: 1; transform: translateY(-5px); }
-.foot-item i { font-size: 1.8rem; color: var(--gold); border: 2px solid var(--gold); padding: 8px; border-radius: 5px; }
-.foot-item span { font-size: 0.7rem; margin-top: 5px; color: var(--gold); }
-
-/* CHAT */
-.chat-box { height: 75%; background: rgba(0,0,0,0.3); border: 1px solid #000; overflow-y: auto; padding: 10px; font-size: 0.9rem; }
+/* --- CHAT --- */
+.chat-title { font-family: 'Pirata One'; color: var(--gold); font-size: 1.5rem; text-align: center; margin: 0 0 10px 0; }
+.chat-box { flex-grow: 1; background: rgba(0,0,0,0.5); padding: 10px; overflow-y: auto; font-size: 0.8rem; margin-bottom: 10px; border: 1px solid #333; }
+.chat-input-wrapper { display: flex; }
+.chat-input-wrapper input { flex-grow: 1; padding: 8px; background: #fff; border: none; outline: none; }
+.chat-input-wrapper button { background: #fff; border: none; border-left: 1px solid #ccc; padding: 0 15px; cursor: pointer; }
