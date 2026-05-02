@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Le Chevreuil - RPG Ultime</title>
+    <title>Le Chevreuil - Grand Line RPG</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Metamorphic&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -11,90 +11,73 @@
 
     <div id="auth" class="auth-overlay">
         <div class="wood-card">
-            <h1 class="gold-gradient">LOG-IN</h1>
-            <input type="text" id="log-name" placeholder="Nom de Pirate...">
-            <button id="btn-login" class="gold-btn">PRENDRE LA MER</button>
+            <h1 class="title-gold">LOG-IN</h1>
+            <div class="gold-divider"></div>
+            <input type="text" id="log-name" class="gold-input" placeholder="Nom de Pirate...">
+            <button id="btn-login" class="btn-rect-gold">PRENDRE LA MER</button>
         </div>
     </div>
 
-    <div id="game" class="game-ui hidden">
-        <header class="game-header">
-            <div class="time-box">14:32<br><span>Grand Line</span></div>
-            <div class="title-wrap">
-                <h1 class="gold-text">LE CHEVREUIL</h1>
-                <p>PRIVATE RPG</p>
+    <div id="game" class="game-container hidden">
+        
+        <header class="main-header">
+            <div class="header-nav">
+                <button class="nav-btn active">ACCUEIL</button>
+                <button class="nav-btn">PERSONNAGE</button>
+                <button class="nav-btn">INVENTAIRE</button>
             </div>
-            <div class="bounty-card">
-                <span class="label">PRIME GLOBALE</span>
-                <span id="bounty-value">1,250,000,000 ฿</span>
+            <div class="title-container">
+                <h1 class="title-main">LE CHEVREUIL</h1>
+            </div>
+            <div class="prime-box">
+                PRIME: <span id="bounty">0</span> ฿
+                <i class="fas fa-cog gear-icon"></i>
             </div>
         </header>
 
-        <div class="main-content">
-            <aside class="sidebar side-left">
-                <div class="char-info">
-                    <h2 id="player-name">Monkey D. Chevreuil</h2>
-                    <p class="lvl">NIVEAU <span id="player-level">42</span></p>
+        <main class="layout">
+            
+            <aside class="panel">
+                <h2 id="p-name" class="player-name">---</h2>
+                <p class="level-text">NIVEAU <span id="p-lvl">1</span></p>
+                
+                <div class="stats-bars">
+                    <div class="stat-icon"><i class="fas fa-heart" style="color: #b22222;"></i></div>
+                    <div class="bar-track"><div id="hp-f" class="bar-fill hp-color" style="width:100%"></div></div>
+                    <div class="stat-values"><span id="hp-text">100 / 100</span></div>
+
+                    <div class="stat-icon"><i class="fas fa-star" style="color: #c4a04d;"></i></div>
+                    <div class="bar-track"><div id="xp-f" class="bar-fill xp-color" style="width:0%"></div></div>
+                    <div class="stat-values"><span id="xp-text">0 / 100</span></div>
                 </div>
-                <div class="stats-box">
-                    <div class="stat-line"><span>HP</span> <span id="hp-text">1250/1250</span></div>
-                    <div class="bar hp"><div id="hp-fill" class="fill"></div></div>
-                    <div class="stat-line"><span>XP</span> <span id="xp-text">3580/7200</span></div>
-                    <div class="bar xp"><div id="xp-fill" class="fill"></div></div>
-                </div>
-                <div class="icon-stats">
-                    <div class="row"><i class="fas fa-coins gold"></i> Berries: <span id="stat-berries">0</span></div>
-                    <div class="row"><i class="fas fa-star gold"></i> Talents: <span id="stat-talents">0</span></div>
-                </div>
+
                 <div class="actions">
-                    <p class="section-title">ACTIONS RAPIDES</p>
-                    <button id="btn-train" class="btn-rect"><i class="fas fa-dumbbell"></i> S'entraîner</button>
-                    <button id="btn-open-modo" class="btn-rect btn-secret"><i class="fas fa-user-shield"></i> QG Modo</button>
+                    <button id="btn-train" class="action-orb">
+                        <i class="fas fa-khanda"></i>
+                        <span>Entraîner</span>
+                    </button>
+                    <button class="action-orb">
+                        <i class="fas fa-coins"></i>
+                        <span>Travailler</span>
+                    </button>
                 </div>
             </aside>
 
-            <main class="parchment-container">
-                <div class="parchment">
-                    <h2 class="ink">Journal de bord</h2>
-                    <div class="ink-line"></div>
-                    <p>Bienvenue à bord du Chevreuil. Préparez-vous pour l'aventure.</p>
-                </div>
-            </main>
+            <section class="parchment-area">
+                <h2 class="parchment-title">Arbre de Compétences</h2>
+                <p class="parchment-text">Ceci est ton journal de bord. Commence à t'entraîner pour débloquer des compétences.</p>
+            </section>
 
-            <aside class="sidebar side-right">
-                <h3 class="gold-text center">CHAT MONDE</h3>
-                <div id="chat-messages" class="chat-box"></div>
-                <div class="chat-input">
-                    <input type="text" id="chat-text" placeholder="Message...">
-                    <button id="chat-send">➤</button>
+            <aside class="panel">
+                <h3 class="chat-title">COMMUNICATIONS</h3>
+                <div id="chat" class="chat-box"></div>
+                <div class="chat-input-wrapper">
+                    <input type="text" id="m" placeholder="Écrire...">
+                    <button id="s"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </aside>
-        </div>
 
-        <footer class="game-footer">
-            <div class="foot-item active"><i class="fas fa-user-shield"></i><span>PROFIL</span></div>
-            <div class="foot-item"><i class="fas fa-users"></i><span>ÉQUIPAGE</span></div>
-            <div class="foot-item"><i class="fas fa-book"></i><span>COMPÉTENCES</span></div>
-            <div class="foot-item"><i class="fas fa-box-open"></i><span>INVENTAIRE</span></div>
-            <div class="foot-item"><i class="fas fa-map-marked-alt"></i><span>CARTE</span></div>
-        </footer>
-    </div>
-
-    <div id="modo-modal" class="modal-overlay hidden">
-        <div class="modo-box">
-            <h2 class="gold-text">ADMINISTRATION</h2>
-            <div id="modo-login">
-                <input type="password" id="modo-code" placeholder="Code...">
-                <button id="btn-modo-auth" class="gold-btn">AUTH</button>
-            </div>
-            <div id="modo-tools" class="hidden">
-                <input type="text" id="modo-target" placeholder="Joueur...">
-                <input type="number" id="modo-amount" placeholder="Berries...">
-                <button id="btn-modo-give" class="gold-btn">DONNER</button>
-                <div id="modo-log" class="log"></div>
-            </div>
-            <button onclick="document.getElementById('modo-modal').classList.add('hidden')" class="btn-rect">FERMER</button>
-        </div>
+        </main>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
