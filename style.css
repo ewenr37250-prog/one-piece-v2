@@ -1,29 +1,136 @@
-:root { --bg: #0f0a07; --panel: #2b1d12; --gold: #d4af37; --text: #e0c8a0; --border: #4a3423; }
-body { background: var(--bg); color: var(--text); font-family: 'Metamorphic', serif; margin: 0; overflow: hidden; }
+/* --- VARIABLES DE PRESTIGE --- */
+:root {
+    --gold-linear: linear-gradient(to bottom, #f0d58e 0%, #c4a04d 45%, #8a6d29 55%, #f0d58e 100%);
+    --wood-texture: url('https://www.transparenttextures.com/patterns/dark-wood.png');
+    --leather-texture: url('https://www.transparenttextures.com/patterns/black-thread.png');
+    --paper-texture: url('https://www.transparenttextures.com/patterns/old-map.png');
+    --shadow-deep: 0 10px 30px rgba(0,0,0,0.9);
+}
+
+body {
+    background-color: #0d0907;
+    margin: 0; padding: 0;
+    font-family: 'Metamorphic', serif;
+    color: #e0c8a0;
+    overflow: hidden;
+}
+
 .hidden { display: none !important; }
-.gold { color: var(--gold); font-family: 'Pirata One'; }
 
-/* Layout */
-.game-ui { display: flex; flex-direction: column; height: 100vh; }
-.top-nav { display: flex; justify-content: space-between; align-items: center; background: #1e120a; padding: 10px 20px; border-bottom: 3px solid #3d2b1f; }
-.content-grid { display: grid; grid-template-columns: 280px 1fr 300px; gap: 10px; flex: 1; padding: 10px; }
-.sidebar-panel { background: var(--panel); border: 4px solid #1a110a; padding: 15px; box-shadow: inset 0 0 20px #000; }
+/* --- AUTH OVERLAY --- */
+.auth-overlay {
+    height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle, rgba(43,29,18,0.8) 0%, rgba(10,5,2,1) 100%);
+}
 
-/* Parchemin */
-.parchment-area { background: #d4b483; border: 8px solid #3d2b1f; position: relative; padding: 25px; color: #3d2b1f; overflow-y: auto; }
-.parchment-texture { position: absolute; inset: 0; opacity: 0.3; background-image: url('https://www.transparenttextures.com/patterns/parchment.png'); pointer-events: none; }
+.wood-frame-large {
+    background: #2b1d12 var(--wood-texture);
+    padding: 50px; border: 8px solid #1a110a;
+    box-shadow: var(--shadow-deep), inset 0 0 50px #000;
+    text-align: center; border-radius: 10px;
+}
 
-/* Bars */
-.bar-wrap { background: #111; height: 22px; margin: 10px 0; border: 2px solid #000; position: relative; overflow: hidden; }
-.fill { height: 100%; width: 0%; transition: width 0.6s ease; }
-.hp .fill { background: linear-gradient(to right, #8b0000, #ff4b4b); }
-.xp .fill { background: linear-gradient(to right, #004d40, #00c4a7); }
-.bar-wrap span { position: absolute; width: 100%; text-align: center; font-size: 11px; color: #fff; z-index: 2; line-height: 18px; text-shadow: 1px 1px 2px #000; }
+/* --- HEADER RPG --- */
+.main-header {
+    height: 100px; background: #1a110a var(--wood-texture);
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 4px solid #c4a04d; position: relative;
+    box-shadow: 0 5px 20px #000; z-index: 10;
+}
 
-/* Buttons */
-.btn-action { background: linear-gradient(#5d4432, #4a3423); color: #fff; border: 1px solid #1a110a; padding: 10px; cursor: pointer; width: 100%; font-family: 'Metamorphic'; margin-top: 5px; }
-.btn-action:hover { filter: brightness(1.3); border-color: var(--gold); }
-.btn-secret { background: none; border: 1px solid var(--gold); color: var(--gold); cursor: pointer; }
+.title-shield {
+    background: var(--gold-linear);
+    padding: 15px 40px; border: 3px solid #1a110a;
+    transform: translateY(20px); border-radius: 0 0 20px 20px;
+    box-shadow: var(--shadow-deep);
+}
 
-/* Chat */
-.chat-box { height: 350px; background: rgba(0,0,0,0.4); border: 1px solid #000; overflow-y: auto; padding: 5px; font-size: 0.85rem; color: #fff; }
+.shield-text {
+    font-family: 'Pirata One'; font-size: 2.2rem;
+    color: #1a110a; text-shadow: 1px 1px 0px rgba(255,255,255,0.3);
+}
+
+/* --- LAYOUT --- */
+.main-layout {
+    display: grid; grid-template-columns: 320px 1fr 340px;
+    height: calc(100vh - 100px); gap: 15px; padding: 20px;
+    background: #0d0907;
+}
+
+.sidebar-wood {
+    background: #1a110a var(--wood-texture);
+    border: 5px solid #3d2b1f; padding: 10px;
+    box-shadow: var(--shadow-deep);
+}
+
+.inner-leather {
+    background: #2b1d12 var(--leather-texture);
+    height: 100%; border: 2px solid #000;
+    padding: 15px; box-shadow: inset 0 0 20px #000;
+}
+
+/* --- PARCHEMIN (IMAGE 2 STYLE) --- */
+.parchment-container {
+    background: #c2a172 var(--paper-texture);
+    position: relative; overflow-y: auto;
+    box-shadow: var(--shadow-deep), inset 0 0 100px rgba(80,50,20,0.4);
+    border: 20px solid transparent;
+    /* Simulation de bords brûlés/déchirés */
+    clip-path: polygon(2% 0%, 98% 1%, 100% 4%, 99% 95%, 97% 100%, 3% 99%, 0% 96%, 1% 5%);
+    padding: 40px;
+}
+
+.ink-title {
+    font-family: 'Pirata One'; font-size: 3rem; color: #3d2b1f;
+    text-align: center; margin-bottom: 0;
+}
+
+.ink-divider {
+    height: 4px; background: #3d2b1f; width: 60%;
+    margin: 10px auto 30px; opacity: 0.5;
+}
+
+/* --- BARS DE VIE RPG --- */
+.bar-container { margin-bottom: 20px; color: #f0d58e; font-size: 0.9rem; }
+.bar-track {
+    background: #000; height: 18px; border: 2px solid #5c4432;
+    border-radius: 10px; overflow: hidden; margin: 5px 0;
+    box-shadow: inset 0 2px 5px #000;
+}
+
+.fill {
+    height: 100%; width: 50%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent), #8b0000;
+    box-shadow: 0 0 15px rgba(255,0,0,0.5);
+    transition: width 0.5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+}
+.xp .fill { background-color: #008b8b; box-shadow: 0 0 15px #00ffff88; }
+
+/* --- BOUTONS ORNÉS --- */
+.gold-plate-btn {
+    background: var(--gold-linear);
+    border: 2px solid #3d2b1f; color: #1a110a;
+    padding: 15px 30px; font-family: 'Pirata One'; font-size: 1.4rem;
+    cursor: pointer; transition: 0.2s;
+    box-shadow: 0 4px 0 #8a6d29;
+}
+
+.gold-plate-btn:active { transform: translateY(4px); box-shadow: none; }
+
+.action-orb {
+    background: radial-gradient(circle, #5c4432, #1a110a);
+    border: 3px solid #c4a04d; border-radius: 50%;
+    width: 80px; height: 80px; color: #f0d58e;
+    cursor: pointer; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; font-size: 0.7rem;
+    margin: 10px auto;
+}
+
+.action-orb i { font-size: 1.5rem; margin-bottom: 5px; }
+
+/* --- CHAT DISPLAY --- */
+.chat-display {
+    height: 70%; background: rgba(0,0,0,0.3);
+    border: 1px solid #1a110a; overflow-y: auto;
+    padding: 10px; font-size: 0.85rem;
+}
