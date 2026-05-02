@@ -2,93 +2,116 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Le Chevreuil - Private RPG</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="admin.css">
+    <title>Le Chevreuil - Grand Line RPG</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Metamorphic&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="rpg-ui-gold">
 
-    <div id="auth" class="auth-container">
-        <div class="auth-box">
-            <h2 class="gold" style="text-align: center;">LOG-IN</h2>
-            <div id="login-panel">
-                <input type="text" id="log-name" placeholder="Nom de pirate...">
-                <select id="log-faction">
-                    <option value="Pirate">Pirate</option>
-                    <option value="Marine">Marine</option>
-                    <option value="Révolutionnaire">Révolutionnaire</option>
-                </select>
-                <button id="btn-login" class="btn-action">Prendre la mer</button>
+    <div id="auth" class="auth-overlay">
+        <div class="wood-frame-large">
+            <h1 class="gold-gradient">LOG-IN</h1>
+            <div class="input-group">
+                <input type="text" id="log-name" placeholder="Nom du Pirate...">
+                <button id="btn-login" class="gold-plate-btn">PRENDRE LA MER</button>
             </div>
         </div>
     </div>
 
-    <div id="game" class="game-ui hidden">
-        <header class="top-nav">
-            <nav class="menu-tabs">
-                <button data-target="view-accueil">ACCUEIL</button>
-                <button data-target="view-personnage">STATS</button>
-                <button id="btn-open-admin" class="btn-secret">📞 MODO</button>
+    <div id="game" class="game-container hidden">
+        <header class="main-header">
+            <div class="header-decor-left"></div>
+            <nav class="nav-menu">
+                <button data-target="view-accueil" class="nav-item">ACCUEIL</button>
+                <button data-target="view-personnage" class="nav-item">PERSONNAGE</button>
+                <button data-target="view-inventaire" class="nav-item">INVENTAIRE</button>
             </nav>
-            <div class="main-logo">LE CHEVREUIL</div>
-            <div class="header-right">PRIME: <span id="bounty-value" class="gold">0 ฿</span></div>
+            <div class="title-shield">
+                <span class="shield-text">LE CHEVREUIL</span>
+            </div>
+            <div class="header-right">
+                <div class="bounty-tag">PRIME: <span id="bounty-value">0 ฿</span></div>
+                <button id="btn-open-admin" class="gear-btn"><i class="fas fa-cog"></i></button>
+            </div>
+            <div class="header-decor-right"></div>
         </header>
 
-        <div class="content-grid">
-            <aside class="sidebar-panel">
-                <div class="profile-section">
-                    <h3 id="player-name">---</h3>
-                    <div class="bar-wrap hp"><span id="hp-text">HP 0/0</span><div id="hp-fill" class="fill"></div></div>
-                    <div class="bar-wrap xp"><span id="xp-text">XP 0/0</span><div id="xp-fill" class="fill"></div></div>
-                    <p id="stat-berries">Berries: 0 ฿</p>
+        <div class="main-layout">
+            <aside class="sidebar-wood">
+                <div class="inner-leather">
+                    <div class="character-card">
+                        <div class="portrait-frame">
+                            <img src="https://i.imgur.com/8Yv2Y4f.png" alt="Portrait">
+                        </div>
+                        <h2 id="player-name" class="gold-text">---</h2>
+                        <p class="lvl-tag">NIVEAU <span id="player-level">1</span></p>
+                    </div>
+
+                    <div class="stats-bars">
+                        <div class="bar-container hp">
+                            <i class="fas fa-heart"></i>
+                            <div class="bar-track"><div id="hp-fill" class="fill"></div></div>
+                            <span id="hp-text">0 / 0</span>
+                        </div>
+                        <div class="bar-container xp">
+                            <i class="fas fa-star"></i>
+                            <div class="bar-track"><div id="xp-fill" class="fill"></div></div>
+                            <span id="xp-text">0 / 0</span>
+                        </div>
+                    </div>
+
+                    <div class="action-grid">
+                        <button id="btn-train" class="action-orb"><i class="fas fa-khanda"></i><span>Entraîner</span></button>
+                        <button id="btn-work" class="action-orb"><i class="fas fa-coins"></i><span>Travailler</span></button>
+                    </div>
                 </div>
-                <button id="btn-train" class="btn-action">S'entraîner</button>
             </aside>
 
-            <main class="parchment-area">
-                <div class="parchment-texture"></div>
-                <div id="action-result" class="action-feedback"></div>
-                <div id="view-accueil" class="parchment-view active">
-                    <h2 class="gold">Journal de bord</h2>
-                    <p>Bienvenue à bord du Chevreuil. Naviguez avec les onglets.</p>
+            <main class="parchment-container">
+                <div class="parchment-paper">
+                    <div id="view-accueil" class="view-content active">
+                        <h2 class="ink-title">Journal de Bord</h2>
+                        <div class="ink-divider"></div>
+                        <p>Les vagues murmurent ton nom, pirate. Quelle sera ta prochaine destination sur Grand Line ?</p>
+                    </div>
+                    
+                    <div id="view-personnage" class="view-content hidden">
+                        <h2 class="ink-title">Arbre de Compétences</h2>
+                        <div class="skill-grid" id="skills-container">
+                            </div>
+                    </div>
                 </div>
             </main>
 
-            <aside class="sidebar-panel">
-                <p class="section-title">CHAT MONDE</p>
-                <div id="chat-messages" class="chat-box"></div>
-                <div class="chat-input-wrap">
-                    <input type="text" id="chat-text" placeholder="...">
-                    <button id="chat-send">➤</button>
+            <aside class="sidebar-wood">
+                <div class="inner-leather chat-layout">
+                    <h3 class="gold-text center">COMMUNICATIONS</h3>
+                    <div id="chat-messages" class="chat-display"></div>
+                    <div class="chat-controls">
+                        <input type="text" id="chat-text" placeholder="Écrire...">
+                        <button id="chat-send"><i class="fas fa-paper-plane"></i></button>
+                    </div>
                 </div>
             </aside>
         </div>
     </div>
 
-    <div id="admin-modal" class="admin-modal hidden">
-        <div class="admin-box">
-            <button id="btn-close-admin" class="close-btn">✖</button>
-            <h2 class="gold">QG MODÉRATION</h2>
+    <div id="admin-modal" class="modal-overlay hidden">
+        <div class="navy-box">
+            <button id="btn-close-admin" class="close-x">×</button>
+            <h2 class="gold-gradient">QG DE MODÉRATION</h2>
             <div id="admin-login-section">
-                <input type="password" id="modo-code" placeholder="Code secret...">
-                <button id="btn-modo-login" class="btn-action">Accéder</button>
+                <input type="password" id="modo-code" placeholder="Code d'accès...">
+                <button id="btn-modo-login" class="gold-plate-btn">IDENTIFICATION</button>
             </div>
             <div id="admin-tools-section" class="hidden">
-                <div class="admin-grid">
-                    <div class="admin-panel">
-                        <input type="text" id="modo-target" placeholder="Joueur cible...">
-                        <input type="number" id="modo-berries" placeholder="Montant Berries...">
-                        <button id="btn-modo-give" class="btn-action">Donner</button>
-                    </div>
-                    <div id="modo-log" class="log-box"></div>
-                </div>
+                <div id="modo-log" class="admin-logs"></div>
             </div>
         </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="main.js"></script>
-    <script src="admin.js"></script>
 </body>
 </html>
