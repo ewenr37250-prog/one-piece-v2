@@ -8,68 +8,58 @@ const io = new Server(server);
 
 app.use(express.static(__dirname));
 
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
-});
-
-// CONFIGURATION
-const MODO_PASSWORD = "CHEVA"; 
+// Base de données temporaire (en mémoire)
 let players = {};
 
 io.on('connection', (socket) => {
-    // Authentification & Création
-    socket.on('auth:login', ({ name, faction, classe }) => {
+    // Connexion / Création de perso
+    socket.on('auth:login', ({ name }) => {
         if (!players[name]) {
             players[name] = {
-                name, 
-                faction: faction || "Pirate", 
-                classe: classe || "Sabreur", 
-                level: 1, xp: 0, xpNext: 1000,
-                hp: 1250, hpMax: 1250, berries: 5000, bounty: 0,
-                skillTree: { talentPoints: 1, branches: { "Sabre": 1, "Haki": 0, "Fruit": 0 } }
+                name, level: 42, hp: 1250, hpMax: 1250, 
+                xp: 3580, xpNext: 7200, berries: 87500, 
+                bounty: 1250000000, talents: 12, reputation: 315
             };
         }
         socket.playerName = name;
+        socket.isAdmin = false;
         socket.emit('auth:success', { player: players[name] });
-        io.emit('chat:message', { author: "SYSTÈME", text: `${name} a rejoint l'aventure !` });
+        io.emit('chat:message', { author: "SYSTÈME", text: `${name} a rejoint l'équipage !` });
     });
 
-    // Actions Gameplay
+    // Gameplay
     socket.on('action:train', () => {
         let p = players[socket.playerName];
-        if (!p) return;
-        p.xp += 100;
-        if(p.xp >= p.xpNext) {
-            p.level++; p.xp = 0; p.xpNext = Math.floor(p.xpNext * 1.5);
-            p.skillTree.talentPoints++;
+        if (p) {
+            p.xp += 250;
+            if(p.xp >= p.xpNext) {
+                p.level++; p.xp = 0; p.xpNext = Math.floor(p.xpNext * 1.2);
+                p.talents += 1;
+            }
+            socket.emit('player:update', p);
         }
-        socket.emit('player:update', p);
-        socket.emit('action:result', { text: "Entraînement intense terminé ! +100 XP" });
     });
 
     // Modération
     socket.on('modo:login', (code) => {
-        if (code === MODO_PASSWORD) {
+        if (code === "CHEVA") {
             socket.isAdmin = true;
             socket.emit('modo:success');
-        } else {
-            socket.emit('modo:fail');
         }
     });
 
     socket.on('modo:give_berries', ({ target, amount }) => {
-        if (!socket.isAdmin) return;
-        if (players[target]) {
+        if (socket.isAdmin && players[target]) {
             players[target].berries += parseInt(amount);
-            io.emit('modo:log', `${amount} Berries donnés à ${target}`);
-            // Update le socket du joueur cible s'il est en ligne
             io.sockets.forEach(s => { if(s.playerName === target) s.emit('player:update', players[target]); });
+            socket.emit('modo:log', `Succès : ${amount} Berries à ${target}`);
         }
     });
 
+    // Chat
     socket.on('chat:send', ({ text }) => {
         if (socket.playerName) io.emit('chat:message', { author: socket.playerName, text });
     });
 });
 
-server.listen(3000, () => { console.log('🚢 Serveur OP lancé sur http://localhost:3000'); });
+server.listen(3000, () => console.log('🚀 Serveur 40 000% prêt sur http://localhost:3000'));
