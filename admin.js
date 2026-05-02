@@ -1,28 +1,53 @@
-$("btn-open-admin").onclick = () => $("admin-modal").classList.remove("hidden");
-$("btn-close-admin").onclick = () => $("admin-modal").classList.add("hidden");
+document.addEventListener('DOMContentLoaded', () => {
+    const socket = io(); // Utilise l'instance Socket.io existante
 
-$("btn-modo-login").onclick = () => {
-    socket.emit("modo:login", $("modo-code").value);
-};
+    // Éléments
+    const btnOpenModo = document.getElementById('btn-open-modo'); // À ajouter sur ton bouton QG
+    const modoModal = document.getElementById('modo-modal');
+    const btnAuth = document.getElementById('btn-modo-auth');
+    const modoCode = document.getElementById('modo-code');
+    const modoTools = document.getElementById('modo-tools');
+    const modoLogin = document.getElementById('modo-login');
+    
+    const btnGive = document.getElementById('btn-modo-give');
+    const targetInput = document.getElementById('modo-target');
+    const amountInput = document.getElementById('modo-amount');
+    const logArea = document.getElementById('modo-log');
 
-socket.on("modo:success", () => {
-    $("admin-login-section").classList.add("hidden");
-    $("admin-tools-section").classList.remove("hidden");
-    const line = document.createElement("div");
-    line.innerText = "> QG Connecté. Bienvenue Chevreuil.";
-    $("modo-log").appendChild(line);
-});
+    // Ouvrir la modale
+    if(btnOpenModo) {
+        btnOpenModo.onclick = () => modoModal.classList.remove('hidden');
+    }
 
-$("btn-modo-give").onclick = () => {
-    socket.emit("modo:give_berries", { 
-        target: $("modo-target").value, 
-        amount: $("modo-berries").value 
+    // Authentification Modo
+    btnAuth.onclick = () => {
+        const code = modoCode.value;
+        socket.emit('modo:login', code);
+    };
+
+    socket.on('modo:success', () => {
+        modoLogin.classList.add('hidden');
+        modoTools.classList.remove('hidden');
+        addLog("Accès autorisé. Bienvenue, Administrateur.");
     });
-};
 
-socket.on("modo:log", msg => {
-    const line = document.createElement("div");
-    line.innerText = `> ${msg}`;
-    $("modo-log").appendChild(line);
-    $("modo-log").scrollTop = $("modo-log").scrollHeight;
+    // Actions
+    btnGive.onclick = () => {
+        const target = targetInput.value;
+        const amount = amountInput.value;
+        if(target && amount) {
+            socket.emit('modo:give_berries', { target, amount });
+        }
+    };
+
+    socket.on('modo:log', (msg) => {
+        addLog(msg);
+    });
+
+    function addLog(msg) {
+        const entry = document.createElement('div');
+        entry.innerText = `> ${msg}`;
+        logArea.appendChild(entry);
+        logArea.scrollTop = logArea.scrollHeight;
+    }
 });
