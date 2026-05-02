@@ -1,136 +1,82 @@
-/* --- VARIABLES DE PRESTIGE --- */
 :root {
-    --gold-linear: linear-gradient(to bottom, #f0d58e 0%, #c4a04d 45%, #8a6d29 55%, #f0d58e 100%);
-    --wood-texture: url('https://www.transparenttextures.com/patterns/dark-wood.png');
-    --leather-texture: url('https://www.transparenttextures.com/patterns/black-thread.png');
-    --paper-texture: url('https://www.transparenttextures.com/patterns/old-map.png');
-    --shadow-deep: 0 10px 30px rgba(0,0,0,0.9);
+    --gold: #d4af37;
+    --wood: #2b1d12;
+    --wood-dark: #1a110a;
+    --text: #e0c8a0;
 }
 
 body {
-    background-color: #0d0907;
-    margin: 0; padding: 0;
+    background: #0d0907;
+    color: var(--text);
     font-family: 'Metamorphic', serif;
-    color: #e0c8a0;
-    overflow: hidden;
+    margin: 0; overflow: hidden;
 }
 
 .hidden { display: none !important; }
 
-/* --- AUTH OVERLAY --- */
-.auth-overlay {
-    height: 100vh; display: flex; align-items: center; justify-content: center;
-    background: radial-gradient(circle, rgba(43,29,18,0.8) 0%, rgba(10,5,2,1) 100%);
-}
-
-.wood-frame-large {
-    background: #2b1d12 var(--wood-texture);
-    padding: 50px; border: 8px solid #1a110a;
-    box-shadow: var(--shadow-deep), inset 0 0 50px #000;
-    text-align: center; border-radius: 10px;
-}
-
-/* --- HEADER RPG --- */
-.main-header {
-    height: 100px; background: #1a110a var(--wood-texture);
+/* HEADER */
+.game-header {
+    height: 100px;
+    background: var(--wood-dark) url('https://www.transparenttextures.com/patterns/dark-wood.png');
+    border-bottom: 4px solid var(--gold);
     display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 4px solid #c4a04d; position: relative;
-    box-shadow: 0 5px 20px #000; z-index: 10;
+    padding: 0 40px; box-shadow: 0 5px 20px #000;
 }
 
-.title-shield {
-    background: var(--gold-linear);
-    padding: 15px 40px; border: 3px solid #1a110a;
-    transform: translateY(20px); border-radius: 0 0 20px 20px;
-    box-shadow: var(--shadow-deep);
+.gold-text { font-family: 'Pirata One'; color: var(--gold); text-shadow: 2px 2px 4px #000; }
+
+/* LAYOUT */
+.main-content {
+    display: grid; grid-template-columns: 300px 1fr 320px;
+    height: calc(100vh - 200px); gap: 15px; padding: 15px;
 }
 
-.shield-text {
-    font-family: 'Pirata One'; font-size: 2.2rem;
-    color: #1a110a; text-shadow: 1px 1px 0px rgba(255,255,255,0.3);
+.sidebar {
+    background: var(--wood-dark) url('https://www.transparenttextures.com/patterns/black-thread.png');
+    border: 4px solid #3d2b1f; padding: 15px; box-shadow: inset 0 0 20px #000;
 }
 
-/* --- LAYOUT --- */
-.main-layout {
-    display: grid; grid-template-columns: 320px 1fr 340px;
-    height: calc(100vh - 100px); gap: 15px; padding: 20px;
-    background: #0d0907;
-}
-
-.sidebar-wood {
-    background: #1a110a var(--wood-texture);
-    border: 5px solid #3d2b1f; padding: 10px;
-    box-shadow: var(--shadow-deep);
-}
-
-.inner-leather {
-    background: #2b1d12 var(--leather-texture);
-    height: 100%; border: 2px solid #000;
-    padding: 15px; box-shadow: inset 0 0 20px #000;
-}
-
-/* --- PARCHEMIN (IMAGE 2 STYLE) --- */
+/* PARCHEMIN */
 .parchment-container {
-    background: #c2a172 var(--paper-texture);
-    position: relative; overflow-y: auto;
-    box-shadow: var(--shadow-deep), inset 0 0 100px rgba(80,50,20,0.4);
-    border: 20px solid transparent;
-    /* Simulation de bords brûlés/déchirés */
-    clip-path: polygon(2% 0%, 98% 1%, 100% 4%, 99% 95%, 97% 100%, 3% 99%, 0% 96%, 1% 5%);
-    padding: 40px;
+    background: #c2a172 url('https://www.transparenttextures.com/patterns/old-map.png');
+    box-shadow: 10px 10px 30px #000;
+    clip-path: polygon(2% 1%, 98% 0%, 100% 4%, 99% 96%, 97% 100%, 3% 99%, 0% 95%, 1% 4%);
+    padding: 50px; color: #3d2b1f;
 }
 
-.ink-title {
-    font-family: 'Pirata One'; font-size: 3rem; color: #3d2b1f;
-    text-align: center; margin-bottom: 0;
+.ink-line { height: 2px; background: #3d2b1f; width: 60%; margin: 10px auto; opacity: 0.4; }
+
+/* BARS */
+.bar { background: #000; height: 12px; border: 1px solid #4a3423; border-radius: 10px; margin: 5px 0 15px; overflow: hidden; }
+.fill { height: 100%; transition: 0.5s; }
+.hp .fill { background: linear-gradient(to right, #8b0000, #ff4b4b); box-shadow: 0 0 10px red; }
+.xp .fill { background: linear-gradient(to right, #004d40, #00ffcc); box-shadow: 0 0 10px cyan; }
+
+/* BUTTONS */
+.gold-btn {
+    background: linear-gradient(to bottom, #f0d58e, #c4a04d);
+    border: 2px solid #1a110a; color: #1a110a;
+    padding: 10px 20px; font-family: 'Pirata One'; font-size: 1.2rem; cursor: pointer;
 }
 
-.ink-divider {
-    height: 4px; background: #3d2b1f; width: 60%;
-    margin: 10px auto 30px; opacity: 0.5;
+.btn-rect {
+    width: 100%; background: rgba(255,255,255,0.05);
+    border: 1px solid #4a3423; color: var(--text);
+    padding: 10px; margin-top: 10px; cursor: pointer; text-align: left;
+}
+.btn-rect:hover { border-color: var(--gold); background: rgba(212, 175, 55, 0.1); }
+
+/* FOOTER */
+.game-footer {
+    height: 100px; background: var(--wood-dark);
+    border-top: 4px solid var(--gold);
+    display: flex; justify-content: center; align-items: center; gap: 40px;
 }
 
-/* --- BARS DE VIE RPG --- */
-.bar-container { margin-bottom: 20px; color: #f0d58e; font-size: 0.9rem; }
-.bar-track {
-    background: #000; height: 18px; border: 2px solid #5c4432;
-    border-radius: 10px; overflow: hidden; margin: 5px 0;
-    box-shadow: inset 0 2px 5px #000;
-}
+.foot-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; opacity: 0.5; }
+.foot-item.active, .foot-item:hover { opacity: 1; transform: translateY(-5px); }
+.foot-item i { font-size: 1.8rem; color: var(--gold); border: 2px solid var(--gold); padding: 8px; border-radius: 5px; }
+.foot-item span { font-size: 0.7rem; margin-top: 5px; color: var(--gold); }
 
-.fill {
-    height: 100%; width: 50%;
-    background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent), #8b0000;
-    box-shadow: 0 0 15px rgba(255,0,0,0.5);
-    transition: width 0.5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-}
-.xp .fill { background-color: #008b8b; box-shadow: 0 0 15px #00ffff88; }
-
-/* --- BOUTONS ORNÉS --- */
-.gold-plate-btn {
-    background: var(--gold-linear);
-    border: 2px solid #3d2b1f; color: #1a110a;
-    padding: 15px 30px; font-family: 'Pirata One'; font-size: 1.4rem;
-    cursor: pointer; transition: 0.2s;
-    box-shadow: 0 4px 0 #8a6d29;
-}
-
-.gold-plate-btn:active { transform: translateY(4px); box-shadow: none; }
-
-.action-orb {
-    background: radial-gradient(circle, #5c4432, #1a110a);
-    border: 3px solid #c4a04d; border-radius: 50%;
-    width: 80px; height: 80px; color: #f0d58e;
-    cursor: pointer; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; font-size: 0.7rem;
-    margin: 10px auto;
-}
-
-.action-orb i { font-size: 1.5rem; margin-bottom: 5px; }
-
-/* --- CHAT DISPLAY --- */
-.chat-display {
-    height: 70%; background: rgba(0,0,0,0.3);
-    border: 1px solid #1a110a; overflow-y: auto;
-    padding: 10px; font-size: 0.85rem;
-}
+/* CHAT */
+.chat-box { height: 75%; background: rgba(0,0,0,0.3); border: 1px solid #000; overflow-y: auto; padding: 10px; font-size: 0.9rem; }
