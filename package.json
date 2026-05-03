@@ -1,13 +1,47 @@
 {
   "name": "one-piece-rp-v3",
   "version": "3.0.0",
-  "description": "RPG One Piece - Interface Or et Bleu",
+  "description": "Système RPG One Piece V3 avec Socket.io et Web Audio API",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
+  "engines": {
+    "node": ">=18.0.0"
   },
+  "author": "Grand Line Dev",
+  "license": "MIT",
+  "private": true,
   "dependencies": {
     "express": "^4.18.2",
-    "socket.io": "^4.7.2"
-  }
+    "socket.io": "^4.7.2",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "onepiece",
+    "rpg",
+    "socketio",
+    "gaming",
+    "v3"
+  ]
+}
+"dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "onepiece",
+    "rpg",
+    "socketio",
+    "gaming",
+    "v3"
+  ]
 }
