@@ -1,72 +1,173 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-    <title>☠️ One Piece RP — V3</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="style-extra.css">
-    <link rel="stylesheet" href="admin.css">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>☠️ One Piece RP — V3</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
-    <div id="overlay">
-        <div class="ov-icon">☠️</div>
-        <div class="ov-title">ONE PIECE RP<br><span style="font-size:.5em;letter-spacing:6px;opacity:.7">VERSION 3</span></div>
-        <div class="ov-card">
-            <div class="ov-tabs">
-                <button class="ov-tab active" id="tab-login-btn" onclick="switchTab('login')">CONNEXION</button>
-                <button class="ov-tab" id="tab-register-btn" onclick="switchTab('register')">INSCRIPTION</button>
-            </div>
-            <div id="tab-login">
-                <input class="inp" id="l-name" placeholder="Votre nom" maxlength="28"/>
-                <input class="inp" id="l-pass" type="password" placeholder="Mot de passe"/>
-                <button class="btn btn-full" onclick="tryLogin()">PRENDRE LA MER</button>
-            </div>
-            <div class="ov-err" id="auth-err"></div>
-        </div>
+
+<div id="overlay">
+  <div class="ov-icon">☠️</div>
+  <div class="ov-title">ONE PIECE RP<br><span style="font-size:.5em;letter-spacing:6px;opacity:.7">VERSION 3</span></div>
+  <div class="ov-card">
+    <div class="ov-tabs">
+      <button class="ov-tab active" id="tab-login-btn" onclick="switchTab('login')">CONNEXION</button>
+      <button class="ov-tab" id="tab-register-btn" onclick="switchTab('register')">INSCRIPTION</button>
     </div>
 
-    <div id="app">
-        <div id="topbar">
-            <button id="burger" onclick="toggleLeft()">☰</button>
-            <div class="tb-logo">☠️ GRAND LINE</div>
-            <div class="tb-player">
-                <div class="tb-name" id="tb-name">—</div>
-                <div class="faction-badge" id="tb-badge">—</div>
-            </div>
-        </div>
-
-        <div id="layout">
-            <div id="left">
-                <div class="sblock">
-                    <h3>Statistiques</h3>
-                    <div class="currency-row">
-                        <div class="cpill"><div class="cpill-val" id="s-bounty">0</div><div class="cpill-lbl">PRIME</div></div>
-                        <div class="cpill"><div class="cpill-val" id="s-berries">0</div><div class="cpill-lbl">BERRYS</div></div>
-                    </div>
-                </div>
-                <div class="sblock">
-                    <h3>Actions</h3>
-                    <div class="actions-grid">
-                        <button class="action-btn" onclick="act('train')">💪 ENTRAÎNER</button>
-                        <button class="action-btn red" onclick="act('pillage')">🏴‍☠️ PILLER</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="center">
-                <div id="tab-bar">
-                    <button class="tab-btn active" onclick="showTab('log')">📒 JOURNAL</button>
-                    <button class="tab-btn" onclick="showTab('chat')">💬 CHAT</button>
-                </div>
-                <div class="tab-pane active" id="pane-log"><div id="log-pane"></div></div>
-            </div>
-        </div>
+    <div id="tab-login">
+      <input class="inp" id="l-name" placeholder="Votre nom" maxlength="28" onkeydown="if(event.key==='Enter')tryLogin()"/>
+      <input class="inp" id="l-pass" type="password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')tryLogin()"/>
+      <button class="btn btn-full" onclick="tryLogin()">PRENDRE LA MER</button>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="main.js"></script>
-    <script src="admin.js"></script>
+    <div id="tab-register" style="display:none">
+      <input class="inp" id="r-name" placeholder="Choisissez un nom" maxlength="28"/>
+      <input class="inp" id="r-pass" type="password" placeholder="Mot de passe (min. 4 car.)"/>
+      <select class="inp" id="r-faction">
+        <option value="pirate">🏴‍☠️ Pirate</option>
+        <option value="marine">⚓ Marine</option>
+      </select>
+      <input class="inp" id="r-admin" type="password" placeholder="Code secret (optionnel)"/>
+      <button class="btn btn-full" onclick="tryRegister()">CRÉER LE PERSONNAGE</button>
+    </div>
+
+    <div class="ov-err" id="auth-err"></div>
+  </div>
+</div>
+<div id="app">
+  <div id="topbar">
+    <button id="burger" onclick="toggleLeft()">☰</button>
+    <div class="tb-logo">☠️ GRAND LINE</div>
+    <div class="tb-sep"></div>
+    <div class="tb-player">
+      <div>
+        <div class="tb-name" id="tb-name">—</div>
+        <div class="tb-grade" id="tb-grade">—</div>
+      </div>
+      <div class="faction-badge" id="tb-badge">—</div>
+    </div>
+    <div class="tb-online" id="tb-online">0 en ligne</div>
+  </div>
+
+  <div id="layout">
+    <div id="left">
+      <div class="jail-banner" id="jail-banner" style="display:none">
+        ⛓️ EN PRISON<br>
+        <span id="jail-timer" style="font-family:var(--fh);font-size:.95em">30s</span>
+        <button class="btn btn-sm btn-danger btn-full" onclick="tryRelease()" style="margin-top:7px">Tenter la sortie</button>
+      </div>
+
+      <div class="sblock">
+        <h3>Statistiques</h3>
+        <div class="currency-row">
+          <div class="cpill"><div class="cpill-val" id="s-bounty">0</div><div class="cpill-lbl">PRIME ฿</div></div>
+          <div class="cpill"><div class="cpill-val" id="s-berries">0</div><div class="cpill-lbl">BERRYS</div></div>
+        </div>
+        <div class="srow"><span class="sk">XP</span><span class="sv" id="s-xp">0</span></div>
+        <div class="srow">
+          <span class="sk">Wanted</span>
+          <div class="wanted-dots" id="wanted-dots"><div class="wd"></div><div class="wd"></div><div class="wd"></div></div>
+        </div>
+        <div class="gbar-wrap">
+          <div class="gbar-labels"><span id="g-cur">—</span><span id="g-next" style="opacity:.5">→ ?</span></div>
+          <div class="gbar"><div class="gbar-fill" id="g-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div class="sblock">
+        <h3>Actions</h3>
+        <div class="actions-grid">
+          <button class="action-btn" id="btn-train" onclick="act('train')"><span class="ai">💪</span>S'ENTRAÎNER</button>
+          <button class="action-btn red" id="btn-pillage" onclick="act('pillage')"><span class="ai">🏴‍☠️</span>PILLER</button>
+          <button class="action-btn" id="btn-navigate" onclick="act('navigate')"><span class="ai">⛵</span>NAVIGUER</button>
+          <button class="action-btn red" id="btn-combat" onclick="toggleCombat()"><span class="ai">⚔️</span>COMBATTRE</button>
+        </div>
+        <div class="combat-wrap" id="combat-wrap">
+          <input class="inp" id="combat-target" placeholder="Nom de l'adversaire" style="font-size:.85em"/>
+          <button class="btn btn-sm" onclick="startCombat()">GO</button>
+        </div>
+      </div>
+
+      <div class="sblock" id="stats-detail">
+        <h3>Statistiques</h3>
+        <div class="srow"><span class="sk">Entraînements</span><span class="sv" id="sd-train">0</span></div>
+        <div class="srow"><span class="sk">Pillages</span><span class="sv" id="sd-pillage">0</span></div>
+        <div class="srow"><span class="sk">Navigations</span><span class="sv" id="sd-nav">0</span></div>
+        <div class="srow"><span class="sk">Victoires</span><span class="sv green" id="sd-wins">0</span></div>
+        <div class="srow"><span class="sk">Défaites</span><span class="sv red" id="sd-losses">0</span></div>
+        <div class="srow"><span class="sk">Arrestations</span><span class="sv" id="sd-arrested">0</span></div>
+      </div>
+      <div id="admin-wrap" style="display:none">
+        <div class="adm-block">
+          <h3>⚙️ ADMIN</h3>
+          <input class="inp" id="a-target" placeholder="Joueur cible" style="margin-bottom:6px;font-size:.85em"/>
+          <input class="inp" id="a-value" placeholder="Valeur" style="margin-bottom:6px;font-size:.85em"/>
+          <input class="inp" id="a-code" type="password" placeholder="Code admin" style="margin-bottom:8px;font-size:.85em"/>
+          <div class="adm-row">
+            <button class="btn btn-sm" onclick="admDo('setBounty')" style="flex:1">Prime</button>
+            <button class="btn btn-sm" onclick="admDo('setBerries')" style="flex:1">Berrys</button>
+          </div>
+          <div class="adm-row">
+            <button class="btn btn-sm" onclick="admDo('release')" style="flex:1">Libérer</button>
+            <button class="btn btn-sm" onclick="admDo('mute')" style="flex:1">Mute</button>
+          </div>
+          <div class="adm-row">
+            <button class="btn btn-sm btn-danger" onclick="admDo('ban')" style="flex:1">Bannir</button>
+            <button class="btn btn-sm" onclick="admDo('resetStats')" style="flex:1">Reset</button>
+          </div>
+          <div style="margin-top:6px">
+            <input class="inp" id="a-broadcast" placeholder="Message broadcast..." style="margin-bottom:6px;font-size:.85em"/>
+            <button class="btn btn-sm btn-full" onclick="admBroadcast()">Diffuser</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="left-overlay" onclick="toggleLeft()"></div>
+
+    <div id="center">
+      <div id="tab-bar">
+        <button class="tab-btn active" onclick="showTab('log')">📒 JOURNAL</button>
+        <button class="tab-btn" onclick="showTab('chat')">💬 CHAT</button>
+        <button class="tab-btn" onclick="showTab('hist')">⚔️ COMBATS</button>
+      </div>
+      <div class="tab-pane active" id="pane-log" style="flex-direction:column">
+        <div id="log-pane"></div>
+        <div style="padding:6px 14px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;flex-shrink:0">
+          <button class="btn btn-sm" onclick="clearLog()" style="opacity:.4;font-size:.55em">EFFACER</button>
+        </div>
+      </div>
+      <div class="tab-pane" id="pane-chat" style="flex-direction:column">
+        <div id="chat-pane"></div>
+        <div class="chat-compose">
+          <div style="display:flex;gap:5px;flex-shrink:0">
+            <button class="chat-ch active" id="ch-global" onclick="setCh('global',this)">GLOBAL</button>
+            <button class="chat-ch" id="ch-faction" onclick="setCh('faction',this)">FACTION</button>
+          </div>
+          <input class="inp" id="chat-input" placeholder="Votre message..." maxlength="500" style="flex:1;margin:0;font-size:.88em" onkeydown="if(event.key==='Enter')sendChat()"/>
+          <button class="btn btn-sm" onclick="sendChat()">ENVOYER</button>
+        </div>
+      </div>
+      <div class="tab-pane" id="pane-hist" style="flex-direction:column">
+        <div id="hist-pane"></div>
+        <div style="padding:8px 14px;border-top:1px solid var(--border);flex-shrink:0">
+          <button class="btn btn-sm" onclick="loadCombatHistory()">↻ Actualiser</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="right">
+      <div id="lb-title">🏆 Classement</div>
+      <div id="lb-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>
