@@ -1,87 +1,72 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Le Chevreuil - Grand Line RPG</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Metamorphic&display=swap" rel="stylesheet">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+    <title>☠️ One Piece RP — V3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="style-extra.css">
+    <link rel="stylesheet" href="admin.css">
 </head>
 <body>
-
-    <div id="auth" class="auth-overlay">
-        <div class="wood-card">
-            <h1 class="title-gold">LOG-IN</h1>
-            <div class="gold-divider"></div>
-            <input type="text" id="log-name" class="gold-input" placeholder="Nom de Pirate...">
-            <button id="btn-login" class="btn-rect-gold">PRENDRE LA MER</button>
+    <div id="overlay">
+        <div class="ov-icon">☠️</div>
+        <div class="ov-title">ONE PIECE RP<br><span style="font-size:.5em;letter-spacing:6px;opacity:.7">VERSION 3</span></div>
+        <div class="ov-card">
+            <div class="ov-tabs">
+                <button class="ov-tab active" id="tab-login-btn" onclick="switchTab('login')">CONNEXION</button>
+                <button class="ov-tab" id="tab-register-btn" onclick="switchTab('register')">INSCRIPTION</button>
+            </div>
+            <div id="tab-login">
+                <input class="inp" id="l-name" placeholder="Votre nom" maxlength="28"/>
+                <input class="inp" id="l-pass" type="password" placeholder="Mot de passe"/>
+                <button class="btn btn-full" onclick="tryLogin()">PRENDRE LA MER</button>
+            </div>
+            <div class="ov-err" id="auth-err"></div>
         </div>
     </div>
 
-    <div id="game" class="game-container hidden">
-        
-        <header class="main-header">
-            <div class="header-nav">
-                <button class="nav-btn active">ACCUEIL</button>
-                <button class="nav-btn">PERSONNAGE</button>
-                <button class="nav-btn">INVENTAIRE</button>
+    <div id="app">
+        <div id="topbar">
+            <button id="burger" onclick="toggleLeft()">☰</button>
+            <div class="tb-logo">☠️ GRAND LINE</div>
+            <div class="tb-player">
+                <div class="tb-name" id="tb-name">—</div>
+                <div class="faction-badge" id="tb-badge">—</div>
             </div>
-            <div class="title-container">
-                <h1 class="title-main">LE CHEVREUIL</h1>
+        </div>
+
+        <div id="layout">
+            <div id="left">
+                <div class="sblock">
+                    <h3>Statistiques</h3>
+                    <div class="currency-row">
+                        <div class="cpill"><div class="cpill-val" id="s-bounty">0</div><div class="cpill-lbl">PRIME</div></div>
+                        <div class="cpill"><div class="cpill-val" id="s-berries">0</div><div class="cpill-lbl">BERRYS</div></div>
+                    </div>
+                </div>
+                <div class="sblock">
+                    <h3>Actions</h3>
+                    <div class="actions-grid">
+                        <button class="action-btn" onclick="act('train')">💪 ENTRAÎNER</button>
+                        <button class="action-btn red" onclick="act('pillage')">🏴‍☠️ PILLER</button>
+                    </div>
+                </div>
             </div>
-            <div class="prime-box">
-                PRIME: <span id="bounty">0</span> ฿
-                <i class="fas fa-cog gear-icon"></i>
+
+            <div id="center">
+                <div id="tab-bar">
+                    <button class="tab-btn active" onclick="showTab('log')">📒 JOURNAL</button>
+                    <button class="tab-btn" onclick="showTab('chat')">💬 CHAT</button>
+                </div>
+                <div class="tab-pane active" id="pane-log"><div id="log-pane"></div></div>
             </div>
-        </header>
-
-        <main class="layout">
-            
-            <aside class="panel">
-                <h2 id="p-name" class="player-name">---</h2>
-                <p class="level-text">NIVEAU <span id="p-lvl">1</span></p>
-                
-                <div class="stats-bars">
-                    <div class="stat-icon"><i class="fas fa-heart" style="color: #b22222;"></i></div>
-                    <div class="bar-track"><div id="hp-f" class="bar-fill hp-color" style="width:100%"></div></div>
-                    <div class="stat-values"><span id="hp-text">100 / 100</span></div>
-
-                    <div class="stat-icon"><i class="fas fa-star" style="color: #c4a04d;"></i></div>
-                    <div class="bar-track"><div id="xp-f" class="bar-fill xp-color" style="width:0%"></div></div>
-                    <div class="stat-values"><span id="xp-text">0 / 100</span></div>
-                </div>
-
-                <div class="actions">
-                    <button id="btn-train" class="action-orb">
-                        <i class="fas fa-khanda"></i>
-                        <span>Entraîner</span>
-                    </button>
-                    <button class="action-orb">
-                        <i class="fas fa-coins"></i>
-                        <span>Travailler</span>
-                    </button>
-                </div>
-            </aside>
-
-            <section class="parchment-area">
-                <h2 class="parchment-title">Arbre de Compétences</h2>
-                <p class="parchment-text">Ceci est ton journal de bord. Commence à t'entraîner pour débloquer des compétences.</p>
-            </section>
-
-            <aside class="panel">
-                <h3 class="chat-title">COMMUNICATIONS</h3>
-                <div id="chat" class="chat-box"></div>
-                <div class="chat-input-wrapper">
-                    <input type="text" id="m" placeholder="Écrire...">
-                    <button id="s"><i class="fas fa-paper-plane"></i></button>
-                </div>
-            </aside>
-
-        </main>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="main.js"></script>
+    <script src="admin.js"></script>
 </body>
 </html>
