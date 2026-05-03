@@ -1,88 +1,17 @@
-/* =========================================
-   STYLE-EXTRA.CSS - Les Finitions "200%²"
-   ========================================= */
+/* Animations et Scrollbars */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: var(--gold-d); }
 
-/* 1. SCROLLBARS PERSONNALISÉES (Immersion totale) */
-::-webkit-scrollbar {
-    width: 8px;
-}
-::-webkit-scrollbar-track {
-    background: var(--wood-dark);
-    border-left: 1px solid #000;
-}
-::-webkit-scrollbar-thumb {
-    background: var(--gold);
-    border-radius: 4px;
-    border: 1px solid var(--wood-dark);
-}
-::-webkit-scrollbar-thumb:hover {
-    background: var(--gold-bright);
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
-/* 2. ANIMATIONS DE LUEUR (Pulsation sur le titre) */
-@keyframes pulse-gold {
-    0% { text-shadow: 1px 1px 0px rgba(255,255,255,0.3), 0 0 5px rgba(196, 160, 77, 0.2); }
-    50% { text-shadow: 1px 1px 0px rgba(255,255,255,0.5), 0 0 20px rgba(196, 160, 77, 0.8); }
-    100% { text-shadow: 1px 1px 0px rgba(255,255,255,0.3), 0 0 5px rgba(196, 160, 77, 0.2); }
-}
+.ov-icon { animation: float 3s ease-in-out infinite; }
 
-.title-main {
-    animation: pulse-gold 4s infinite alternate;
-}
-
-/* 3. INPUTS SANS BORDURE BLEUE DE NAVIGATEUR */
-input:focus {
-    outline: none !important;
-    box-shadow: 0 0 10px var(--gold) !important;
-    border-color: var(--gold-bright) !important;
-    transition: box-shadow 0.3s ease;
-}
-
-/* 4. SÉLECTION DE TEXTE (Quand on surligne un message) */
-::selection {
-    background: var(--gold);
-    color: #000;
-}
-
-/* 5. EFFET DE FLOTTAISON AVANCÉ SUR LES BOUTONS */
-.action-orb {
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.action-orb:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.9), 0 0 15px rgba(196, 160, 77, 0.3);
-}
-
-/* 6. REFLET MÉTALLIQUE SUR LES BARRES DE STATS */
-.bar-fill {
-    position: relative;
-    overflow: hidden;
-}
-.bar-fill::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; bottom: 0; right: 0;
-    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
-    transform: translateX(-100%);
-    animation: shine 3s infinite;
-}
-
-.xp-color::after {
-    animation-delay: 1.5s; /* Décale le reflet de l'XP par rapport aux HP */
-}
-
-@keyframes shine {
-    0% { transform: translateX(-100%); }
-    20% { transform: translateX(100%); }
-    100% { transform: translateX(100%); }
-}
-
-/* 7. APPARITION EN FONDU (Pour l'écran de jeu) */
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.98); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-#game:not(.hidden) {
-    animation: fadeIn 0.5s ease-out forwards;
+/* Gradients de fond */
+body {
+  background-image: 
+    radial-gradient(ellipse at 15% 85%, rgba(30,58,95,.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 10%, rgba(127,29,29,.2) 0%, transparent 45%);
 }
