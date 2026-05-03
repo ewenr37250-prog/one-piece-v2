@@ -1,73 +1,12 @@
-/* --- ADMIN MODAL --- */
-.modal-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.85);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 1000;
+#admin-wrap {
+  margin-top: 15px; border-top: 1px dashed var(--gold-d); padding-top: 10px;
 }
 
-.admin-box {
-    background: #1a0f0f url('https://www.transparenttextures.com/patterns/dark-wood.png');
-    border: 3px solid #8b0000;
-    padding: 30px;
-    width: 400px;
-    box-shadow: 0 0 30px #ff000033;
-    position: relative;
-    text-align: center;
+.adm-block {
+  background: rgba(139,92,246,.06); border: 1px solid rgba(139,92,246,.2);
+  border-radius: 8px; padding: 12px;
 }
 
-.admin-title {
-    font-family: 'Pirata One';
-    color: #ff4b4b;
-    font-size: 2.2rem;
-    margin-bottom: 20px;
-    text-shadow: 2px 2px 0px #000;
-}
-
-.admin-input {
-    width: 100%;
-    background: #000;
-    border: 1px solid #8b0000;
-    color: #ff4b4b;
-    padding: 12px;
-    margin-bottom: 15px;
-    box-sizing: border-box;
-}
-
-.btn-admin {
-    width: 100%;
-    background: linear-gradient(to bottom, #8b0000, #4a0000);
-    color: white;
-    border: 1px solid #000;
-    padding: 12px;
-    font-family: 'Pirata One';
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.btn-admin:hover {
-    filter: brightness(1.2);
-}
-
-.admin-logs {
-    height: 100px;
-    background: rgba(0, 0, 0, 0.5);
-    margin-top: 20px;
-    padding: 10px;
-    font-size: 0.8rem;
-    color: #00ff00;
-    overflow-y: auto;
-    text-align: left;
-    font-family: monospace;
-    border: 1px solid #333;
-}
-
-.close-modo {
-    position: absolute;
-    top: 10px; right: 10px;
-    background: none; border: none;
-    color: #ff4b4b; font-size: 1.5rem;
-    cursor: pointer;
+.adm-block h3 {
+  font-family: var(--fh); font-size: .62em; color: #a78bfa; margin-bottom: 11px;
 }
