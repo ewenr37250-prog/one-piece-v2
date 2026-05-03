@@ -1,6 +1,8 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const { Player } = require('./models');
+const { resolveCombat } = require('./combat');
 
 const app = express();
 const server = http.createServer(app);
@@ -11,47 +13,19 @@ app.use(express.static(__dirname));
 let players = {};
 
 io.on('connection', (socket) => {
-    // Authentification & Création
-    socket.on('auth:login', ({ name }) => {
-        if (!players[name]) {
-            players[name] = {
-                name: name, 
-                level: 1, 
-                hp: 100, hpMax: 100, 
-                xp: 0, xpNext: 100, 
-                berries: 0, 
-                bounty: 0
-            };
-        }
-        socket.playerName = name;
-        socket.emit('auth:success', { player: players[name] });
-        io.emit('chat:message', { author: "SYSTÈME", text: `${name} a rejoint l'aventure !` });
+    socket.on('auth:login', (data) => {
+        // Logique de connexion simplifiée pour l'exemple
+        if (!players[data.name]) players[data.name] = new Player(data.name, 'pirate');
+        socket.emit('auth:success', { token: 'fake-jwt', player: players[data.name] });
     });
 
-    // Entraînement
-    socket.on('action:train', () => {
-        let p = players[socket.playerName];
-        if (p) {
-            p.xp += 15;
-            if (p.xp >= p.xpNext) {
-                p.level++; 
-                p.xp = 0; 
-                p.xpNext = Math.floor(p.xpNext * 1.5);
-                p.hpMax += 20;
-                p.hp = p.hpMax;
-            }
-            socket.emit('player:update', p);
-        }
-    });
-
-    // Chat
-    socket.on('chat:send', ({ text }) => {
-        if (socket.playerName) {
-            io.emit('chat:message', { author: socket.playerName, text });
-        }
+    socket.on('act', (type) => {
+        const p = players[socket.playerName];
+        if (!p) return;
+        // Mise à jour des stats et émission
+        p.xp += 10;
+        socket.emit('player:update', p);
     });
 });
 
-server.listen(3000, () => {
-    console.log('🏴‍☠️ Serveur RPG en ligne sur http://localhost:3000');
-});
+server.listen(3000, () => console.log('⚓ Serveur V3 lancé sur port 3000'));
