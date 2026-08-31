@@ -1,0 +1,37 @@
+/* --- Extra polish for the new visual theme --- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(244, 199, 109, 0.28);
+  border-radius: 999px;
+}
+
+#game-ui,
+#auth-screen,
+#admin-panel {
+  font-synthesis-weight: none;
+}
+
+.world-info-box-inner strong,
+.quest-item strong,
+.reputation-item strong,
+.island-card strong {
+  letter-spacing: 0.02em;
+}
+
+#game-ui .quest-item button,
+#game-ui .market-buy-btn {
+  border-radius: 10px;
+}
+
+#admin-panel {
+  z-index: 1000;
+}
+

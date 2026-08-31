@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grand Line MMO</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style-extra.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <div id="auth-screen">
+        <div class="auth-box">
+            <h2>🏴‍☠️ Grand Line MMO</h2>
+            <div id="auth-messages"></div>
+            <input type="text" id="auth-username" placeholder="Nom d'équipage" />
+            <input type="password" id="auth-password" placeholder="Mot de passe" />
+            <div class="class-picker" id="class-picker">
+                <button type="button" class="class-option active" data-class="pirate">Pirate</button>
+                <button type="button" class="class-option" data-class="marine">Marine</button>
+                <button type="button" class="class-option" data-class="civil">Civil</button>
+            </div>
+            <div class="auth-buttons">
+                <button onclick="login()">Se Connecter</button>
+                <button onclick="register()">Créer un compte</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-ui">
+        <div class="hud">
+            <span id="hud-name">Joueur Inconnu</span>
+            <span id="hud-money">0 ฿</span>
+            <span id="hud-island">-</span>
+            <button id="admin-toggle" class="admin-toggle">Admin</button>
+        </div>
+
+        <div class="game-shell">
+            <aside class="side-rail left-rail">
+                <div class="side-panel">
+                    <div class="mini-label">Prime</div>
+                    <div class="big-stat">1200</div>
+                    <div class="meta-line">credits actifs</div>
+                </div>
+
+                <div class="side-panel">
+                    <div class="mini-label">Messagerie</div>
+                    <div class="message-item">
+                        <strong>Capitaine</strong>
+                        <span>On met le cap sur Loguetown.</span>
+                    </div>
+                    <div class="message-item">
+                        <strong>Marine</strong>
+                        <span>Patrouille renforcée près du port.</span>
+                    </div>
+                </div>
+
+                <div class="side-panel">
+                    <div class="mini-label">Événements</div>
+                    <div id="world-event" class="world-info-box"></div>
+                    <button id="event-resolve-btn" class="btn" style="margin-top: 10px; width: 100%;">Régler l’événement</button>
+                </div>
+            </aside>
+
+            <main class="board-panel">
+                <div class="board-header">
+                    <div>
+                        <div class="mini-label">Planche centrale</div>
+                        <h2>Tableau de bord du navire</h2>
+                    </div>
+                    <div class="board-badges">
+                        <span>RP</span>
+                        <span>Équipage</span>
+                        <span>Île</span>
+                    </div>
+                </div>
+
+                <div class="board-grid">
+                    <section class="board-card map-card">
+                        <div class="card-head">
+                            <h3>Carte du monde</h3>
+                            <span>Navigation</span>
+                        </div>
+                        <div id="game-map" class="map-grid"></div>
+                    </section>
+
+                    <section class="board-card rp-card">
+                        <div class="card-head">
+                            <h3>Équipage & RP</h3>
+                            <span>Journal</span>
+                        </div>
+                        <div id="world-npcs" class="stack-list"></div>
+                        <button id="npc-interact-btn" class="btn" style="margin-top: 12px; width: 100%;">Parler au premier NPC</button>
+                        <div id="npc-dialogue" style="margin-top: 10px;"></div>
+                    </section>
+
+                    <section class="board-card inventory-card">
+                        <div class="card-head">
+                            <h3>Inventaire</h3>
+                            <span>Sac</span>
+                        </div>
+                        <div id="inventory-list" class="stack-list"></div>
+                    </section>
+
+                    <section class="board-card crew-card">
+                        <div class="card-head">
+                            <h3>Équipement</h3>
+                            <span>Armes</span>
+                        </div>
+                        <div id="equipment-list" class="stack-list"></div>
+                    </section>
+                </div>
+            </main>
+
+            <aside class="side-rail right-rail">
+                <div class="side-panel">
+                    <div class="mini-label">Combat</div>
+                    <button id="combat-btn" class="btn" style="width: 100%;">Lancer un combat</button>
+                    <div id="combat-result" style="margin-top: 12px;"></div>
+                </div>
+
+                <div class="side-panel">
+                    <div class="mini-label">Quêtes</div>
+                    <div id="quest-list" class="stack-list"></div>
+                </div>
+
+                <div class="side-panel">
+                    <div class="mini-label">Marché</div>
+                    <div id="market-list" class="stack-list"></div>
+                </div>
+
+                <div class="side-panel">
+                    <div class="mini-label">Réputation</div>
+                    <div id="reputation-list" class="stack-list"></div>
+                </div>
+
+                <div class="side-panel">
+                    <div class="mini-label">Territoires</div>
+                    <div id="world-territories" class="stack-list"></div>
+                </div>
+
+                <div class="side-panel">
+                    <div class="mini-label">Factions</div>
+                    <div id="world-factions" class="stack-list"></div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <div id="admin-panel" class="hidden">
+        <div class="admin-header">Panneau Administrateur</div>
+        <div class="admin-body">
+            <div class="admin-section">
+                <label for="admin-login-username">Compte admin</label>
+                <input id="admin-login-username" type="text" placeholder="Ex: GrandLineMaster" />
+                <label for="admin-login-pin">Code admin</label>
+                <input id="admin-login-pin" type="password" placeholder="Code PIN" />
+                <button id="admin-login-submit">Connexion admin</button>
+            </div>
+
+            <div class="admin-section">
+                <label for="admin-event-title">Titre</label>
+                <input id="admin-event-title" type="text" placeholder="Ex: Bataille au port" />
+                <label for="admin-event-location">Localisation</label>
+                <input id="admin-event-location" type="text" placeholder="Ex: Marineford" />
+                <label for="admin-event-type">Type</label>
+                <input id="admin-event-type" type="text" placeholder="Ex: historique" />
+                <label for="admin-event-description">Description</label>
+                <textarea id="admin-event-description" rows="3" placeholder="Description de l’événement..."></textarea>
+                <button id="admin-event-submit">Créer un événement</button>
+            </div>
+
+            <div class="admin-section">
+                <label for="admin-staff-username">Nom du staff</label>
+                <input id="admin-staff-username" type="text" placeholder="Ex: Kizaru" />
+                <label for="admin-staff-role">Rôle</label>
+                <select id="admin-staff-role">
+                    <option value="MOD_CHAT">MOD_CHAT</option>
+                    <option value="MOD_TERRAIN">MOD_TERRAIN</option>
+                    <option value="RESPONSABLE">RESPONSABLE</option>
+                    <option value="SUPER_MOD">SUPER_MOD</option>
+                    <option value="OWNER">OWNER</option>
+                </select>
+                <button id="admin-staff-submit">Ajouter un staff</button>
+            </div>
+
+            <div class="admin-section">
+                <label for="admin-world-territory">Territoire</label>
+                <input id="admin-world-territory" type="text" placeholder="Ex: Marineford" />
+                <label for="admin-world-faction">Faction impactée</label>
+                <input id="admin-world-faction" type="text" placeholder="Ex: pirates" />
+                <label for="admin-world-delta">Impact</label>
+                <input id="admin-world-delta" type="number" value="5" />
+                <label for="admin-world-summary">Résumé</label>
+                <textarea id="admin-world-summary" rows="2" placeholder="Résumé de la conséquence..."></textarea>
+                <button id="admin-world-resolve-submit">Résoudre l’événement mondial</button>
+            </div>
+
+            <div id="admin-status" class="admin-status"></div>
+            <div id="admin-world-info" class="admin-world-info"></div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

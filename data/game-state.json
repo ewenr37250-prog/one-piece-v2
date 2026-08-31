@@ -1,0 +1,126 @@
+{
+  "players": [
+    {
+      "id": "JoueurPublic",
+      "username": "JoueurPublic",
+      "name": "JoueurPublic",
+      "level": 1,
+      "xp": 0,
+      "money": 100,
+      "faction": "civil",
+      "title": "Voyageur",
+      "current_island": "windmill",
+      "stats": {
+        "strength": 12,
+        "agility": 11,
+        "defense": 10,
+        "haki": 0
+      },
+      "skills": {
+        "cuisine": 0,
+        "navigation": 0,
+        "cartographie": 0,
+        "meteorologie": 0,
+        "tir": 0,
+        "epee": 0,
+        "medecine": 0,
+        "peche": 0,
+        "forge": 0,
+        "commerce": 0
+      },
+      "combatSkills": {
+        "epee": 0,
+        "tir": 0,
+        "main_nue": 0,
+        "mobilite": 0,
+        "haki": 0,
+        "fruit": 0
+      },
+      "haki": {
+        "observation": 0,
+        "armement": 0,
+        "conquérant": 0
+      },
+      "devilFruit": null,
+      "bounty": 0,
+      "destiny": null,
+      "status": "libre",
+      "inventory": [],
+      "equipment": {
+        "weapon": null,
+        "armor": null,
+        "accessory": null
+      }
+    }
+  ],
+  "world": {
+    "era": "Grand Line",
+    "institutions": {
+      "Corsaires": "ACTIVE"
+    },
+    "factions": {
+      "Pirates": {
+        "id": "pirates",
+        "name": "Pirates",
+        "status": "active",
+        "reputation": 0,
+        "influence": {}
+      },
+      "Marine": {
+        "id": "marine",
+        "name": "Marine",
+        "status": "active",
+        "reputation": 0,
+        "influence": {}
+      },
+      "Civils": {
+        "id": "civils",
+        "name": "Civils",
+        "status": "active",
+        "reputation": 0,
+        "influence": {}
+      }
+    },
+    "territories": {
+      "windmill": {
+        "id": "windmill",
+        "name": "windmill",
+        "owner": null,
+        "status": "neutral",
+        "faction": "civil",
+        "influence": {
+          "civil": 10,
+          "pirates": 0,
+          "marine": 0
+        }
+      },
+      "loguetown": {
+        "id": "loguetown",
+        "name": "loguetown",
+        "owner": null,
+        "status": "neutral",
+        "faction": "civil",
+        "influence": {
+          "civil": 12,
+          "pirates": 3,
+          "marine": 2
+        }
+      },
+      "marineford": {
+        "id": "marineford",
+        "name": "marineford",
+        "owner": "Marine",
+        "status": "controlled",
+        "faction": "marine",
+        "influence": {
+          "marine": 20,
+          "pirates": 5,
+          "civil": 2
+        }
+      }
+    },
+    "history": []
+  },
+  "updatedAt": "2026-08-30T19:57:56.195Z",
+  "savedAt": "2026-08-30T19:57:56.196Z"
+}
