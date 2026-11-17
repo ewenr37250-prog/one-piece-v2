@@ -38,7 +38,7 @@ function createGameRoutes({ playerService }) {
 
     if (!player) {
       player = playerService.createPlayer({
-        id: `player_${Date.now()}`,
+        id: `player_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
         username,
         faction: resolvedClass,
         classType: resolvedClass,
@@ -97,9 +97,13 @@ function createGameRoutes({ playerService }) {
       return res.status(404).json({ error: 'Joueur introuvable' });
     }
 
-    const item = req.body?.item || req.body;
-    const added = player.addItem(item);
-    return res.json({ success: true, item: added, inventory: player.inventory, equipment: player.equipment });
+    try {
+      const item = req.body?.item || req.body;
+      const added = player.addItem(item);
+      return res.json({ success: true, item: added, inventory: player.inventory, equipment: player.equipment });
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
   });
 
   router.post('/api/player/:username/inventory/equip', (req, res) => {
@@ -113,8 +117,16 @@ function createGameRoutes({ playerService }) {
       return res.status(400).json({ error: 'slot et itemId requis' });
     }
 
-    const equipment = player.equipItem(slot, itemId);
-    return res.json({ success: true, equipment, inventory: player.inventory });
+    if (!Object.prototype.hasOwnProperty.call(player.equipment, slot)) {
+      return res.status(400).json({ error: 'Emplacement inconnu' });
+    }
+
+    try {
+      const equipment = player.equipItem(slot, itemId);
+      return res.json({ success: true, equipment, inventory: player.inventory });
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
   });
 
   router.post('/api/player/:username/inventory/unequip', (req, res) => {
@@ -124,19 +136,35 @@ function createGameRoutes({ playerService }) {
     }
 
     const { slot } = req.body || {};
+    if (!Object.prototype.hasOwnProperty.call(player.equipment, slot)) {
+      return res.status(400).json({ error: 'Emplacement inconnu' });
+    }
+
     const equipment = player.unequipItem(slot);
     return res.json({ success: true, equipment, inventory: player.inventory });
   });
 
+  // Ennemis autorisés : puissance et récompense fixées côté serveur
+  // pour empêcher l’attribution de récompenses arbitraires depuis le client.
+  const ALLOWED_ENEMIES = {
+    'Équipage renégat': { power: 85, reward: 500 },
+    'Créature des récifs': { power: 155, reward: 1500 }
+  };
+
   router.post('/api/combat', (req, res) => {
-    const { username, enemyName, enemyPower = 100, enemyReward = 0 } = req.body || {};
+    const { username, enemyName } = req.body || {};
     const player = playerService.getPlayerByUsername(username);
     if (!player) {
       return res.status(404).json({ error: 'Joueur introuvable' });
     }
 
-    const normalizedEnemyPower = Number(enemyPower || 0);
-    const normalizedEnemyReward = Number(enemyReward || 0);
+    const enemy = ALLOWED_ENEMIES[enemyName];
+    if (!enemy) {
+      return res.status(400).json({ error: 'Ennemi inconnu' });
+    }
+
+    const normalizedEnemyPower = enemy.power;
+    const normalizedEnemyReward = enemy.reward;
     const playerPower = (player.stats?.strength || 10) + player.level * 2;
     const victory = playerPower >= normalizedEnemyPower;
     const reward = victory ? normalizedEnemyReward : 0;
