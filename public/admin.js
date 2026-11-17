@@ -8,19 +8,6 @@ function getStoredAdminToken() {
   return localStorage.getItem('grandline-admin-token') || null;
 }
 
-function clearStaleTokens() {
-  const adminToken = getStoredAdminToken();
-  const token = getStoredToken();
-
-  if (adminToken) {
-    localStorage.removeItem('grandline-admin-token');
-  }
-
-  if (token) {
-    localStorage.removeItem('grandline-token');
-  }
-}
-
 async function fetchJson(url, options = {}) {
   const token = getStoredToken();
   const headers = {

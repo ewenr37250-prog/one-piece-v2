@@ -3,6 +3,15 @@ const SERVER_URL = '';
 const CLASS_OPTIONS = ['pirate', 'marine', 'civil'];
 let selectedClass = localStorage.getItem('grandline-class') || 'pirate';
 
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function getStoredToken() {
     return localStorage.getItem('grandline-token') || null;
 }
@@ -343,11 +352,11 @@ function renderInventory() {
             ? (state.inventory || []).map((item) => `
                 <div class="quest-item">
                     <div>
-                        <strong>${item.name}</strong>
-                        <p>${item.type || 'objet'} • ${item.rarity || 'commun'}</p>
+                        <strong>${escapeHtml(item.name)}</strong>
+                        <p>${escapeHtml(item.type || 'objet')} • ${escapeHtml(item.rarity || 'commun')}</p>
                     </div>
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <button data-item-id="${item.id}" data-slot="${item.slot || 'misc'}" class="equip-btn">Équiper</button>
+                        <button data-item-id="${escapeHtml(item.id)}" data-slot="${escapeHtml(item.slot || 'misc')}" class="equip-btn">Équiper</button>
                         <button data-item-id="${item.id}" data-item-name="${encodeURIComponent(item.name || 'Objet')}" data-item-value="${Number(item.value || 0)}" class="sell-btn">Vendre</button>
                     </div>
                 </div>
@@ -361,7 +370,7 @@ function renderInventory() {
             ? slots.map(([slot, itemId]) => `
                 <div class="reputation-item">
                     <span>${slot}</span>
-                    <strong>${itemId || 'vide'}</strong>
+                    <strong>${escapeHtml(itemId || 'vide')}</strong>
                 </div>
             `).join('')
             : '<div class="reputation-item"><span>Équipement</span><strong>vide</strong></div>';
@@ -436,9 +445,9 @@ function renderWorldInfo() {
 
     if (eventList) {
         const banner = state.world.banner || state.world.summary?.activeEvent || null;
-        const events = (state.world.events || []).slice(0, 3).map((event) => `<div class="reputation-item"><span>${event.title}</span><strong>${event.status || 'active'}</strong></div>`).join('');
+        const events = (state.world.events || []).slice(0, 3).map((event) => `<div class="reputation-item"><span>${escapeHtml(event.title)}</span><strong>${escapeHtml(event.status || 'active')}</strong></div>`).join('');
         eventList.innerHTML = banner
-            ? `<div class="world-info-box-inner"><strong>${banner.title}</strong><p>${banner.location || 'Monde'}</p><small>${banner.status || 'active'}</small>${events ? `<div class="stack-list" style="margin-top:8px;">${events}</div>` : ''}</div>`
+            ? `<div class="world-info-box-inner"><strong>${escapeHtml(banner.title)}</strong><p>${escapeHtml(banner.location || 'Monde')}</p><small>${escapeHtml(banner.status || 'active')}</small>${events ? `<div class="stack-list" style="margin-top:8px;">${events}</div>` : ''}</div>`
             : '<div class="world-info-box-inner"><strong>Calme</strong><p>Aucun événement majeur en cours.</p></div>';
     }
 
@@ -471,8 +480,8 @@ function renderWorldInfo() {
         factionList.innerHTML = factions.length
             ? factions.map((faction) => `
                 <div class="reputation-item">
-                    <span>${faction.name || faction.id}</span>
-                    <strong>${faction.type || 'civil'} • ${Number(faction.reputation || 0)}</strong>
+                    <span>${escapeHtml(faction.name || faction.id)}</span>
+                    <strong>${escapeHtml(faction.type || 'civil')} • ${Number(faction.reputation || 0)}</strong>
                 </div>
             `).join('')
             : '<div class="reputation-item"><span>Factions</span><strong>inconnues</strong></div>';
@@ -481,11 +490,11 @@ function renderWorldInfo() {
     if (territoryList) {
         territoryList.innerHTML = (state.world.territories || []).length
             ? (state.world.territories || []).map((territory) => {
-                const influence = territory.influence ? Object.entries(territory.influence).map(([key, value]) => `${key}:${value}`).join(', ') : 'influence: 0';
+                const influence = territory.influence ? Object.entries(territory.influence).map(([key, value]) => `${escapeHtml(key)}:${escapeHtml(value)}`).join(', ') : 'influence: 0';
                 return `
                     <div class="reputation-item">
-                        <span>${territory.name || territory.id}</span>
-                        <strong>${territory.owner || territory.status || 'neutral'} • ${influence}</strong>
+                        <span>${escapeHtml(territory.name || territory.id)}</span>
+                        <strong>${escapeHtml(territory.owner || territory.status || 'neutral')} • ${escapeHtml(influence)}</strong>
                     </div>
                 `;
             }).join('')
@@ -496,8 +505,8 @@ function renderWorldInfo() {
         npcList.innerHTML = (state.world.npcs || []).length
             ? (state.world.npcs || []).map((npc) => `
                 <div class="reputation-item">
-                    <span>${npc.name}</span>
-                    <strong>${npc.type || 'civil'}</strong>
+                    <span>${escapeHtml(npc.name)}</span>
+                    <strong>${escapeHtml(npc.type || 'civil')}</strong>
                 </div>
             `).join('')
             : '<div class="reputation-item"><span>Personnages</span><strong>aucun</strong></div>';
@@ -542,10 +551,10 @@ function renderQuestList() {
         return `
             <div class="quest-item">
                 <div>
-                    <strong>${quest.title}</strong>
-                    <p>${quest.description}</p>
+                    <strong>${escapeHtml(quest.title)}</strong>
+                    <p>${escapeHtml(quest.description)}</p>
                 </div>
-                <button data-quest-id="${quest.id}" data-action="${actionType}">${actionLabel}</button>
+                <button data-quest-id="${escapeHtml(quest.id)}" data-action="${actionType}">${actionLabel}</button>
             </div>
         `;
     }).join('');
@@ -564,8 +573,8 @@ function renderReputation() {
 
     list.innerHTML = Object.entries(unique).map(([name, value]) => `
         <div class="reputation-item">
-            <span>${name}</span>
-            <strong>${value}</strong>
+            <span>${escapeHtml(name)}</span>
+            <strong>${escapeHtml(value)}</strong>
         </div>
     `).join('');
 }
@@ -579,10 +588,10 @@ function renderMarket() {
         ? listings.map((listing) => `
             <div class="quest-item">
                 <div>
-                    <strong>${listing.item?.name || listing.itemId}</strong>
-                    <p>${listing.item?.rarity || 'commun'} • ${listing.item?.type || 'objet'} • ${listing.price} ฿</p>
+                    <strong>${escapeHtml(listing.item?.name || listing.itemId)}</strong>
+                    <p>${escapeHtml(listing.item?.rarity || 'commun')} • ${escapeHtml(listing.item?.type || 'objet')} • ${escapeHtml(listing.price)} ฿</p>
                 </div>
-                <button data-listing-id="${listing.id}" class="market-buy-btn">Acheter</button>
+                <button data-listing-id="${escapeHtml(listing.id)}" class="market-buy-btn">Acheter</button>
             </div>
         `).join('')
         : '<div class="quest-item"><div><strong>Marché vide</strong><p>Aucune offre active pour le moment.</p></div></div>';
