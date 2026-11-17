@@ -43,8 +43,6 @@ class WorldStateService {
       const merged = deduped.get(canonicalKey) || {};
 
       const normalized = {
-        id: canonicalKey,
-        name: canonicalName,
         status: 'active',
         reputation: 0,
         influence: {},
@@ -65,8 +63,6 @@ class WorldStateService {
     const canonicalKey = this.normalizeFactionKey(name || value.id || 'civil');
     const canonicalName = this.normalizeFactionName(name || value.id || 'civil');
     const normalized = {
-      id: canonicalKey,
-      name: canonicalName,
       status: 'active',
       reputation: 0,
       influence: {},

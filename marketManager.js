@@ -15,16 +15,18 @@ class MarketManager {
       value: 0
     };
 
-    if (!sellerId || !itemPayload?.id || price <= 0) {
+    if (!sellerId || !itemPayload?.id || !(Number(price) > 0)) {
       throw new Error('Paramètres de vente invalides');
     }
 
+    // Retrait unique : à la mise en vente si le vendeur est fourni, sinon à l’achat.
+    let removedFromSeller = false;
     const effectiveSeller = seller || null;
-    if (effectiveSeller && typeof effectiveSeller.removeItem === 'function') {
-      const itemKey = itemPayload.id;
-      const inventoryItem = effectiveSeller.inventory?.find((entry) => entry.id === itemKey);
-      if (inventoryItem) {
-        effectiveSeller.removeItem(itemKey);
+    if (effectiveSeller && Array.isArray(effectiveSeller.inventory)) {
+      const index = effectiveSeller.inventory.findIndex((entry) => entry.id === itemPayload.id);
+      if (index >= 0) {
+        effectiveSeller.inventory.splice(index, 1);
+        removedFromSeller = true;
       }
     }
 
@@ -36,6 +38,7 @@ class MarketManager {
       itemId: itemPayload.id,
       price,
       quantity,
+      removedFromSeller,
       createdAt: new Date().toISOString()
     };
 
@@ -62,17 +65,11 @@ class MarketManager {
     }
 
     const sellerRef = seller || null;
-    const itemId = listing.itemId || listing.item?.id;
-
-    if (sellerRef && Array.isArray(sellerRef.inventory)) {
-      const soldIndex = sellerRef.inventory.findIndex((entry) => entry.id === itemId);
-      if (soldIndex >= 0) {
-        sellerRef.inventory.splice(soldIndex, 1);
+    if (sellerRef && !listing.removedFromSeller && Array.isArray(sellerRef.inventory)) {
+      const index = sellerRef.inventory.findIndex((entry) => entry.id === listing.item.id);
+      if (index >= 0) {
+        sellerRef.inventory.splice(index, 1);
       }
-    }
-
-    if (sellerRef && typeof sellerRef.removeItem === 'function') {
-      sellerRef.removeItem(itemId);
     }
 
     buyer.money = Number(buyer.money || 0) - Number(listing.price);

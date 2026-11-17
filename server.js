@@ -12,7 +12,6 @@ const { createGameRoutes } = require('./routes/gameRoutes');
 const { ProgressionService } = require('./progressionService');
 const { WorldEngine, DEFAULT_ISLANDS } = require('./worldEngine');
 const { WeatherService } = require('./weatherService');
-const { ShipService } = require('./shipService');
 const { DevilFruitService } = require('./devilFruitService');
 const { EventService } = require('./eventService');
 const { WorldStateService } = require('./worldStateService');
@@ -70,7 +69,6 @@ const marketManager = new MarketManager();
 const staffService = new StaffService();
 const worldEngine = new WorldEngine(DEFAULT_ISLANDS);
 const weatherService = new WeatherService();
-const shipService = new ShipService(worldEngine);
 const devilFruitService = new DevilFruitService();
 const eventService = new EventService();
 const worldStateService = new WorldStateService();
@@ -304,7 +302,7 @@ app.post('/api/quests/:playerId/complete', (req, res) => {
   }
 });
 
-app.get('/api/system/persist', async (req, res) => {
+app.get('/api/system/persist', requireAuth, requireAdmin, async (req, res) => {
   try {
     const payload = {
       players: [...playerService.players.values()].map(player => player.toPublicJSON ? player.toPublicJSON() : player),
@@ -325,7 +323,7 @@ app.get('/api/system/persist', async (req, res) => {
   }
 });
 
-app.get('/api/system/load', async (req, res) => {
+app.get('/api/system/load', requireAuth, requireAdmin, async (req, res) => {
   try {
     const data = await persistenceService.load();
     res.json({ success: true, data });
@@ -422,8 +420,14 @@ app.get('/api/world/territories', (req, res) => {
   });
 });
 
-app.post('/api/world/territories/claim', (req, res) => {
+app.post('/api/world/territories/claim', requireAuth, (req, res) => {
   const { username, territoryId, faction = 'civil' } = req.body || {};
+  const requester = String(req.user?.username || '').toLowerCase();
+  const target = String(username || '').toLowerCase();
+  if (req.user?.role !== 'admin' && (!target || target !== requester)) {
+    return res.status(403).json({ error: 'Vous ne pouvez revendiquer que pour votre propre compte' });
+  }
+
   const player = playerService.getPlayerByUsername(username);
 
   if (!player) {
@@ -460,6 +464,10 @@ app.post('/api/market/listings', (req, res) => {
   try {
     const { sellerId, itemId, item, price, quantity = 1 } = req.body || {};
     const seller = playerService.getPlayerByUsername(sellerId) || playerService.getPlayer(sellerId);
+    if (!seller) {
+      return res.status(404).json({ error: 'Vendeur introuvable' });
+    }
+
     const listing = marketManager.createListing({
       sellerId: seller.id,
       itemId,
@@ -631,23 +639,26 @@ app.post('/api/admin/world/territories/claim', requireAuth, requireAdmin, (req, 
 io.on('connection', (socket) => {
   console.log(`Joueur connecté : ${socket.id}`);
 
+  const ack = (callback) => (typeof callback === 'function' ? callback : () => {});
+
   socket.on('player:login', (data, callback) => {
+    const reply = ack(callback);
     try {
-      let player;
-      const username = data?.username || data?.name || `Voyageur_${socket.id.slice(0, 4)}`;
-      try {
-        player = playerService.getPlayerByUsername(username) || playerService.getPlayer(data.id);
-      } catch (err) {
-        const destiny = data?.destiny || null;
+      const payload = data || {};
+      const username = payload.username || payload.name || `Voyageur_${socket.id.slice(0, 4)}`;
+      let player = playerService.getPlayerByUsername(username) || playerService.players.get(payload.id);
+
+      if (!player) {
+        const destiny = payload.destiny || null;
         if (destiny && playerService.isDestinyTaken(destiny)) {
           throw new Error(`Le destin '${destiny}' est déjà attribué`);
         }
 
         player = playerService.createPlayer({
-          id: data?.id || `player_${Date.now()}`,
+          id: payload.id || `player_${Date.now()}`,
           username,
           name: username,
-          faction: data?.faction || 'civil',
+          faction: payload.faction || 'civil',
           current_island: 'windmill',
           money: 100,
           destiny,
@@ -661,28 +672,32 @@ io.on('connection', (socket) => {
       }
 
       socket.data.playerId = player.id;
-      callback({ success: true, player: player.toPublicJSON ? player.toPublicJSON() : player });
+      reply({ success: true, player: player.toPublicJSON ? player.toPublicJSON() : player });
     } catch (error) {
-      callback({ success: false, error: error.message });
+      reply({ success: false, error: error.message });
     }
   });
 
-  socket.on('combat:duel', ({ targetId }, callback) => {
+  socket.on('combat:duel', (payload, callback) => {
+    const reply = ack(callback);
     try {
+      const targetId = payload?.targetId;
       const attacker = playerService.getPlayer(socket.data.playerId || defaultPlayer.id);
       const defender = playerService.getPlayer(targetId || defaultPlayer.id);
       const battleResult = resolveCombat(attacker, defender);
       ProgressionService.gainSkillXp(attacker, 'epee', 15);
       ProgressionService.gainSkillXp(defender, 'combat', 5);
       io.emit('combat:result', battleResult);
-      callback({ success: true, battleResult });
+      reply({ success: true, battleResult });
     } catch (error) {
-      callback({ success: false, error: error.message });
+      reply({ success: false, error: error.message });
     }
   });
 
-  socket.on('market:create', ({ itemId, price, quantity }, callback) => {
+  socket.on('market:create', (payload, callback) => {
+    const reply = ack(callback);
     try {
+      const { itemId, price, quantity } = payload || {};
       const player = playerService.getPlayer(socket.data.playerId || defaultPlayer.id);
       const listing = marketManager.createListing({
         sellerId: player.id,
@@ -692,14 +707,16 @@ io.on('connection', (socket) => {
         seller: player
       });
       io.emit('market:update', marketManager.listListings());
-      callback({ success: true, listing });
+      reply({ success: true, listing });
     } catch (error) {
-      callback({ success: false, error: error.message });
+      reply({ success: false, error: error.message });
     }
   });
 
-  socket.on('market:buy', ({ listingId }, callback) => {
+  socket.on('market:buy', (payload, callback) => {
+    const reply = ack(callback);
     try {
+      const { listingId } = payload || {};
       const buyer = playerService.getPlayer(socket.data.playerId || defaultPlayer.id);
       const listing = marketManager.listListings().find((entry) => entry.id === listingId);
       if (!listing) {
@@ -709,9 +726,9 @@ io.on('connection', (socket) => {
       const seller = playerService.getPlayer(listing.sellerId) || playerService.getPlayerByUsername(listing.sellerId);
       const transaction = marketManager.buyListing(buyer, listingId, seller);
       io.emit('market:update', marketManager.listListings());
-      callback({ success: true, transaction });
+      reply({ success: true, transaction });
     } catch (error) {
-      callback({ success: false, error: error.message });
+      reply({ success: false, error: error.message });
     }
   });
 
