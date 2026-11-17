@@ -511,3 +511,35 @@ test('QuestService tracks faction reputation and quest completion', () => {
   assert.ok(service.getReputation('player_42', 'pirates') >= 25);
   assert.equal(service.getActiveQuests('player_42').length, 0);
 });
+
+test('MarketManager refuse un prix invalide et ne retire qu’une fois', () => {
+  const { MarketManager } = require('../marketManager');
+  const manager = new MarketManager();
+  const seller = { id: 's1', money: 0, inventory: [{ id: 'it1', name: 'Objet', slot: 'misc' }] };
+
+  assert.throws(() => manager.createListing({ sellerId: 's1', item: seller.inventory[0], price: 'gratuit', seller }), /Paramètres de vente invalides/);
+  assert.equal(seller.inventory.length, 1, 'objet conservé après refus');
+
+  const listing = manager.createListing({ sellerId: 's1', item: seller.inventory[0], price: 10, seller });
+  assert.equal(seller.inventory.length, 0, 'retiré une fois à la mise en vente');
+  assert.equal(listing.removedFromSeller, true);
+
+  const buyer = { id: 'b1', money: 100, inventory: [] };
+  manager.buyListing(buyer, listing.id, seller);
+  assert.equal(seller.inventory.length, 0, 'pas de double retrait à l’achat');
+  assert.equal(buyer.money, 90);
+});
+
+test('MarketManager retire à l’achat quand le vendeur était absent à la mise en vente', () => {
+  const { MarketManager } = require('../marketManager');
+  const manager = new MarketManager();
+  const item = { id: 'it2', name: 'Objet', slot: 'misc' };
+  const listing = manager.createListing({ sellerId: 's2', item, price: 20 });
+  assert.equal(listing.removedFromSeller, false);
+
+  const seller = { id: 's2', money: 0, inventory: [{ ...item }] };
+  const buyer = { id: 'b2', money: 100, inventory: [] };
+  manager.buyListing(buyer, listing.id, seller);
+  assert.equal(seller.inventory.length, 0);
+  assert.equal(seller.money, 20);
+});
