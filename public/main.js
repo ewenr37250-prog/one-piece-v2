@@ -295,12 +295,37 @@ function updateHUD() {
     const hudMoney = document.getElementById('hud-money');
     const hudIsland = document.getElementById('hud-island');
 
+    const hudLevel = document.getElementById('hud-level');
+    const hudBounty = document.getElementById('hud-bounty');
+
     if (hudName) hudName.textContent = state.player.username || CURRENT_USER;
     if (hudMoney) hudMoney.textContent = `${state.player.money || 0} ฿`;
+    if (hudLevel) hudLevel.textContent = state.player.level || 1;
+    if (hudBounty) hudBounty.textContent = `${state.player.bounty || 0} ฿`;
     if (hudIsland) {
         const fruitLabel = state.player.devilFruit?.name ? ` • Fruit : ${state.player.devilFruit.name}` : '';
         hudIsland.textContent = `Île : ${state.player.current_island || 'windmill'}${fruitLabel}`;
     }
+}
+
+function showBoard(name) {
+    document.querySelectorAll('[data-board-view]').forEach((view) => {
+        view.classList.toggle('is-active', view.dataset.boardView === name);
+    });
+    document.querySelectorAll('.gl-nav-btn[data-board], .gl-dock-btn[data-board]').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.board === name);
+    });
+}
+
+function bindBoardNavigation() {
+    document.querySelectorAll('[data-board]').forEach((btn) => {
+        btn.addEventListener('click', () => showBoard(btn.dataset.board));
+    });
+    document.querySelectorAll('[data-focus]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            document.getElementById(btn.dataset.focus)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
 }
 
 function renderMap() {
@@ -681,6 +706,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     bindClassPicker();
+    bindBoardNavigation();
     applyClassTheme(selectedClass);
 
     if (savedUser) {

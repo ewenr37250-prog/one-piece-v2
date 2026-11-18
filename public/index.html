@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="style-extra.css">
     <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="style-shell.css">
 </head>
 <body>
     <div id="auth-screen">
@@ -28,123 +29,137 @@
     </div>
 
     <div id="game-ui">
-        <div class="hud">
-            <span id="hud-name">Joueur Inconnu</span>
-            <span id="hud-money">0 ฿</span>
-            <span id="hud-island">-</span>
-            <button id="admin-toggle" class="admin-toggle">Admin</button>
-        </div>
+        <header class="gl-topbar">
+            <nav class="gl-nav">
+                <button class="gl-nav-btn active" data-board="accueil">Accueil</button>
+                <button class="gl-nav-btn" data-board="personnage">Personnage</button>
+                <button class="gl-nav-btn" data-board="inventaire">Inventaire</button>
+                <button class="gl-nav-btn" data-focus="quest-panel">Quêtes</button>
+            </nav>
+            <div class="gl-brand">
+                <span class="gl-skull">☠</span>
+                <strong>Grand Line MMO</strong>
+                <small>Pirate RPG</small>
+            </div>
+            <nav class="gl-nav gl-nav-right">
+                <button class="gl-nav-btn" data-board="factions">Factions</button>
+                <button class="gl-nav-btn" data-board="carte">Carte du monde</button>
+                <button class="gl-nav-btn" data-board="marche">Marché</button>
+                <button id="admin-toggle" class="gl-nav-btn admin-toggle">Admin</button>
+            </nav>
+        </header>
 
-        <div class="game-shell">
-            <aside class="side-rail left-rail">
-                <div class="side-panel">
-                    <div class="mini-label">Prime</div>
-                    <div class="big-stat">1200</div>
-                    <div class="meta-line">credits actifs</div>
-                </div>
+        <div class="gl-body">
+            <aside class="gl-rail gl-left">
+                <section class="gl-card gl-profile">
+                    <h3 id="hud-name">Joueur Inconnu</h3>
+                    <div class="gl-sub">Niveau <span id="hud-level">1</span></div>
+                    <div class="gl-stat"><span>Berrys</span><strong id="hud-money">0 ฿</strong></div>
+                    <div class="gl-stat"><span>Prime</span><strong id="hud-bounty">0 ฿</strong></div>
+                    <div class="gl-stat"><span>Île</span><strong id="hud-island">-</strong></div>
+                </section>
 
-                <div class="side-panel">
-                    <div class="mini-label">Messagerie</div>
-                    <div class="message-item">
-                        <strong>Capitaine</strong>
-                        <span>On met le cap sur Loguetown.</span>
-                    </div>
-                    <div class="message-item">
-                        <strong>Marine</strong>
-                        <span>Patrouille renforcée près du port.</span>
-                    </div>
-                </div>
+                <section class="gl-card">
+                    <h4 class="gl-title">Actions rapides</h4>
+                    <button id="combat-btn" class="gl-action">
+                        <span class="gl-action-name">Chercher un combat</span>
+                        <small>Défier un ennemi</small>
+                    </button>
+                    <button id="npc-interact-btn" class="gl-action">
+                        <span class="gl-action-name">Parler à un PNJ</span>
+                        <small>Dialogue du premier PNJ</small>
+                    </button>
+                    <button class="gl-action" data-board="carte">
+                        <span class="gl-action-name">Explorer</span>
+                        <small>Partir à l'aventure</small>
+                    </button>
+                    <button class="gl-action" data-board="marche">
+                        <span class="gl-action-name">Marché noir</span>
+                        <small>Échanger des objets</small>
+                    </button>
+                </section>
 
-                <div class="side-panel">
-                    <div class="mini-label">Événements</div>
-                    <div id="world-event" class="world-info-box"></div>
-                    <button id="event-resolve-btn" class="btn" style="margin-top: 10px; width: 100%;">Régler l’événement</button>
-                </div>
+                <section class="gl-card">
+                    <h4 class="gl-title">Résultat de combat</h4>
+                    <div id="combat-result"></div>
+                </section>
             </aside>
 
-            <main class="board-panel">
-                <div class="board-header">
-                    <div>
-                        <div class="mini-label">Planche centrale</div>
-                        <h2>Tableau de bord du navire</h2>
-                    </div>
-                    <div class="board-badges">
-                        <span>RP</span>
-                        <span>Équipage</span>
-                        <span>Île</span>
-                    </div>
-                </div>
+            <main class="gl-stage">
+                <section class="gl-board is-active" data-board-view="accueil">
+                    <div class="gl-board-head"><h2>Journal de bord</h2></div>
+                    <p class="gl-lead">Les mers de la Grand Line sont vastes et périlleuses. Chaque jour apporte son lot de défis.</p>
+                    <div id="world-npcs" class="stack-list"></div>
+                    <div id="npc-dialogue"></div>
+                </section>
 
-                <div class="board-grid">
-                    <section class="board-card map-card">
-                        <div class="card-head">
-                            <h3>Carte du monde</h3>
-                            <span>Navigation</span>
-                        </div>
-                        <div id="game-map" class="map-grid"></div>
-                    </section>
+                <section class="gl-board" data-board-view="personnage">
+                    <div class="gl-board-head"><h2>Personnage</h2></div>
+                    <h4 class="gl-title">Équipement</h4>
+                    <div id="equipment-list" class="stack-list"></div>
+                    <h4 class="gl-title">Réputation</h4>
+                    <div id="reputation-list" class="stack-list"></div>
+                </section>
 
-                    <section class="board-card rp-card">
-                        <div class="card-head">
-                            <h3>Équipage & RP</h3>
-                            <span>Journal</span>
-                        </div>
-                        <div id="world-npcs" class="stack-list"></div>
-                        <button id="npc-interact-btn" class="btn" style="margin-top: 12px; width: 100%;">Parler au premier NPC</button>
-                        <div id="npc-dialogue" style="margin-top: 10px;"></div>
-                    </section>
+                <section class="gl-board" data-board-view="inventaire">
+                    <div class="gl-board-head"><h2>Inventaire</h2></div>
+                    <div id="inventory-list" class="stack-list"></div>
+                </section>
 
-                    <section class="board-card inventory-card">
-                        <div class="card-head">
-                            <h3>Inventaire</h3>
-                            <span>Sac</span>
-                        </div>
-                        <div id="inventory-list" class="stack-list"></div>
-                    </section>
+                <section class="gl-board" data-board-view="carte">
+                    <div class="gl-board-head"><h2>Carte du monde</h2></div>
+                    <div id="game-map" class="map-grid"></div>
+                    <h4 class="gl-title">Territoires</h4>
+                    <div id="world-territories" class="stack-list"></div>
+                </section>
 
-                    <section class="board-card crew-card">
-                        <div class="card-head">
-                            <h3>Équipement</h3>
-                            <span>Armes</span>
-                        </div>
-                        <div id="equipment-list" class="stack-list"></div>
-                    </section>
-                </div>
+                <section class="gl-board" data-board-view="marche">
+                    <div class="gl-board-head"><h2>Marché</h2></div>
+                    <div id="market-list" class="stack-list"></div>
+                </section>
+
+                <section class="gl-board" data-board-view="factions">
+                    <div class="gl-board-head"><h2>Factions</h2></div>
+                    <div id="world-factions" class="stack-list"></div>
+                </section>
             </main>
 
-            <aside class="side-rail right-rail">
-                <div class="side-panel">
-                    <div class="mini-label">Combat</div>
-                    <button id="combat-btn" class="btn" style="width: 100%;">Lancer un combat</button>
-                    <div id="combat-result" style="margin-top: 12px;"></div>
-                </div>
-
-                <div class="side-panel">
-                    <div class="mini-label">Quêtes</div>
+            <aside class="gl-rail gl-right">
+                <section class="gl-card" id="quest-panel">
+                    <h4 class="gl-title">Quêtes en cours</h4>
                     <div id="quest-list" class="stack-list"></div>
-                </div>
+                </section>
 
-                <div class="side-panel">
-                    <div class="mini-label">Marché</div>
-                    <div id="market-list" class="stack-list"></div>
-                </div>
-
-                <div class="side-panel">
-                    <div class="mini-label">Réputation</div>
-                    <div id="reputation-list" class="stack-list"></div>
-                </div>
-
-                <div class="side-panel">
-                    <div class="mini-label">Territoires</div>
-                    <div id="world-territories" class="stack-list"></div>
-                </div>
-
-                <div class="side-panel">
-                    <div class="mini-label">Factions</div>
-                    <div id="world-factions" class="stack-list"></div>
-                </div>
+                <section class="gl-card gl-chat">
+                    <h4 class="gl-title">Messagerie</h4>
+                    <div class="message-item"><strong>Capitaine</strong><span>On met le cap sur Loguetown.</span></div>
+                    <div class="message-item"><strong>Marine</strong><span>Patrouille renforcée près du port.</span></div>
+                </section>
             </aside>
         </div>
+
+        <footer class="gl-bottom">
+            <section class="gl-card gl-event">
+                <h4 class="gl-title">Événement actuel</h4>
+                <div id="world-event" class="world-info-box"></div>
+                <button id="event-resolve-btn" class="gl-action">Régler l'événement</button>
+            </section>
+
+            <nav class="gl-dock">
+                <button class="gl-dock-btn" data-board="personnage"><span>👤</span>Profil</button>
+                <button class="gl-dock-btn" data-board="factions"><span>☠</span>Équipage</button>
+                <button class="gl-dock-btn" data-board="accueil"><span>📖</span>Journal</button>
+                <button class="gl-dock-btn" data-board="inventaire"><span>🎒</span>Inventaire</button>
+                <button class="gl-dock-btn" data-board="carte"><span>🧭</span>Carte</button>
+                <button class="gl-dock-btn" data-board="marche"><span>🏆</span>Marché</button>
+            </nav>
+
+            <section class="gl-card gl-news">
+                <h4 class="gl-title">Annonces</h4>
+                <p>• Un nouveau boss est apparu sur Dressrosa !</p>
+                <p>• La Marine recrute de nouveaux soldats.</p>
+            </section>
+        </footer>
     </div>
 
     <div id="admin-panel" class="hidden">
