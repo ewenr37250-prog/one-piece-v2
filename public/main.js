@@ -328,20 +328,103 @@ function bindBoardNavigation() {
     });
 }
 
+// Carte monde : coordonnées sur un repère 1000x700 (positions serveur de worldEngine.js).
+// Marineford n'a pas de position serveur : coordonnée provisoire à valider.
+const WORLD_MAP = {
+    title: 'Grand Line',
+    places: [
+        { id: 'windmill', name: 'Village de la Girouette', x: 80, y: 480, kind: 'village', danger: 1, navigable: true },
+        { id: 'loguetown', name: 'Loguetown', x: 245, y: 560, kind: 'village', danger: 2, navigable: true },
+        { id: 'marineford', name: 'Marineford', x: 430, y: 300, kind: 'base', danger: 4, navigable: true },
+        { id: 'reverse-mountain', name: 'Reverse Mountain', x: 290, y: 540, kind: 'legendary', danger: 3, navigable: false }
+    ],
+    dangerZones: [{ cx: 300, cy: 530, rx: 95, ry: 70 }]
+};
+
+const MAP_KIND_LABELS = {
+    village: 'Village / Île',
+    base: 'Capitale / Base',
+    danger: 'Zone dangereuse',
+    event: 'Événement actif',
+    legendary: 'Site légendaire'
+};
+
+function dangerDots(level) {
+    return '●'.repeat(level) + '○'.repeat(Math.max(0, 5 - level));
+}
+
 function renderMap() {
     const mapEl = document.getElementById('game-map');
     if (!mapEl) return;
 
-    mapEl.innerHTML = ISLANDS.map((island) => {
-        const current = state.player.current_island === island.id;
+    const current = state.player.current_island;
+    const markers = WORLD_MAP.places.map((place) => {
+        const isCurrent = place.navigable && current === place.id;
+        const symbol = place.kind === 'legendary' ? '★' : place.kind === 'base' ? '▲' : '●';
         return `
-            <button class="island-card ${current ? 'active' : ''}" data-island="${island.id}">
-                <span>${island.ico}</span>
-                <strong>${island.name}</strong>
-                <small>${island.desc}</small>
-            </button>
-        `;
+            <g class="map-marker ${place.kind} ${isCurrent ? 'current' : ''}" data-place="${place.id}" tabindex="0" role="button">
+                <circle cx="${place.x}" cy="${place.y}" r="${isCurrent ? 18 : 13}"></circle>
+                <text x="${place.x}" y="${place.y + 5}" text-anchor="middle">${symbol}</text>
+                <text class="map-label" x="${place.x}" y="${place.y + 34}" text-anchor="middle">${escapeHtml(place.name)}</text>
+            </g>`;
     }).join('');
+
+    const zones = WORLD_MAP.dangerZones.map((z) =>
+        `<ellipse class="map-danger" cx="${z.cx}" cy="${z.cy}" rx="${z.rx}" ry="${z.ry}"></ellipse>`).join('');
+
+    const legend = ['village', 'base', 'danger', 'event', 'legendary'].map((kind) =>
+        `<li class="legend-${kind}"><i></i>${MAP_KIND_LABELS[kind]}</li>`).join('');
+
+    mapEl.innerHTML = `
+        <div class="world-map-wrap">
+            <svg class="world-map" viewBox="0 0 1000 700" role="img" aria-label="${WORLD_MAP.title}">
+                <defs>
+                    <radialGradient id="sea" cx="50%" cy="45%" r="70%">
+                        <stop offset="0%" stop-color="#2d5f74"/>
+                        <stop offset="100%" stop-color="#0f2b38"/>
+                    </radialGradient>
+                </defs>
+                <rect width="1000" height="700" fill="url(#sea)"/>
+                <g class="map-grid-lines">
+                    ${Array.from({ length: 9 }, (_, i) => `<line x1="${i * 125}" y1="0" x2="${i * 125}" y2="700"/>`).join('')}
+                    ${Array.from({ length: 7 }, (_, i) => `<line x1="0" y1="${i * 116.7}" x2="1000" y2="${i * 116.7}"/>`).join('')}
+                </g>
+                ${zones}
+                ${markers}
+                <g class="map-compass" transform="translate(900 90)">
+                    <circle r="36"></circle><text y="-14" text-anchor="middle">N</text><path d="M0 -26 L8 0 L0 26 L-8 0 Z"></path>
+                </g>
+                <text class="map-title" x="500" y="60" text-anchor="middle">☠ ${WORLD_MAP.title}</text>
+            </svg>
+            <aside class="map-legend"><h4>Légende</h4><ul>${legend}</ul></aside>
+            <div id="map-info" class="map-info"></div>
+        </div>
+        <div class="island-cards">
+            ${ISLANDS.map((island) => `
+                <button class="island-card ${current === island.id ? 'active' : ''}" data-island="${island.id}">
+                    <span>${island.ico}</span>
+                    <strong>${island.name}</strong>
+                    <small>${island.desc}</small>
+                </button>`).join('')}
+        </div>`;
+
+    const info = document.getElementById('map-info');
+    const showInfo = (place) => {
+        info.innerHTML = `
+            <strong>${escapeHtml(place.name)}</strong>
+            <span>${MAP_KIND_LABELS[place.kind]}</span>
+            <span>Danger : ${dangerDots(place.danger)}</span>
+            <small>📍 ${place.x}, ${place.y}</small>
+            ${place.navigable ? '' : '<small>Lieu non accessible pour le moment.</small>'}`;
+    };
+
+    mapEl.querySelectorAll('.map-marker').forEach((g) => {
+        const place = WORLD_MAP.places.find((p) => p.id === g.dataset.place);
+        const pick = () => { showInfo(place); if (place.navigable) navigateToIsland(place.id); };
+        g.addEventListener('mouseenter', () => showInfo(place));
+        g.addEventListener('click', pick);
+        g.addEventListener('keydown', (e) => { if (e.key === 'Enter') pick(); });
+    });
 
     mapEl.querySelectorAll('.island-card').forEach((button) => {
         button.addEventListener('click', () => {
